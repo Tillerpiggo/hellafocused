@@ -2,9 +2,8 @@
 import { useAppStore } from "@/store/app-store"
 import { Button } from "@/components/ui/button"
 import { Check, Shuffle, PartyPopper, ArrowUp, X, Plus } from "lucide-react"
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState } from "react"
 import { AddTasksView } from "./add-tasks-view"
-import { Textarea } from "@/components/ui/textarea"
 import { triggerConfetti } from "@/lib/confetti"
 
 export function FocusView() {
@@ -14,9 +13,6 @@ export function FocusView() {
   const exitFocusMode = useAppStore((state) => state.exitFocusMode)
   const focusModeProjectLeaves = useAppStore((state) => state.focusModeProjectLeaves)
   const keepGoingFocus = useAppStore((state) => state.keepGoingFocus)
-  const selectedProjectId = useAppStore((state) => state.selectedProjectId)
-  const updateTaskName = useAppStore((state) => state.updateTaskName)
-  const projects = useAppStore((state) => state.projects)
   const showAddTasksView = useAppStore((state) => state.showAddTasksView)
   const setShowAddTasksView = useAppStore((state) => state.setShowAddTasksView)
 
@@ -25,10 +21,7 @@ export function FocusView() {
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [isCompleting, setIsCompleting] = useState(false)
   const [displayedTaskName, setDisplayedTaskName] = useState("")
-  const [isEditing, setIsEditing] = useState(false)
-  const [editValue, setEditValue] = useState("")
   const [isExiting, setIsExiting] = useState(false)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   // Update displayed task name when current task changes (but not during completion)
   useEffect(() => {
@@ -46,43 +39,12 @@ export function FocusView() {
     return () => clearTimeout(timer)
   }, [])
 
-  // Auto-resize textarea and position cursor when editing starts
-  useEffect(() => {
-    if (isEditing && textareaRef.current) {
-      // Use a small timeout to ensure the textarea is fully rendered
-      setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.style.height = "auto"
-          textareaRef.current.style.height = textareaRef.current.scrollHeight + "px"
-          textareaRef.current.focus()
 
-          // Position cursor at the end of the text
-          const length = textareaRef.current.value.length
-          textareaRef.current.setSelectionRange(length, length)
-        }
-      }, 10)
-    }
-  }, [isEditing])
-
-  // Update textarea height when content changes
-  useEffect(() => {
-    if (isEditing && textareaRef.current) {
-      textareaRef.current.style.height = "auto"
-      textareaRef.current.style.height = textareaRef.current.scrollHeight + "px"
-    }
-  }, [editValue])
 
   // Add keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (isEditing) {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault()
-          handleSaveEdit()
-        } else if (e.key === "Escape") {
-          handleCancelEdit()
-        }
-      } else if (e.key === "Escape") {
+      if (e.key === "Escape") {
         handleExitFocusMode()
       }
     }
@@ -91,49 +53,14 @@ export function FocusView() {
     return () => {
       window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [isEditing, editValue])
+  }, [])
 
-  // Find the task path for the current focus task
-  const findTaskPath = (tasks: any[], targetId: string, currentPath: string[] = []): string[] | null => {
-    for (const task of tasks) {
-      const newPath = [...currentPath, task.id]
-      if (task.id === targetId) return newPath
-      if (task.subtasks && task.subtasks.length > 0) {
-        const subPath = findTaskPath(task.subtasks, targetId, newPath)
-        if (subPath) return subPath
-      }
-    }
-    return null
-  }
 
-  const handleEditTask = () => {
-    if (currentFocusTask) {
-      setEditValue(currentFocusTask.name)
-      setIsEditing(true)
-    }
-  }
 
-  const handleSaveEdit = () => {
-    if (currentFocusTask && selectedProjectId && editValue.trim() !== "") {
-      const project = projects.find((p) => p.id === selectedProjectId)
-      if (project) {
-        const taskPath = findTaskPath(project.tasks, currentFocusTask.id)
-        if (taskPath) {
-          updateTaskName(selectedProjectId, taskPath, editValue.trim())
-          setDisplayedTaskName(editValue.trim())
-        }
-      }
-    }
-    setIsEditing(false)
-  }
 
-  const handleCancelEdit = () => {
-    setEditValue("")
-    setIsEditing(false)
-  }
 
   const handleCompleteTask = () => {
-    if (isCompleting || !currentFocusTask || isEditing) return
+    if (isCompleting || !currentFocusTask) return
 
     setIsCompleting(true)
 
@@ -155,7 +82,7 @@ export function FocusView() {
   }
 
   const handleGetNextTask = () => {
-    if (isCompleting || isEditing) return
+    if (isCompleting) return
 
     setIsTransitioning(true)
 
@@ -305,33 +232,14 @@ export function FocusView() {
         {/* Main content area with task title - centered vertically and horizontally */}
         <div className="flex-1 flex items-center justify-center p-8 overflow-hidden">
           <div className="relative max-w-4xl w-full">
-            {isEditing ? (
-              <div className="flex items-center justify-center">
-                <Textarea
-                  ref={textareaRef}
-                  value={editValue}
-                  onChange={(e) => setEditValue(e.target.value)}
-                  className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-foreground text-center leading-relaxed break-words border-none bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none resize-none overflow-hidden w-full m-0"
-                  style={{
-                    minHeight: "auto",
-                    lineHeight: "1.2",
-                    margin: 0,
-                    padding: 0,
-                    verticalAlign: "middle",
-                    display: "block",
-                  }}
-                />
-              </div>
-            ) : (
-              <h1
-                key={taskKey}
-                className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-foreground text-center leading-relaxed break-words transition-all duration-300 ease-out ${
-                  isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"
-                }`}
-              >
-                {displayedTaskName || currentFocusTask.name}
-              </h1>
-            )}
+            <h1
+              key={taskKey}
+              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-foreground text-center leading-relaxed break-words transition-all duration-300 ease-out ${
+                isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"
+              }`}
+            >
+              {displayedTaskName || currentFocusTask.name}
+            </h1>
           </div>
         </div>
 
@@ -341,7 +249,7 @@ export function FocusView() {
             size="lg"
             className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-4 rounded-full transition-all duration-300 hover:scale-105 shadow-lg"
             onClick={handleCompleteTask}
-            disabled={isCompleting || isEditing}
+            disabled={isCompleting}
           >
             <Check className="mr-2 h-5 w-5" />
             Complete
@@ -351,7 +259,7 @@ export function FocusView() {
             variant="outline"
             className="flex-1 py-4 rounded-full transition-all duration-300 hover:scale-105 border-2"
             onClick={handleGetNextTask}
-            disabled={isCompleting || isEditing}
+            disabled={isCompleting}
           >
             <Shuffle className="mr-2 h-5 w-5" />
             Next
