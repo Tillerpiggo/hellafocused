@@ -19,8 +19,6 @@ interface AppState {
   showDeleteConfirmationDialog: boolean
   pendingDeletion: { projectId: string; taskPath: string[] } | null
   showAddTasksView: boolean
-  showBreakIntoSubtasksView: boolean
-
   // Actions
   selectProject: (projectId: string | null) => void
   navigateToTask: (taskId: string) => void
@@ -44,7 +42,7 @@ interface AppState {
 
   setShowProjectSelectorDialog: (show: boolean) => void
   setShowAddTasksView: (show: boolean) => void
-  setShowBreakIntoSubtasksView: (show: boolean) => void
+
   toggleShowCompleted: () => void
 
   addSubtask: (projectId: string, parentTaskPath: string[], subtaskName: string) => void
@@ -181,7 +179,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   showDeleteConfirmationDialog: false,
   pendingDeletion: null,
   showAddTasksView: false,
-  showBreakIntoSubtasksView: false,
 
   selectProject: (projectId) => set({ selectedProjectId: projectId, currentTaskPath: [] }),
 
@@ -591,7 +588,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setShowAddTasksView: (show) => set({ showAddTasksView: show }),
 
-  setShowBreakIntoSubtasksView: (show) => set({ showBreakIntoSubtasksView: show }),
+
 
   toggleShowCompleted: () => set((state) => ({ showCompleted: !state.showCompleted })),
 

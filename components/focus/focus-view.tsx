@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Check, Shuffle, PartyPopper, ArrowUp, X, Plus } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import { AddTasksView } from "./add-tasks-view"
-import { BreakIntoSubtasksView } from "./break-into-subtasks-view"
 import { Textarea } from "@/components/ui/textarea"
 import { triggerConfetti } from "@/lib/confetti"
 
@@ -19,9 +18,7 @@ export function FocusView() {
   const updateTaskName = useAppStore((state) => state.updateTaskName)
   const projects = useAppStore((state) => state.projects)
   const showAddTasksView = useAppStore((state) => state.showAddTasksView)
-  const showBreakIntoSubtasksView = useAppStore((state) => state.showBreakIntoSubtasksView)
   const setShowAddTasksView = useAppStore((state) => state.setShowAddTasksView)
-  const setShowBreakIntoSubtasksView = useAppStore((state) => state.setShowBreakIntoSubtasksView)
 
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [taskKey, setTaskKey] = useState(0)
@@ -227,10 +224,6 @@ export function FocusView() {
             </div>
           </div>
           <AddTasksView isVisible={showAddTasksView} onClose={() => setShowAddTasksView(false)} />
-          <BreakIntoSubtasksView
-            isVisible={showBreakIntoSubtasksView}
-            onClose={() => setShowBreakIntoSubtasksView(false)}
-          />
         </>
       )
     }
@@ -275,10 +268,6 @@ export function FocusView() {
           </div>
         </div>
         <AddTasksView isVisible={showAddTasksView} onClose={() => setShowAddTasksView(false)} />
-        <BreakIntoSubtasksView
-          isVisible={showBreakIntoSubtasksView}
-          onClose={() => setShowBreakIntoSubtasksView(false)}
-        />
       </>
     )
   }
@@ -373,11 +362,6 @@ export function FocusView() {
       {/* Add Tasks View */}
       <AddTasksView isVisible={showAddTasksView} onClose={() => setShowAddTasksView(false)} />
 
-      {/* Break Into Subtasks View */}
-      <BreakIntoSubtasksView
-        isVisible={showBreakIntoSubtasksView}
-        onClose={() => setShowBreakIntoSubtasksView(false)}
-      />
     </>
   )
 }
