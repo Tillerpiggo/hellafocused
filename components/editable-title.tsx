@@ -1,5 +1,5 @@
 "use client"
-import { useState, useRef, useEffect, forwardRef } from "react"
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react"
 import type React from "react"
 import { Textarea } from "@/components/ui/textarea"
 import { cn } from "@/lib/utils"
@@ -12,12 +12,38 @@ interface EditableTitleProps {
   isCompleted?: boolean
 }
 
-export const EditableTitle = forwardRef<HTMLTextAreaElement, EditableTitleProps>(
+export interface EditableTitleRef {
+  focus: () => void
+  blur: () => void
+}
+
+export const EditableTitle = forwardRef<EditableTitleRef, EditableTitleProps>(
   ({ value, onChange, className, placeholder, isCompleted = false }, ref) => {
     const [editValue, setEditValue] = useState(value)
     const [isEditing, setIsEditing] = useState(false)
-    const internalRef = useRef<HTMLTextAreaElement>(null)
-    const textareaRef = ref || internalRef
+    const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+    // Expose methods to parent components
+    useImperativeHandle(ref, () => ({
+      focus: () => {
+        if (textareaRef.current) {
+          setIsEditing(true)
+          textareaRef.current.focus()
+          // Position cursor at the end without selecting all text
+          setTimeout(() => {
+            if (textareaRef.current) {
+              const length = textareaRef.current.value.length
+              textareaRef.current.setSelectionRange(length, length)
+            }
+          }, 0)
+        }
+      },
+      blur: () => {
+        if (textareaRef.current) {
+          textareaRef.current.blur()
+        }
+      }
+    }), [])
 
     useEffect(() => {
       setEditValue(value)
@@ -25,11 +51,11 @@ export const EditableTitle = forwardRef<HTMLTextAreaElement, EditableTitleProps>
 
     // Auto-resize textarea
     useEffect(() => {
-      if (textareaRef && "current" in textareaRef && textareaRef.current) {
+      if (textareaRef.current) {
         textareaRef.current.style.height = "auto"
         textareaRef.current.style.height = textareaRef.current.scrollHeight + "px"
       }
-    }, [editValue, textareaRef])
+    }, [editValue])
 
     const handleSubmit = () => {
       // Always call onChange, even if the value hasn't changed
@@ -41,13 +67,13 @@ export const EditableTitle = forwardRef<HTMLTextAreaElement, EditableTitleProps>
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault()
         handleSubmit()
-        if (textareaRef && "current" in textareaRef && textareaRef.current) {
+        if (textareaRef.current) {
           textareaRef.current.blur()
         }
       } else if (e.key === "Escape") {
         setEditValue(value)
         setIsEditing(false)
-        if (textareaRef && "current" in textareaRef && textareaRef.current) {
+        if (textareaRef.current) {
           textareaRef.current.blur()
         }
       }
@@ -57,7 +83,7 @@ export const EditableTitle = forwardRef<HTMLTextAreaElement, EditableTitleProps>
       setIsEditing(true)
       // Use setTimeout to ensure the textarea is fully focused before selection
       setTimeout(() => {
-        if (textareaRef && "current" in textareaRef && textareaRef.current) {
+        if (textareaRef.current) {
           // Position cursor at the end
           const length = textareaRef.current.value.length
           textareaRef.current.setSelectionRange(length, length)
@@ -85,7 +111,6 @@ export const EditableTitle = forwardRef<HTMLTextAreaElement, EditableTitleProps>
         )}
         placeholder={placeholder}
         rows={1}
-        disabled={isCompleted}
       />
     )
   },

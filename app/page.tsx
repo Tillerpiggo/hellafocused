@@ -9,10 +9,10 @@ import { useAppStore, getCurrentTasksForView, getCurrentTaskChain } from "@/stor
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Check, X, Target } from "lucide-react"
 import { AddTaskForm } from "@/components/task/add-task-form"
-import { EditableTitle } from "@/components/editable-title"
+import { EditableTitle, type EditableTitleRef } from "@/components/editable-title"
 import { TaskOptionsMenu } from "@/components/task/task-options-menu"
 import { triggerConfetti } from "@/lib/confetti"
-import { useRef, useEffect, useState } from "react"
+import { useRef } from "react"
 
 export default function HomePage() {
   const store = useAppStore()
@@ -42,8 +42,7 @@ export default function HomePage() {
     exitFocusMode,
   } = store
 
-  const [isRenaming, setIsRenaming] = useState(false)
-  const titleRef = useRef<HTMLTextAreaElement>(null)
+  const titleRef = useRef<EditableTitleRef>(null)
 
   const tasksToDisplay = getCurrentTasksForView(store)
   const currentProject = projects.find((p) => p.id === selectedProjectId)
@@ -117,12 +116,7 @@ export default function HomePage() {
     )
   }
 
-  // Focus the title field when renaming is triggered
-  useEffect(() => {
-    if (isRenaming && titleRef.current) {
-      titleRef.current.focus()
-    }
-  }, [isRenaming])
+
 
   if (isFocusMode) {
     return (
@@ -164,7 +158,6 @@ export default function HomePage() {
       // Editing task name
       updateTaskName(selectedProjectId, currentTaskPath, newTitle)
     }
-    setIsRenaming(false)
   }
 
   const handleDelete = () => {
@@ -224,7 +217,8 @@ export default function HomePage() {
   }
 
   const handleRename = () => {
-    setIsRenaming(true)
+    // Focus the editable title
+    setTimeout(() => titleRef.current?.focus(), 0)
   }
 
   const pageContent = () => {

@@ -7,8 +7,8 @@ import { Button } from "@/components/ui/button"
 import { CheckSquare, Square, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TaskContextMenu } from "./task-context-menu"
-import { EditableTitle } from "@/components/editable-title"
-import { useState } from "react"
+import { EditableTitle, type EditableTitleRef } from "@/components/editable-title"
+import { useState, useRef } from "react"
 
 interface TaskItemProps {
   task: TaskItemData
@@ -22,6 +22,7 @@ export function TaskItem({ task, projectId, currentPathInProject }: TaskItemProp
   const deleteTask = useAppStore((state) => state.deleteTask)
   const updateTaskName = useAppStore((state) => state.updateTaskName)
   const [isEditing, setIsEditing] = useState(false)
+  const editableTitleRef = useRef<EditableTitleRef>(null)
 
   const taskPath = [...currentPathInProject, task.id]
 
@@ -35,20 +36,6 @@ export function TaskItem({ task, projectId, currentPathInProject }: TaskItemProp
       // Always navigate, even if task is completed
       navigateToTask(task.id)
     }
-  }
-
-  const handleEdit = () => {
-    if (!task.completed) {
-      setIsEditing(true)
-    }
-  }
-
-  const handleToggleComplete = () => {
-    toggleTaskCompletion(projectId, taskPath)
-  }
-
-  const handleDelete = () => {
-    deleteTask(projectId, taskPath)
   }
 
   const handleTaskNameChange = (newName: string) => {
@@ -83,6 +70,7 @@ export function TaskItem({ task, projectId, currentPathInProject }: TaskItemProp
         </Button>
         {isEditing ? (
           <EditableTitle
+            ref={editableTitleRef}
             value={task.name}
             onChange={handleTaskNameChange}
             className={cn("text-base font-medium", task.completed && "line-through text-muted-foreground")}
@@ -108,9 +96,13 @@ export function TaskItem({ task, projectId, currentPathInProject }: TaskItemProp
 
   return (
     <TaskContextMenu
-      onEdit={handleEdit}
-      onToggleComplete={handleToggleComplete}
-      onDelete={handleDelete}
+      onEdit={() => {
+        setIsEditing(true)
+        // Focus the editable title after state updates
+        setTimeout(() => editableTitleRef.current?.focus(), 0)
+      }}
+      onToggleComplete={() => toggleTaskCompletion(projectId, taskPath)}
+      onDelete={() => deleteTask(projectId, taskPath)}
       isCompleted={task.completed}
     >
       {taskContent}
