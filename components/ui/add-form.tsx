@@ -13,6 +13,7 @@ interface AddFormProps {
   inputId: string
 }
 
+// This is an input text field for adding tasks/subtasks quickly. Handles all styling/animation/ui logic.
 export function AddForm({ placeholder, onSubmit, inputId }: AddFormProps) {
   const [value, setValue] = useState("")
   const [isFocused, setIsFocused] = useState(false)
