@@ -6,7 +6,6 @@ import { AllTasksCompletedView } from "./all-tasks-completed-view"
 import { NoTasksAvailableView } from "./no-tasks-available-view"
 import { FocusTaskView } from "./focus-task-view"
 import { FocusHeaderButtons } from "./focus-header-buttons"
-import { triggerConfetti } from "@/lib/confetti"
 
 export function FocusView() {
   const currentFocusTask = useAppStore((state) => state.currentFocusTask)
@@ -18,20 +17,8 @@ export function FocusView() {
   const keepGoingFocus = useAppStore((state) => state.keepGoingFocus)
   const setShowAddTasksView = useAppStore((state) => state.setShowAddTasksView)
 
-  const [isTransitioning, setIsTransitioning] = useState(false)
-  const [taskKey, setTaskKey] = useState(0)
   const [isInitialLoad, setIsInitialLoad] = useState(true)
-  const [isCompleting, setIsCompleting] = useState(false)
-  const [displayedTaskName, setDisplayedTaskName] = useState("")
   const [isExiting, setIsExiting] = useState(false)
-
-  // Update displayed task name when current task changes (but not during completion)
-  useEffect(() => {
-    if (currentFocusTask && !isCompleting) {
-      setDisplayedTaskName(currentFocusTask.name)
-      setTaskKey((prev) => prev + 1)
-    }
-  }, [currentFocusTask, isCompleting])
 
   // Handle initial load animation
   useEffect(() => {
@@ -55,39 +42,6 @@ export function FocusView() {
     }
   }, [])
 
-  const handleCompleteTask = () => {
-    if (isCompleting || !currentFocusTask) return
-
-    setIsCompleting(true)
-
-    // Trigger confetti
-    triggerConfetti()
-
-    // Start transition animation
-    setIsTransitioning(true)
-
-    // Complete task in backend but delay getting next task
-    completeFocusTask()
-
-    // After animation, get next task and update display
-    setTimeout(() => {
-      getNextFocusTask()
-      setIsTransitioning(false)
-      setIsCompleting(false)
-    }, 200)
-  }
-
-  const handleGetNextTask = () => {
-    if (isCompleting) return
-
-    setIsTransitioning(true)
-
-    setTimeout(() => {
-      getNextFocusTask()
-      setIsTransitioning(false)
-    }, 100)
-  }
-
   const handleExitFocusMode = () => {
     setIsExiting(true)
     setTimeout(() => {
@@ -107,13 +61,9 @@ export function FocusView() {
     } else {
       return (
         <FocusTaskView
-          taskName={currentFocusTask.name}
-          displayedTaskName={displayedTaskName}
-          taskKey={taskKey}
-          isTransitioning={isTransitioning}
-          isCompleting={isCompleting}
-          onCompleteTask={handleCompleteTask}
-          onGetNextTask={handleGetNextTask}
+          currentTask={currentFocusTask}
+          completeFocusTask={completeFocusTask}
+          getNextFocusTask={getNextFocusTask}
         />
       )
     }

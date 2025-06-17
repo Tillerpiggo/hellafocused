@@ -1,25 +1,64 @@
 import { Button } from "@/components/ui/button"
 import { Check, Shuffle } from "lucide-react"
+import { useEffect, useState } from "react"
+import { triggerConfetti } from "@/lib/confetti"
 
 interface FocusTaskViewProps {
-  taskName: string
-  displayedTaskName: string
-  taskKey: number
-  isTransitioning: boolean
-  isCompleting: boolean
-  onCompleteTask: () => void
-  onGetNextTask: () => void
+  currentTask: { id: string; name: string } | null
+  completeFocusTask: () => void
+  getNextFocusTask: () => void
 }
 
 export function FocusTaskView({
-  taskName,
-  displayedTaskName,
-  taskKey,
-  isTransitioning,
-  isCompleting,
-  onCompleteTask,
-  onGetNextTask
+  currentTask,
+  completeFocusTask,
+  getNextFocusTask
 }: FocusTaskViewProps) {
+  const [isCompleting, setIsCompleting] = useState(false)
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [taskKey, setTaskKey] = useState(0)
+  const [displayedTaskName, setDisplayedTaskName] = useState("")
+
+  // Update displayed task name when current task changes (but not during completion)
+  useEffect(() => {
+    if (currentTask && !isCompleting) {
+      setDisplayedTaskName(currentTask.name)
+      setTaskKey((prev) => prev + 1)
+    }
+  }, [currentTask, isCompleting])
+
+  const handleCompleteTask = () => {
+    if (isCompleting || !currentTask) return
+
+    setIsCompleting(true)
+
+    // Trigger confetti
+    triggerConfetti()
+
+    // Start transition animation
+    setIsTransitioning(true)
+
+    // Complete task in backend but delay getting next task
+    completeFocusTask()
+
+    // After animation, get next task and update display
+    setTimeout(() => {
+      getNextFocusTask()
+      setIsTransitioning(false)
+      setIsCompleting(false)
+    }, 0)
+  }
+
+  const handleGetNextTask = () => {
+    if (isCompleting) return
+
+    setIsTransitioning(true)
+
+    setTimeout(() => {
+      getNextFocusTask()
+      setIsTransitioning(false)
+    }, 0)
+  }
   return (
     <>
       {/* Main content area with task title - centered vertically and horizontally */}
@@ -31,7 +70,7 @@ export function FocusTaskView({
               isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"
             }`}
           >
-            {displayedTaskName || taskName}
+            {displayedTaskName || (currentTask?.name || "")}
           </h1>
         </div>
       </div>
@@ -41,7 +80,7 @@ export function FocusTaskView({
         <Button
           size="lg"
           className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-4 rounded-full transition-all duration-300 hover:scale-105 shadow-lg"
-          onClick={onCompleteTask}
+          onClick={handleCompleteTask}
           disabled={isCompleting}
         >
           <Check className="mr-2 h-5 w-5" />
@@ -51,7 +90,7 @@ export function FocusTaskView({
           size="lg"
           variant="outline"
           className="flex-1 py-4 rounded-full transition-all duration-300 hover:scale-105 border-2"
-          onClick={onGetNextTask}
+          onClick={handleGetNextTask}
           disabled={isCompleting}
         >
           <Shuffle className="mr-2 h-5 w-5" />
