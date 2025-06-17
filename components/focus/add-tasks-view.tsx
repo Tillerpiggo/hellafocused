@@ -4,8 +4,10 @@ import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { AddForm } from "@/components/ui/add-form"
 import { useAppStore } from "@/store/app-store"
-import { ArrowDown, ArrowLeft, CheckSquare, Square, ChevronRight } from "lucide-react"
+import { ArrowDown, ArrowLeft } from "lucide-react"
 import type { TaskItemData } from "@/lib/types"
+import { ProjectsView } from "./projects-view"
+import { TasksView } from "./tasks-view"
 
 interface AddTasksViewProps {
   isVisible: boolean
@@ -81,17 +83,10 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
         setShouldRender(false)
         setIsDismissing(false)
         onClose()
-      }, 400) // Reduced from 600ms to 400ms
+      }, 400)
       return () => clearTimeout(timer)
     }
   }, [isDismissing, onClose])
-
-  // Auto-focus input when animation completes
-  useEffect(() => {
-    if (isAnimating) {
-      // No longer needed
-    }
-  }, [isAnimating])
 
   // Handle escape key
   useEffect(() => {
@@ -109,51 +104,6 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
 
     return () => {
       window.removeEventListener("keydown", handleKeyDown, { capture: true })
-    }
-  }, [isVisible])
-
-  // Handle touch swipe to dismiss
-  useEffect(() => {
-    if (!viewRef.current || !isVisible) return
-
-    let startY = 0
-    let currentY = 0
-
-    const handleTouchStart = (e: TouchEvent) => {
-      startY = e.touches[0].clientY
-      currentY = startY
-    }
-
-    const handleTouchMove = (e: TouchEvent) => {
-      currentY = e.touches[0].clientY
-      const diff = currentY - startY
-
-      if (diff > 0) {
-        // Swiping down
-        viewRef.current!.style.transform = `translateY(${diff}px)`
-      }
-    }
-
-    const handleTouchEnd = () => {
-      const diff = currentY - startY
-      if (diff > 100) {
-        // Swipe threshold to dismiss
-        handleClose()
-      } else {
-        // Reset position
-        viewRef.current!.style.transform = ""
-      }
-    }
-
-    const element = viewRef.current
-    element.addEventListener("touchstart", handleTouchStart)
-    element.addEventListener("touchmove", handleTouchMove)
-    element.addEventListener("touchend", handleTouchEnd)
-
-    return () => {
-      element.removeEventListener("touchstart", handleTouchStart)
-      element.removeEventListener("touchmove", handleTouchMove)
-      element.removeEventListener("touchend", handleTouchEnd)
     }
   }, [isVisible])
 
@@ -260,42 +210,9 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-6">
         {!currentProjectId ? (
-          // Projects view
-          <div className="space-y-2">
-            {projects.map((project) => (
-              <button
-                key={project.id}
-                className="w-full flex items-center p-3 rounded-lg hover:bg-accent/50 transition-colors text-left group"
-                onClick={() => handleNavigateToProject(project.id)}
-              >
-                <div className="flex items-center flex-1 min-w-0">
-                  <span className="font-medium">{project.name}</span>
-                </div>
-                <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-              </button>
-            ))}
-          </div>
+          <ProjectsView projects={projects} onNavigateToProject={handleNavigateToProject} />
         ) : (
-          <div className="space-y-2">
-            {currentTasks.length > 0 &&
-              currentTasks.map((task) => (
-                <button
-                  key={task.id}
-                  className="w-full flex items-center p-3 rounded-lg hover:bg-accent/50 transition-colors text-left group"
-                  onClick={() => handleNavigateToTask(task.id)}
-                >
-                  <div className="flex items-center flex-1 min-w-0">
-                    {task.completed ? (
-                      <CheckSquare className="h-5 w-5 mr-3 text-muted-foreground" />
-                    ) : (
-                      <Square className="h-5 w-5 mr-3 text-muted-foreground" />
-                    )}
-                    <span className={task.completed ? "line-through text-muted-foreground" : ""}>{task.name}</span>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
-                </button>
-              ))}
-          </div>
+          <TasksView tasks={currentTasks} onNavigateToTask={handleNavigateToTask} />
         )}
         {currentProjectId && (
           <div className={currentTasks.length > 0 ? "mt-6" : "mt-2"}>
