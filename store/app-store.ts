@@ -38,7 +38,6 @@ interface AppState {
   getNextFocusTask: () => void
   completeFocusTask: () => void
   keepGoingFocus: () => void
-  breakTaskIntoSubtasks: (subtaskNames: string[]) => void
 
   setShowProjectSelectorDialog: (show: boolean) => void
   setShowAddTasksView: (show: boolean) => void
@@ -112,18 +111,7 @@ const markAllSubtasksCompleted = (task: TaskItemData) => {
 
 // Helper to get hierarchical leaf nodes starting from a specific path
 const getHierarchicalLeafNodes = (tasks: TaskItemData[], startPath: string[]): TaskItemData[] => {
-  // First, navigate to the starting point
-  let currentTasks = tasks
-  for (const pathId of startPath) {
-    const task = currentTasks.find((t) => t.id === pathId)
-    if (task) {
-      currentTasks = task.subtasks
-    } else {
-      return []
-    }
-  }
-
-  // Get leaf nodes at current level
+  // Helper function to get leaf nodes at a specific level
   const getLeafNodesAtLevel = (tasksAtLevel: TaskItemData[]): TaskItemData[] => {
     let leaves: TaskItemData[] = []
     for (const task of tasksAtLevel) {
@@ -138,30 +126,45 @@ const getHierarchicalLeafNodes = (tasks: TaskItemData[], startPath: string[]): T
     return leaves
   }
 
-  // Start with current level
-  let allLeaves = getLeafNodesAtLevel(currentTasks)
-
-  // If no leaves at current level, go up one level and get all leaves from there
-  if (allLeaves.length === 0 && startPath.length > 0) {
-    const parentPath = startPath.slice(0, -1)
-    let parentTasks = tasks
-    for (const pathId of parentPath) {
-      const task = parentTasks.find((t) => t.id === pathId)
-      if (task) {
-        parentTasks = task.subtasks
-      } else {
-        return []
+  // Start from the deepest level and work our way up
+  let currentPath = [...startPath]
+  
+  while (true) {
+    // Navigate to the current level
+    let currentTasks: TaskItemData[]
+    if (currentPath.length === 0) {
+      currentTasks = tasks
+    } else {
+      const parentTask = findTaskRecursive(tasks, currentPath)
+      if (!parentTask) {
+        return [] // Path is invalid
       }
+      currentTasks = parentTask.subtasks
     }
-    allLeaves = getLeafNodesAtLevel(parentTasks)
-  }
 
-  // If no leaves at current level, get all project leaves
-  if (allLeaves.length === 0) {
-    allLeaves = getLeafNodesAtLevel(tasks)
-  }
+    // Get leaf nodes at current level
+    const leaves = getLeafNodesAtLevel(currentTasks)
+    
+    if (leaves.length > 0) {
+      return leaves
+    }
 
-  return allLeaves
+    // No leaves at this level
+    if (currentPath.length === 0) {
+      // We're at project level and no leaves, return empty
+      return []
+    }
+
+    // Check if the parent task (the task we're inside) can be a leaf
+    const parentTask = findTaskRecursive(tasks, currentPath)
+    if (parentTask && !parentTask.completed) {
+      // The parent task becomes the leaf
+      return [parentTask]
+    }
+
+    // Parent is completed or doesn't exist, go up one level
+    currentPath = currentPath.slice(0, -1)
+  }
 }
 
 export const useAppStore = create<AppState>((set, get) => ({
@@ -282,8 +285,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (!task) return
 
     // If there are subtasks, show a confirmation dialog
-    const subtaskCount = countSubtasksRecursively(task)
-    if (subtaskCount > 0) {
+    if (task.subtasks.length > 0) {
       set({
         showDeleteConfirmationDialog: true,
         pendingDeletion: { projectId, taskPath },
@@ -298,8 +300,8 @@ export const useAppStore = create<AppState>((set, get) => ({
         if (project) {
           deleteTaskFromArray(project.tasks, taskPath)
 
-          // Navigate up one level if we can
-          if (draft.currentTaskPath.length > 0) {
+          // If the current task path is no longer valid, navigate up one level
+          if (!findTaskRecursive(project.tasks, draft.currentTaskPath)) {
             draft.currentTaskPath = draft.currentTaskPath.slice(0, -1)
           }
         }
@@ -408,6 +410,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       const availableLeaves = state.focusModeProjectLeaves.filter(
         (leaf) => leaf.id !== state.currentFocusTask?.id && !leaf.completed,
       )
+      // Pick a random task from the available leaves
       if (availableLeaves.length > 0) {
         return { currentFocusTask: availableLeaves[Math.floor(Math.random() * availableLeaves.length)] }
       }
@@ -467,75 +470,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
   },
 
-  breakTaskIntoSubtasks: (subtaskNames: string[]) => {
-    const { currentFocusTask, selectedProjectId } = get()
-    if (!currentFocusTask || !selectedProjectId || subtaskNames.length === 0) return
-
-    // Find the path to the current focus task
-    const findPath = (tasks: TaskItemData[], targetId: string, currentPath: string[] = []): string[] | null => {
-      for (const task of tasks) {
-        const newPath = [...currentPath, task.id]
-        if (task.id === targetId) return newPath
-        if (task.subtasks.length > 0) {
-          const subPath = findPath(task.subtasks, targetId, newPath)
-          if (subPath) return subPath
-        }
-      }
-      return null
-    }
-
-    const project = get().projects.find((p) => p.id === selectedProjectId)
-    if (!project) return
-
-    const taskPath = findPath(project.tasks, currentFocusTask.id)
-    if (!taskPath) return
-
-    // Add subtasks to the current focus task
-    set(
-      produce((draft: AppState) => {
-        const project = draft.projects.find((p) => p.id === selectedProjectId)
-        if (project) {
-          findAndUpdateTask(project.tasks, taskPath, (task) => {
-            // Add new subtasks
-            const newSubtasks = subtaskNames.map((name) => ({
-              id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
-              name,
-              completed: false,
-              subtasks: [],
-            }))
-            task.subtasks.push(...newSubtasks)
-          })
-        }
-      }),
-    )
-
-    // Update focus to prioritize the newly created subtasks
-    const updatedProject = get().projects.find((p) => p.id === selectedProjectId)
-    if (updatedProject) {
-      const updatedTask = findTaskRecursive(updatedProject.tasks, taskPath)
-      if (updatedTask) {
-        // Get only the newly created subtasks (incomplete ones)
-        const newSubtasks = updatedTask.subtasks.filter((st) => !st.completed)
-
-        if (newSubtasks.length > 0) {
-          set({
-            focusStartPath: taskPath,
-            focusModeProjectLeaves: newSubtasks,
-            currentFocusTask: newSubtasks[Math.floor(Math.random() * newSubtasks.length)],
-          })
-        } else {
-          // Fallback to hierarchical leaves if no new subtasks
-          const leaves = getHierarchicalLeafNodes([updatedTask], [])
-          set({
-            focusStartPath: taskPath,
-            focusModeProjectLeaves: leaves,
-            currentFocusTask: leaves.length > 0 ? leaves[Math.floor(Math.random() * leaves.length)] : null,
-          })
-        }
-      }
-    }
-  },
-
   keepGoingFocus: () => {
     const { selectedProjectId, focusStartPath, projects } = get()
     if (!selectedProjectId) return
@@ -587,8 +521,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   setShowProjectSelectorDialog: (show) => set({ showProjectSelectorDialog: show }),
 
   setShowAddTasksView: (show) => set({ showAddTasksView: show }),
-
-
 
   toggleShowCompleted: () => set((state) => ({ showCompleted: !state.showCompleted })),
 
@@ -708,3 +640,4 @@ export const getCurrentTaskChain = (store: AppState): TaskItemData[] => {
   }
   return chain
 }
+
