@@ -4,6 +4,14 @@ import { initialProjectsData } from "@/lib/mock-data"
 import { produce } from "immer"
 import { triggerConfetti } from "@/lib/confetti"
 import { v4 as uuidv4 } from "uuid"
+import {
+  findAndUpdateTask,
+  findTaskRecursive,
+  deleteTaskFromArray,
+  markAllSubtasksCompleted,
+  getHierarchicalLeafNodes,
+  findTaskPath,
+} from "@/lib/task-utils"
 
 interface AppState {
   projects: ProjectData[]
@@ -51,122 +59,7 @@ interface AppState {
   addProject: (projectName: string) => void
 }
 
-// Helper to find and update a task using Immer
-const findAndUpdateTask = (tasks: TaskItemData[], path: string[], updateFn: (task: TaskItemData) => void): boolean => {
-  if (!path.length) return false
-  const currentId = path[0]
-  const task = tasks.find((t) => t.id === currentId)
-  if (!task) return false
 
-  if (path.length === 1) {
-    updateFn(task)
-    return true
-  }
-  return findAndUpdateTask(task.subtasks, path.slice(1), updateFn)
-}
-
-// Helper to find a task
-const findTaskRecursive = (tasks: TaskItemData[], path: string[]): TaskItemData | undefined => {
-  if (!path.length) return undefined
-  const currentId = path[0]
-  const task = tasks.find((t) => t.id === currentId)
-  if (!task) return undefined
-  if (path.length === 1) return task
-  return findTaskRecursive(task.subtasks, path.slice(1))
-}
-
-// Helper to delete a task
-const deleteTaskFromArray = (tasks: TaskItemData[], path: string[]): boolean => {
-  if (!path.length) return false
-
-  if (path.length === 1) {
-    const index = tasks.findIndex((t) => t.id === path[0])
-    if (index !== -1) {
-      tasks.splice(index, 1)
-      return true
-    }
-    return false
-  }
-
-  const currentId = path[0]
-  const task = tasks.find((t) => t.id === currentId)
-  if (!task) return false
-
-  return deleteTaskFromArray(task.subtasks, path.slice(1))
-}
-
-// Helper to count subtasks recursively
-const countSubtasksRecursively = (task: TaskItemData): number => {
-  if (!task.subtasks || task.subtasks.length === 0) return 0
-  return task.subtasks.length + task.subtasks.reduce((acc, subtask) => acc + countSubtasksRecursively(subtask), 0)
-}
-
-// Helper to mark all subtasks as completed recursively
-const markAllSubtasksCompleted = (task: TaskItemData) => {
-  task.subtasks.forEach((subtask) => {
-    subtask.completed = true
-    subtask.completedAt = new Date().toISOString()
-    markAllSubtasksCompleted(subtask)
-  })
-}
-
-// Helper to get hierarchical leaf nodes starting from a specific path
-const getHierarchicalLeafNodes = (tasks: TaskItemData[], startPath: string[]): TaskItemData[] => {
-  // Helper function to get leaf nodes at a specific level
-  const getLeafNodesAtLevel = (tasksAtLevel: TaskItemData[]): TaskItemData[] => {
-    let leaves: TaskItemData[] = []
-    for (const task of tasksAtLevel) {
-      if (!task.completed) {
-        if (!task.subtasks || task.subtasks.length === 0 || task.subtasks.every((st) => st.completed)) {
-          leaves.push(task)
-        } else {
-          leaves = leaves.concat(getLeafNodesAtLevel(task.subtasks.filter((st) => !st.completed)))
-        }
-      }
-    }
-    return leaves
-  }
-
-  // Start from the deepest level and work our way up
-  let currentPath = [...startPath]
-  
-  while (true) {
-    // Navigate to the current level
-    let currentTasks: TaskItemData[]
-    if (currentPath.length === 0) {
-      currentTasks = tasks
-    } else {
-      const parentTask = findTaskRecursive(tasks, currentPath)
-      if (!parentTask) {
-        return [] // Path is invalid
-      }
-      currentTasks = parentTask.subtasks
-    }
-
-    // Get leaf nodes at current level
-    const leaves = getLeafNodesAtLevel(currentTasks)
-    
-    if (leaves.length > 0) {
-      return leaves
-    }
-
-    // No leaves at this level
-    if (currentPath.length === 0) {
-      // We're at project level and no leaves, return empty
-      return []
-    }
-
-    // Check if the parent task (the task we're inside) can be a leaf
-    const parentTask = findTaskRecursive(tasks, currentPath)
-    if (parentTask && !parentTask.completed) {
-      // The parent task becomes the leaf
-      return [parentTask]
-    }
-
-    // Parent is completed or doesn't exist, go up one level
-    currentPath = currentPath.slice(0, -1)
-  }
-}
 
 export const useAppStore = create<AppState>((set, get) => ({
   projects: initialProjectsData,
@@ -427,21 +320,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     const { currentFocusTask, selectedProjectId } = get()
     if (currentFocusTask && selectedProjectId) {
       // Find the path to the currentFocusTask to mark it completed in the main projects data
-      const findPath = (tasks: TaskItemData[], targetId: string, currentPath: string[] = []): string[] | null => {
-        for (const task of tasks) {
-          const newPath = [...currentPath, task.id]
-          if (task.id === targetId) return newPath
-          if (task.subtasks.length > 0) {
-            const subPath = findPath(task.subtasks, targetId, newPath)
-            if (subPath) return subPath
-          }
-        }
-        return null
-      }
-
       const project = get().projects.find((p) => p.id === selectedProjectId)
       if (project) {
-        const taskPath = findPath(project.tasks, currentFocusTask.id)
+        const taskPath = findTaskPath(project.tasks, currentFocusTask.id)
         if (taskPath) {
           // Complete the task directly without showing dialog in focus mode
           set(
@@ -591,17 +472,17 @@ export const getCurrentTasksForView = (store: AppState): TaskItemData[] => {
   const project = store.projects.find((p) => p.id === store.selectedProjectId)
   if (!project) return []
 
-  let tasksToShow = project.tasks
-  let currentLevelTasks = project.tasks
-  for (const taskId of store.currentTaskPath) {
-    const foundTask = currentLevelTasks.find((t) => t.id === taskId)
-    if (foundTask && foundTask.subtasks) {
-      tasksToShow = foundTask.subtasks
-      currentLevelTasks = foundTask.subtasks
-    } else {
-      // Path is invalid or task has no subtasks, show parent's tasks or empty
-      return foundTask ? [] : tasksToShow
+  // Get tasks at the current path level
+  let tasksToShow: TaskItemData[]
+  if (store.currentTaskPath.length === 0) {
+    tasksToShow = project.tasks
+  } else {
+    const currentTask = findTaskRecursive(project.tasks, store.currentTaskPath)
+    if (!currentTask) {
+      // Path is invalid, return empty array
+      return []
     }
+    tasksToShow = currentTask.subtasks
   }
 
   // Filter and sort tasks based on showCompleted setting

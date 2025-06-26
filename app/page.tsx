@@ -13,6 +13,7 @@ import { EditableTitle, type EditableTitleRef } from "@/components/editable-titl
 import { TaskOptionsMenu } from "@/components/task/task-options-menu"
 import { triggerConfetti } from "@/lib/confetti"
 import { useRef } from "react"
+import { countSubtasksRecursively, findTaskRecursive } from "@/lib/task-utils"
 
 export default function HomePage() {
   const store = useAppStore()
@@ -56,15 +57,6 @@ export default function HomePage() {
         const project = projects.find((p) => p.id === pendingTaskCompletion.projectId)
         if (!project) return null
 
-        const findTaskRecursive = (tasks: any[], path: string[]): any => {
-          if (!path.length) return undefined
-          const currentId = path[0]
-          const task = tasks.find((t: any) => t.id === currentId)
-          if (!task) return undefined
-          if (path.length === 1) return task
-          return findTaskRecursive(task.subtasks, path.slice(1))
-        }
-
         return findTaskRecursive(project.tasks, pendingTaskCompletion.taskPath)
       })()
     : null
@@ -87,15 +79,6 @@ export default function HomePage() {
         }
 
         // Otherwise, we're deleting a task
-        const findTaskRecursive = (tasks: any[], path: string[]): any => {
-          if (!path.length) return undefined
-          const currentId = path[0]
-          const task = tasks.find((t: any) => t.id === currentId)
-          if (!task) return undefined
-          if (path.length === 1) return task
-          return findTaskRecursive(task.subtasks, path.slice(1))
-        }
-
         const task = findTaskRecursive(project.tasks, pendingDeletion.taskPath)
         if (!task) return null
 
@@ -107,14 +90,7 @@ export default function HomePage() {
       })()
     : null
 
-  // Helper function to count subtasks recursively
-  function countSubtasksRecursively(task: any): number {
-    if (!task.subtasks || task.subtasks.length === 0) return 0
-    return (
-      task.subtasks.length +
-      task.subtasks.reduce((acc: number, subtask: any) => acc + countSubtasksRecursively(subtask), 0)
-    )
-  }
+
 
 
 

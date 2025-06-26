@@ -8,6 +8,7 @@ import { ArrowDown, ArrowLeft } from "lucide-react"
 import type { TaskItemData } from "@/lib/types"
 import { ProjectsView } from "./projects-view"
 import { TasksView } from "./tasks-view"
+import { findTaskPath } from "@/lib/task-utils"
 
 interface AddTasksViewProps {
   isVisible: boolean
@@ -36,19 +37,7 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
       if (selectedProjectId && currentFocusTask) {
         const project = projects.find((p) => p.id === selectedProjectId)
         if (project) {
-          const findPath = (tasks: TaskItemData[], targetId: string, currentPath: string[] = []): string[] | null => {
-            for (const task of tasks) {
-              const newPath = [...currentPath, task.id]
-              if (task.id === targetId) return newPath
-              if (task.subtasks.length > 0) {
-                const subPath = findPath(task.subtasks, targetId, newPath)
-                if (subPath) return subPath
-              }
-            }
-            return null
-          }
-
-          const taskPath = findPath(project.tasks, currentFocusTask.id)
+          const taskPath = findTaskPath(project.tasks, currentFocusTask.id)
           if (taskPath) {
             setCurrentProjectId(selectedProjectId)
             setCurrentPath(taskPath)
