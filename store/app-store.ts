@@ -3,6 +3,7 @@ import type { ProjectData, TaskItemData } from "@/lib/types"
 import { initialProjectsData } from "@/lib/mock-data"
 import { produce } from "immer"
 import { triggerConfetti } from "@/lib/confetti"
+import { v4 as uuidv4 } from "uuid"
 
 interface AppState {
   projects: ProjectData[]
@@ -530,7 +531,7 @@ export const useAppStore = create<AppState>((set, get) => ({
         const project = draft.projects.find((p) => p.id === projectId)
         if (project) {
           const newTask: TaskItemData = {
-            id: `task-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`, // More robust ID
+            id: uuidv4(),
             name: subtaskName,
             completed: false,
             subtasks: [],
@@ -575,7 +576,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     set(
       produce((draft: AppState) => {
         const newProject: ProjectData = {
-          id: `proj-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+          id: uuidv4(),
           name: projectName,
           tasks: [],
         }
