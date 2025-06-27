@@ -39,8 +39,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
     const project = projects.find((p) => p.id === projectId)
     if (!project) return
 
-    const taskPath = isProject(startPath) ? [] : startPath.slice(1) // Get task path within project
-    const leaves = getHierarchicalLeafNodes(project.tasks, taskPath)
+    const leaves = getHierarchicalLeafNodes(projects, startPath)
     
     set({
       focusStartPath: startPath,
@@ -138,8 +137,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
 
       // If parent is completed or doesn't exist, go one level up
       const parentPath = focusStartPath.slice(0, -1)
-      const taskPath = isProject(parentPath) ? [] : parentPath.slice(1)
-      const leaves = getHierarchicalLeafNodes(project.tasks, taskPath)
+      const leaves = getHierarchicalLeafNodes(projects, parentPath)
 
       set({
         focusStartPath: parentPath,
@@ -151,7 +149,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
       const availableProjects = projects.filter((p) => p.id !== currentProjectId)
       if (availableProjects.length > 0) {
         const randomProject = availableProjects[Math.floor(Math.random() * availableProjects.length)]
-        const leaves = getHierarchicalLeafNodes(randomProject.tasks, [])
+        const leaves = getHierarchicalLeafNodes(projects, [randomProject.id])
 
         set({
           focusStartPath: [randomProject.id],
