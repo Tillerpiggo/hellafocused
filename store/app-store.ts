@@ -9,14 +9,11 @@ import {
   findTaskRecursive,
   deleteTaskFromArray,
   markAllSubtasksCompleted,
-  getHierarchicalLeafNodes,
-  findTaskPath,
   findTaskByPath,
   findProjectByPath,
   updateTaskByPath,
   deleteByPath,
   addTaskToParent,
-  getProjectId,
   isProject,
   isProjectList,
 } from "@/lib/task-utils"
@@ -25,16 +22,11 @@ interface AppState {
   projects: ProjectData[]
   currentPath: string[] // [] for project list, [projectId] for project, [projectId, taskId, ...] for tasks
   isFocusMode: boolean
-  focusModeProjectLeaves: TaskItemData[]
-  currentFocusTask: TaskItemData | null
-  showProjectSelectorDialog: boolean
-  focusStartPath: string[] // The path where focus mode was started
   showTaskCompletionDialog: boolean
   pendingTaskCompletion: string[] | null
   showCompleted: boolean
   showDeleteConfirmationDialog: boolean
   pendingDeletion: string[] | null
-  showAddTasksView: boolean
   // Actions
   selectProject: (projectId: string | null) => void
   navigateToTask: (taskId: string) => void
@@ -49,14 +41,8 @@ interface AppState {
   cancelDeletion: () => void
   deleteProject: (projectId: string) => void
 
-  enterFocusMode: (projectId?: string) => void
+  enterFocusMode: () => void
   exitFocusMode: () => void
-  getNextFocusTask: () => void
-  completeFocusTask: () => void
-  keepGoingFocus: () => void
-
-  setShowProjectSelectorDialog: (show: boolean) => void
-  setShowAddTasksView: (show: boolean) => void
 
   toggleShowCompleted: () => void
 
@@ -72,16 +58,11 @@ export const useAppStore = create<AppState>((set, get) => ({
   projects: initialProjectsData,
   currentPath: [], // Start at project list
   isFocusMode: false,
-  focusModeProjectLeaves: [],
-  currentFocusTask: null,
-  showProjectSelectorDialog: false,
-  focusStartPath: [],
   showTaskCompletionDialog: false,
   pendingTaskCompletion: null,
   showCompleted: false,
   showDeleteConfirmationDialog: false,
   pendingDeletion: null,
-  showAddTasksView: false,
 
   selectProject: (projectId) => set({ currentPath: projectId ? [projectId] : [] }),
 
@@ -219,7 +200,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   deleteProject: (projectId) => {
     const projectPath = [projectId]
-    const project = findProjectByPath(get().projects, path)
+    const project = findProjectByPath(get().projects, projectPath)
     if (!project) return
 
     // If the project has tasks, show a confirmation dialog
@@ -241,149 +222,9 @@ export const useAppStore = create<AppState>((set, get) => ({
     )
   },
 
-  enterFocusMode: (projectIdToFocus?: string) => {
-    const currentProjectId = projectIdToFocus || getProjectId(get().currentPath)
-    if (!currentProjectId) {
-      // Instead of showing dialog, randomly select a project
-      const projects = get().projects
-      if (projects.length === 0) return // No projects to focus on
+  enterFocusMode: () => set({ isFocusMode: true }),
 
-      const randomProject = projects[Math.floor(Math.random() * projects.length)]
-      const leaves = getHierarchicalLeafNodes(randomProject.tasks, [])
-      set({
-        isFocusMode: true,
-        currentPath: [randomProject.id],
-        focusStartPath: [randomProject.id],
-        focusModeProjectLeaves: leaves,
-        currentFocusTask: leaves.length > 0 ? leaves[Math.floor(Math.random() * leaves.length)] : null,
-        showProjectSelectorDialog: false,
-      })
-      return
-    }
-    const project = get().projects.find((p) => p.id === currentProjectId)
-    if (project) {
-      const currentPath = get().currentPath
-      const taskPath = isProject(currentPath) ? [] : currentPath.slice(1) // Get task path within project
-      const leaves = getHierarchicalLeafNodes(project.tasks, taskPath)
-      set({
-        isFocusMode: true,
-        currentPath: [currentProjectId],
-        focusStartPath: currentPath,
-        focusModeProjectLeaves: leaves,
-        currentFocusTask: leaves.length > 0 ? leaves[Math.floor(Math.random() * leaves.length)] : null,
-        showProjectSelectorDialog: false,
-      })
-    }
-  },
-
-  exitFocusMode: () =>
-    set({ isFocusMode: false, currentFocusTask: null, focusModeProjectLeaves: [], focusStartPath: [] }),
-
-  getNextFocusTask: () =>
-    set((state) => {
-      const availableLeaves = state.focusModeProjectLeaves.filter(
-        (leaf) => leaf.id !== state.currentFocusTask?.id && !leaf.completed,
-      )
-      // Pick a random task from the available leaves
-      if (availableLeaves.length > 0) {
-        return { currentFocusTask: availableLeaves[Math.floor(Math.random() * availableLeaves.length)] }
-      }
-      // If current task was the last one, or all are completed
-      const allLeaves = state.focusModeProjectLeaves.filter((leaf) => !leaf.completed)
-      if (allLeaves.length > 0) {
-        return { currentFocusTask: allLeaves[Math.floor(Math.random() * allLeaves.length)] }
-      }
-      return { currentFocusTask: null } // All tasks completed
-    }),
-
-  completeFocusTask: () => {
-    const { currentFocusTask } = get()
-    const currentProjectId = getProjectId(get().currentPath)
-    if (currentFocusTask && currentProjectId) {
-      // Find the path to the currentFocusTask to mark it completed in the main projects data
-      const project = get().projects.find((p) => p.id === currentProjectId)
-      if (project) {
-        const taskPathInProject = findTaskPath(project.tasks, currentFocusTask.id)
-        if (taskPathInProject) {
-          const fullTaskPath = [currentProjectId, ...taskPathInProject]
-          // Complete the task directly without showing dialog in focus mode
-          set(
-            produce((draft: AppState) => {
-              updateTaskByPath(draft.projects, fullTaskPath, (task) => {
-                task.completed = true
-                task.completedAt = new Date().toISOString()
-                markAllSubtasksCompleted(task)
-              })
-            }),
-          )
-        }
-      }
-
-      // Update focusModeProjectLeaves but DON'T get next task automatically
-      set(
-        produce((draft: AppState) => {
-          if (draft.currentFocusTask) {
-            const taskInLeaves = draft.focusModeProjectLeaves.find((t) => t.id === draft.currentFocusTask!.id)
-            if (taskInLeaves) taskInLeaves.completed = true
-          }
-        }),
-      )
-    }
-  },
-
-  keepGoingFocus: () => {
-    const { focusStartPath, projects } = get()
-    const currentProjectId = getProjectId(get().currentPath)
-    if (!currentProjectId) return
-
-    const project = projects.find((p) => p.id === currentProjectId)
-    if (!project) return
-
-    // If we were focusing at a specific task level, show the parent task
-    if (focusStartPath.length > 1) {
-      const parentTask = findTaskByPath(projects, focusStartPath)
-      if (parentTask && !parentTask.completed) {
-        // Show the parent task as the focus task
-        set({
-          currentFocusTask: parentTask,
-          focusModeProjectLeaves: [parentTask],
-        })
-        return
-      }
-
-      // If parent is completed or doesn't exist, go one level up
-      const parentPath = focusStartPath.slice(0, -1)
-      const taskPath = isProject(parentPath) ? [] : parentPath.slice(1)
-      const leaves = getHierarchicalLeafNodes(project.tasks, taskPath)
-
-      set({
-        focusStartPath: parentPath,
-        focusModeProjectLeaves: leaves,
-        currentFocusTask: leaves.length > 0 ? leaves[Math.floor(Math.random() * leaves.length)] : null,
-      })
-    } else {
-      // We were at project level, pick a random project
-      const availableProjects = projects.filter((p) => p.id !== currentProjectId)
-      if (availableProjects.length > 0) {
-        const randomProject = availableProjects[Math.floor(Math.random() * availableProjects.length)]
-        const leaves = getHierarchicalLeafNodes(randomProject.tasks, [])
-
-        set({
-          currentPath: [randomProject.id],
-          focusStartPath: [randomProject.id],
-          focusModeProjectLeaves: leaves,
-          currentFocusTask: leaves.length > 0 ? leaves[Math.floor(Math.random() * leaves.length)] : null,
-        })
-      } else {
-        // No other projects, exit focus mode
-        get().exitFocusMode()
-      }
-    }
-  },
-
-  setShowProjectSelectorDialog: (show) => set({ showProjectSelectorDialog: show }),
-
-  setShowAddTasksView: (show) => set({ showAddTasksView: show }),
+  exitFocusMode: () => set({ isFocusMode: false }),
 
   toggleShowCompleted: () => set((state) => ({ showCompleted: !state.showCompleted })),
 

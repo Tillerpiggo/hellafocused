@@ -1,24 +1,61 @@
 "use client"
 import { useAppStore } from "@/store/app-store"
+import { useFocusStore } from "@/store/focus-store"
 import { useEffect, useState } from "react"
 import { AddTasksView } from "./add-tasks-view"
 import { AllTasksCompletedView } from "./all-tasks-completed-view"
 import { NoTasksAvailableView } from "./no-tasks-available-view"
 import { FocusTaskView } from "./focus-task-view"
 import { FocusHeaderButtons } from "./focus-header-buttons"
+import { getProjectId } from "@/lib/task-utils"
 
-export function FocusView() {
-  const currentFocusTask = useAppStore((state) => state.currentFocusTask)
-  const focusModeProjectLeaves = useAppStore((state) => state.focusModeProjectLeaves)
-  const showAddTasksView = useAppStore((state) => state.showAddTasksView)
-  const completeFocusTask = useAppStore((state) => state.completeFocusTask)
-  const getNextFocusTask = useAppStore((state) => state.getNextFocusTask)
+interface FocusViewProps {
+  projectId?: string
+  startPath?: string[]
+}
+
+export function FocusView({ projectId, startPath }: FocusViewProps) {
+  // App store for projects data and app state updates
+  const projects = useAppStore((state) => state.projects)
+  const currentPath = useAppStore((state) => state.currentPath)
   const exitFocusMode = useAppStore((state) => state.exitFocusMode)
-  const keepGoingFocus = useAppStore((state) => state.keepGoingFocus)
-  const setShowAddTasksView = useAppStore((state) => state.setShowAddTasksView)
+
+  // Focus store for focus-specific state
+  const {
+    currentFocusTask,
+    focusModeProjectLeaves,
+    showAddTasksView,
+    initializeFocus,
+    resetFocus,
+    completeFocusTask,
+    getNextFocusTask,
+    keepGoingFocus,
+    setShowAddTasksView
+  } = useFocusStore((state) => state)
 
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [isExiting, setIsExiting] = useState(false)
+
+  // Initialize focus store when component mounts
+  useEffect(() => {
+    const focusProjectId = projectId || getProjectId(currentPath)
+    const focusStartPath = startPath || currentPath
+
+    if (focusProjectId) {
+      initializeFocus(projects, focusProjectId, focusStartPath)
+    } else {
+      // If no project specified, randomly select one
+      if (projects.length > 0) {
+        const randomProject = projects[Math.floor(Math.random() * projects.length)]
+        initializeFocus(projects, randomProject.id, [randomProject.id])
+      }
+    }
+
+    // Cleanup when component unmounts
+    return () => {
+      resetFocus()
+    }
+  }, [])
 
   // Handle initial load animation
   useEffect(() => {
@@ -45,8 +82,20 @@ export function FocusView() {
   const handleExitFocusMode = () => {
     setIsExiting(true)
     setTimeout(() => {
+      resetFocus()
       exitFocusMode()
     }, 500) // Increased from 300ms to 500ms for gentler exit
+  }
+
+  const handleCompleteFocusTask = () => {
+    completeFocusTask(projects, (updatedProjects) => {
+      // Update the main app store with the new projects data
+      useAppStore.setState({ projects: updatedProjects })
+    })
+  }
+
+  const handleKeepGoing = () => {
+    keepGoingFocus(projects, currentPath)
   }
 
   // Determine the main content based on current state
@@ -54,7 +103,7 @@ export function FocusView() {
     if (!currentFocusTask) {
       const allTasksInProjectCompleted = focusModeProjectLeaves.every((t) => t.completed)
       if (allTasksInProjectCompleted && focusModeProjectLeaves.length > 0) {
-        return <AllTasksCompletedView onKeepGoing={keepGoingFocus} />
+        return <AllTasksCompletedView onKeepGoing={handleKeepGoing} />
       } else {
         return <NoTasksAvailableView />
       }
@@ -62,7 +111,7 @@ export function FocusView() {
       return (
         <FocusTaskView
           currentTask={currentFocusTask}
-          completeFocusTask={completeFocusTask}
+          completeFocusTask={handleCompleteFocusTask}
           getNextFocusTask={getNextFocusTask}
         />
       )

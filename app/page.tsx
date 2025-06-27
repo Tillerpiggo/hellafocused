@@ -85,9 +85,13 @@ export default function HomePage() {
     : null
 
   if (isFocusMode) {
+    // Determine focus parameters
+    const focusProjectId = getProjectId(currentPath) || undefined
+    const focusStartPath = currentPath
+
     return (
       <div className="bg-background text-foreground">
-        <FocusView />
+        <FocusView projectId={focusProjectId} startPath={focusStartPath} />
       </div>
     )
   }
@@ -239,7 +243,7 @@ export default function HomePage() {
             <EditableTitle
               ref={titleRef}
               value={
-                currentTaskPath.length === 0 ? currentProject?.name || "" : taskChain[taskChain.length - 1]?.name || ""
+                isProject(currentPath) ? currentProject?.name || "" : taskChain[taskChain.length - 1]?.name || ""
               }
               onChange={handleTitleChange}
               className="text-3xl font-light tracking-wide text-foreground"
@@ -251,7 +255,7 @@ export default function HomePage() {
               onRename={handleRename}
               onDelete={handleDelete}
               showCompleted={showCompleted}
-              isProject={currentTaskPath.length === 0}
+              isProject={isProject(currentPath)}
             />
             {shouldShowCompleteButton() && (
               <Button

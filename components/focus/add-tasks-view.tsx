@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
 import { AddForm } from "@/components/ui/add-form"
 import { useAppStore } from "@/store/app-store"
+import { useFocusStore } from "@/store/focus-store"
 import { ArrowDown, ArrowLeft } from "lucide-react"
 import type { TaskItemData } from "@/lib/types"
 import { ProjectsView } from "./projects-view"
@@ -24,7 +25,8 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
   const [isDismissing, setIsDismissing] = useState(false)
   const [shouldRender, setShouldRender] = useState(false)
   const viewRef = useRef<HTMLDivElement>(null)
-  const { projects, currentPath: globalCurrentPath, addSubtaskToParent, currentFocusTask } = useAppStore()
+  const { projects, currentPath: globalCurrentPath, addSubtaskToParent } = useAppStore()
+  const { currentFocusTask } = useFocusStore()
 
   // Handle visibility changes
   useEffect(() => {
