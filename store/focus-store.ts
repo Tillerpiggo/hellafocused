@@ -25,7 +25,7 @@ interface FocusState {
   resetFocus: () => void
   getNextFocusTask: () => void
   completeFocusTask: (projects: ProjectData[], onProjectsUpdate: (projects: ProjectData[]) => void) => void
-  keepGoingFocus: (projects: ProjectData[], currentPath: string[]) => void
+  keepGoingFocus: (projects: ProjectData[]) => void
   setShowAddTasksView: (show: boolean) => void
 }
 
@@ -116,9 +116,9 @@ export const useFocusStore = create<FocusState>((set, get) => ({
     }
   },
 
-  keepGoingFocus: (projects, currentPath) => {
+  keepGoingFocus: (projects) => {
     const { focusStartPath } = get()
-    const currentProjectId = getProjectId(currentPath)
+    const currentProjectId = getProjectId(focusStartPath)
     if (!currentProjectId) return
 
     const project = projects.find((p) => p.id === currentProjectId)

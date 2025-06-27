@@ -7,17 +7,14 @@ import { AllTasksCompletedView } from "./all-tasks-completed-view"
 import { NoTasksAvailableView } from "./no-tasks-available-view"
 import { FocusTaskView } from "./focus-task-view"
 import { FocusHeaderButtons } from "./focus-header-buttons"
-import { randomFrom } from "@/lib/utils"
 
 interface FocusViewProps {
-  projectId?: string
-  startPath?: string[]
+  startPath: string[]
 }
 
-export function FocusView({ projectId, startPath }: FocusViewProps) {
+export function FocusView({ startPath }: FocusViewProps) {
   // App store for projects data and app state updates
   const projects = useAppStore((state) => state.projects)
-  const currentPath = useAppStore((state) => state.currentPath)
   const exitFocusMode = useAppStore((state) => state.exitFocusMode)
 
   // Focus store for focus-specific state
@@ -38,29 +35,7 @@ export function FocusView({ projectId, startPath }: FocusViewProps) {
 
   // Initialize focus store when component mounts
   useEffect(() => {
-    let focusStartPath: string[]
-
-    if (startPath) {
-      // Use provided startPath (should include project ID)
-      focusStartPath = startPath
-    } else if (projectId) {
-      // Create path from projectId
-      focusStartPath = [projectId]
-    } else {
-      // Use current path (should include project ID)
-      focusStartPath = currentPath
-    }
-
-    // Ensure we have a valid path with project ID
-    if (focusStartPath.length > 0) {
-      initializeFocus(projects, focusStartPath)
-    } else {
-      // If no valid path, randomly select a project
-      const randomProject = randomFrom(projects)
-      if (randomProject) {
-        initializeFocus(projects, [randomProject.id])
-      }
-    }
+    initializeFocus(projects, startPath)
 
     // Cleanup when component unmounts
     return () => {
@@ -106,7 +81,7 @@ export function FocusView({ projectId, startPath }: FocusViewProps) {
   }
 
   const handleKeepGoing = () => {
-    keepGoingFocus(projects, currentPath)
+    keepGoingFocus(projects)
   }
 
   // Determine the main content based on current state

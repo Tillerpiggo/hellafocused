@@ -225,6 +225,9 @@ export const addTaskToParent = (projects: ProjectData[], parentPath: string[], t
 }
 
 // Helper functions for unified paths
-export const getProjectId = (taskPath: string[]): string | null => taskPath[0] || null
+export const getProjectId = (taskPath: string[]): string | null => {
+  if (taskPath.length === 0) return null
+  return taskPath[0] || null
+}
 export const isProject = (taskPath: string[]): boolean => taskPath.length === 1
 export const isProjectList = (taskPath: string[]): boolean => taskPath.length === 0 
