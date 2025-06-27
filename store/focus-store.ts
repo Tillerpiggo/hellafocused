@@ -2,6 +2,7 @@ import { create } from "zustand"
 import type { ProjectData, TaskItemData } from "@/lib/types"
 import { produce } from "immer"
 import { triggerConfetti } from "@/lib/confetti"
+import { randomFrom } from "@/lib/utils"
 import {
   findTaskByPath,
   updateTaskByPath,
@@ -44,7 +45,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
     set({
       focusStartPath: startPath,
       focusModeProjectLeaves: leaves,
-      currentFocusTask: leaves.length > 0 ? leaves[Math.floor(Math.random() * leaves.length)] : null,   
+      currentFocusTask: randomFrom(leaves),   
     })
   },
 
@@ -62,14 +63,11 @@ export const useFocusStore = create<FocusState>((set, get) => ({
       )
       // Pick a random task from the available leaves
       if (availableLeaves.length > 0) {
-        return { currentFocusTask: availableLeaves[Math.floor(Math.random() * availableLeaves.length)] }
+        return { currentFocusTask: randomFrom(availableLeaves) }
       }
       // If current task was the last one, or all are completed
       const allLeaves = state.focusModeProjectLeaves.filter((leaf) => !leaf.completed)
-      if (allLeaves.length > 0) {
-        return { currentFocusTask: allLeaves[Math.floor(Math.random() * allLeaves.length)] }
-      }
-      return { currentFocusTask: null } // All tasks completed
+      return { currentFocusTask: randomFrom(allLeaves) }
     }),
 
   completeFocusTask: (projects, onProjectsUpdate) => {
@@ -142,19 +140,19 @@ export const useFocusStore = create<FocusState>((set, get) => ({
       set({
         focusStartPath: parentPath,
         focusModeProjectLeaves: leaves,
-        currentFocusTask: leaves.length > 0 ? leaves[Math.floor(Math.random() * leaves.length)] : null,
+        currentFocusTask: randomFrom(leaves),
       })
     } else {
       // We were at project level, pick a random project
       const availableProjects = projects.filter((p) => p.id !== currentProjectId)
-      if (availableProjects.length > 0) {
-        const randomProject = availableProjects[Math.floor(Math.random() * availableProjects.length)]
+      const randomProject = randomFrom(availableProjects)
+      if (randomProject) {
         const leaves = getHierarchicalLeafNodes(projects, [randomProject.id])
 
         set({
           focusStartPath: [randomProject.id],
           focusModeProjectLeaves: leaves,
-          currentFocusTask: leaves.length > 0 ? leaves[Math.floor(Math.random() * leaves.length)] : null,
+          currentFocusTask: randomFrom(leaves),
         })
       }
       // If no other projects, we'll let the parent component handle exiting focus mode

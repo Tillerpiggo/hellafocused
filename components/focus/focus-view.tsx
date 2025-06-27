@@ -8,6 +8,7 @@ import { NoTasksAvailableView } from "./no-tasks-available-view"
 import { FocusTaskView } from "./focus-task-view"
 import { FocusHeaderButtons } from "./focus-header-buttons"
 import { getProjectId } from "@/lib/task-utils"
+import { randomFrom } from "@/lib/utils"
 
 interface FocusViewProps {
   projectId?: string
@@ -45,8 +46,8 @@ export function FocusView({ projectId, startPath }: FocusViewProps) {
       initializeFocus(projects, focusProjectId, focusStartPath)
     } else {
       // If no project specified, randomly select one
-      if (projects.length > 0) {
-        const randomProject = projects[Math.floor(Math.random() * projects.length)]
+      const randomProject = randomFrom(projects)
+      if (randomProject) {
         initializeFocus(projects, randomProject.id, [randomProject.id])
       }
     }
