@@ -11,33 +11,40 @@ import {
   markAllSubtasksCompleted,
   getHierarchicalLeafNodes,
   findTaskPath,
+  findTaskByPath,
+  findProjectByPath,
+  updateTaskByPath,
+  deleteByPath,
+  addTaskToParent,
+  getProjectId,
+  isProject,
+  isProjectList,
 } from "@/lib/task-utils"
 
 interface AppState {
   projects: ProjectData[]
-  selectedProjectId: string | null
-  currentTaskPath: string[] // Stores IDs of tasks from root to current: [taskId, subtaskId, ...]
+  currentPath: string[] // [] for project list, [projectId] for project, [projectId, taskId, ...] for tasks
   isFocusMode: boolean
   focusModeProjectLeaves: TaskItemData[]
   currentFocusTask: TaskItemData | null
   showProjectSelectorDialog: boolean
   focusStartPath: string[] // The path where focus mode was started
   showTaskCompletionDialog: boolean
-  pendingTaskCompletion: { projectId: string; taskPath: string[] } | null
+  pendingTaskCompletion: string[] | null
   showCompleted: boolean
   showDeleteConfirmationDialog: boolean
-  pendingDeletion: { projectId: string; taskPath: string[] } | null
+  pendingDeletion: string[] | null
   showAddTasksView: boolean
   // Actions
   selectProject: (projectId: string | null) => void
   navigateToTask: (taskId: string) => void
   navigateBack: () => void // Navigates one level up in task hierarchy or to project list
 
-  toggleTaskCompletion: (projectId: string, taskPath: string[]) => void
+  toggleTaskCompletion: (taskPath: string[]) => void
   confirmTaskCompletion: () => void
   cancelTaskCompletion: () => void
 
-  deleteTask: (projectId: string, taskPath: string[]) => void
+  deleteTask: (taskPath: string[]) => void
   confirmDeletion: () => void
   cancelDeletion: () => void
   deleteProject: (projectId: string) => void
@@ -53,9 +60,9 @@ interface AppState {
 
   toggleShowCompleted: () => void
 
-  addSubtask: (projectId: string, parentTaskPath: string[], subtaskName: string) => void
+  addSubtaskToParent: (parentPath: string[], subtaskName: string) => void
   updateProjectName: (projectId: string, newName: string) => void
-  updateTaskName: (projectId: string, taskPath: string[], newName: string) => void
+  updateTaskName: (taskPath: string[], newName: string) => void
   addProject: (projectName: string) => void
 }
 
@@ -63,8 +70,7 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set, get) => ({
   projects: initialProjectsData,
-  selectedProjectId: null,
-  currentTaskPath: [],
+  currentPath: [], // Start at project list
   isFocusMode: false,
   focusModeProjectLeaves: [],
   currentFocusTask: null,
@@ -77,23 +83,20 @@ export const useAppStore = create<AppState>((set, get) => ({
   pendingDeletion: null,
   showAddTasksView: false,
 
-  selectProject: (projectId) => set({ selectedProjectId: projectId, currentTaskPath: [] }),
+  selectProject: (projectId) => set({ currentPath: projectId ? [projectId] : [] }),
 
-  navigateToTask: (taskId) => set((state) => ({ currentTaskPath: [...state.currentTaskPath, taskId] })),
+  navigateToTask: (taskId) => set((state) => ({ currentPath: [...state.currentPath, taskId] })),
 
   navigateBack: () =>
     set((state) => {
-      if (state.currentTaskPath.length > 0) {
-        return { currentTaskPath: state.currentTaskPath.slice(0, -1) }
+      if (isProjectList(state.currentPath)) {
+        return { currentPath: [] }
       }
-      return { selectedProjectId: null, currentTaskPath: [] } // Go to project list
+      return { currentPath: state.currentPath.slice(0, -1) }
     }),
 
-  toggleTaskCompletion: (projectId, taskPath) => {
-    const project = get().projects.find((p) => p.id === projectId)
-    if (!project) return
-
-    const task = findTaskRecursive(project.tasks, taskPath)
+  toggleTaskCompletion: (taskPath) => {
+    const task = findTaskByPath(get().projects, taskPath)
     if (!task) return
 
     // Check if task has incomplete subtasks
@@ -103,7 +106,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       // Show confirmation dialog
       set({
         showTaskCompletionDialog: true,
-        pendingTaskCompletion: { projectId, taskPath },
+        pendingTaskCompletion: taskPath,
       })
       return
     }
@@ -116,22 +119,19 @@ export const useAppStore = create<AppState>((set, get) => ({
     // Proceed with completion
     set(
       produce((draft: AppState) => {
-        const project = draft.projects.find((p) => p.id === projectId)
-        if (project) {
-          findAndUpdateTask(project.tasks, taskPath, (task) => {
-            task.completed = !task.completed
+        updateTaskByPath(draft.projects, taskPath, (task) => {
+          task.completed = !task.completed
 
-            // If completing a task, mark all subtasks as completed too and set completion time
-            if (task.completed) {
-              task.completedAt = new Date().toISOString()
-              markAllSubtasksCompleted(task)
-              // DO NOT automatically change showCompleted state here
-            } else {
-              // If uncompleting, remove completion time
-              delete task.completedAt
-            }
-          })
-        }
+          // If completing a task, mark all subtasks as completed too and set completion time
+          if (task.completed) {
+            task.completedAt = new Date().toISOString()
+            markAllSubtasksCompleted(task)
+            // DO NOT automatically change showCompleted state here
+          } else {
+            // If uncompleting, remove completion time
+            delete task.completedAt
+          }
+        })
       }),
     )
   },
@@ -140,8 +140,6 @@ export const useAppStore = create<AppState>((set, get) => ({
     const { pendingTaskCompletion } = get()
     if (!pendingTaskCompletion) return
 
-    const { projectId, taskPath } = pendingTaskCompletion
-
     // Trigger confetti for task completion
     if (typeof window !== "undefined") {
       triggerConfetti()
@@ -149,14 +147,11 @@ export const useAppStore = create<AppState>((set, get) => ({
 
     set(
       produce((draft: AppState) => {
-        const project = draft.projects.find((p) => p.id === projectId)
-        if (project) {
-          findAndUpdateTask(project.tasks, taskPath, (task) => {
-            task.completed = true
-            task.completedAt = new Date().toISOString()
-            markAllSubtasksCompleted(task)
-          })
-        }
+        updateTaskByPath(draft.projects, pendingTaskCompletion, (task) => {
+          task.completed = true
+          task.completedAt = new Date().toISOString()
+          markAllSubtasksCompleted(task)
+        })
         draft.showTaskCompletionDialog = false
         draft.pendingTaskCompletion = null
         // DO NOT automatically change showCompleted state here
@@ -171,18 +166,15 @@ export const useAppStore = create<AppState>((set, get) => ({
     })
   },
 
-  deleteTask: (projectId, taskPath) => {
-    const project = get().projects.find((p) => p.id === projectId)
-    if (!project) return
-
-    const task = findTaskRecursive(project.tasks, taskPath)
+  deleteTask: (taskPath) => {
+    const task = findTaskByPath(get().projects, taskPath)
     if (!task) return
 
     // If there are subtasks, show a confirmation dialog
     if (task.subtasks.length > 0) {
       set({
         showDeleteConfirmationDialog: true,
-        pendingDeletion: { projectId, taskPath },
+        pendingDeletion: taskPath,
       })
       return
     }
@@ -190,14 +182,11 @@ export const useAppStore = create<AppState>((set, get) => ({
     // If there are no subtasks, just delete it
     set(
       produce((draft: AppState) => {
-        const project = draft.projects.find((p) => p.id === projectId)
-        if (project) {
-          deleteTaskFromArray(project.tasks, taskPath)
+        deleteByPath(draft.projects, taskPath)
 
-          // If the current task path is no longer valid, navigate up one level
-          if (!findTaskRecursive(project.tasks, draft.currentTaskPath)) {
-            draft.currentTaskPath = draft.currentTaskPath.slice(0, -1)
-          }
+        // If the current path is no longer valid, navigate up one level
+        if (!findTaskByPath(draft.projects, draft.currentPath) && !findProjectByPath(draft.projects, draft.currentPath)) {
+          draft.currentPath = draft.currentPath.slice(0, -1)
         }
       }),
     )
@@ -207,18 +196,13 @@ export const useAppStore = create<AppState>((set, get) => ({
     const { pendingDeletion } = get()
     if (!pendingDeletion) return
 
-    const { projectId, taskPath } = pendingDeletion
-
     set(
       produce((draft: AppState) => {
-        const project = draft.projects.find((p) => p.id === projectId)
-        if (project) {
-          deleteTaskFromArray(project.tasks, taskPath)
+        deleteByPath(draft.projects, pendingDeletion)
 
-          // Navigate up one level if we can
-          if (draft.currentTaskPath.length > 0) {
-            draft.currentTaskPath = draft.currentTaskPath.slice(0, -1)
-          }
+        // Navigate up one level if we can
+        if (draft.currentPath.length > 0) {
+          draft.currentPath = draft.currentPath.slice(0, -1)
         }
         draft.showDeleteConfirmationDialog = false
         draft.pendingDeletion = null
@@ -234,7 +218,8 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   deleteProject: (projectId) => {
-    const project = get().projects.find((p) => p.id === projectId)
+    const projectPath = [projectId]
+    const project = findProjectByPath(get().projects, path)
     if (!project) return
 
     // If the project has tasks, show a confirmation dialog
@@ -242,7 +227,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (hasTasks) {
       set({
         showDeleteConfirmationDialog: true,
-        pendingDeletion: { projectId, taskPath: [] },
+        pendingDeletion: projectPath,
       })
       return
     }
@@ -250,21 +235,15 @@ export const useAppStore = create<AppState>((set, get) => ({
     // If there are no tasks, delete the project
     set(
       produce((draft: AppState) => {
-        const projectIndex = draft.projects.findIndex((p) => p.id === projectId)
-        if (projectIndex !== -1) {
-          draft.projects.splice(projectIndex, 1)
-
-          // Navigate to the project list
-          draft.selectedProjectId = null
-          draft.currentTaskPath = []
-        }
+        deleteByPath(draft.projects, projectPath)
+        draft.currentPath = [] // Navigate to the project list
       }),
     )
   },
 
   enterFocusMode: (projectIdToFocus?: string) => {
-    const targetProjectId = projectIdToFocus || get().selectedProjectId
-    if (!targetProjectId) {
+    const currentProjectId = projectIdToFocus || getProjectId(get().currentPath)
+    if (!currentProjectId) {
       // Instead of showing dialog, randomly select a project
       const projects = get().projects
       if (projects.length === 0) return // No projects to focus on
@@ -273,21 +252,22 @@ export const useAppStore = create<AppState>((set, get) => ({
       const leaves = getHierarchicalLeafNodes(randomProject.tasks, [])
       set({
         isFocusMode: true,
-        selectedProjectId: randomProject.id,
-        focusStartPath: [],
+        currentPath: [randomProject.id],
+        focusStartPath: [randomProject.id],
         focusModeProjectLeaves: leaves,
         currentFocusTask: leaves.length > 0 ? leaves[Math.floor(Math.random() * leaves.length)] : null,
         showProjectSelectorDialog: false,
       })
       return
     }
-    const project = get().projects.find((p) => p.id === targetProjectId)
+    const project = get().projects.find((p) => p.id === currentProjectId)
     if (project) {
-      const currentPath = get().currentTaskPath
-      const leaves = getHierarchicalLeafNodes(project.tasks, currentPath)
+      const currentPath = get().currentPath
+      const taskPath = isProject(currentPath) ? [] : currentPath.slice(1) // Get task path within project
+      const leaves = getHierarchicalLeafNodes(project.tasks, taskPath)
       set({
         isFocusMode: true,
-        selectedProjectId: targetProjectId,
+        currentPath: [currentProjectId],
         focusStartPath: currentPath,
         focusModeProjectLeaves: leaves,
         currentFocusTask: leaves.length > 0 ? leaves[Math.floor(Math.random() * leaves.length)] : null,
@@ -317,24 +297,23 @@ export const useAppStore = create<AppState>((set, get) => ({
     }),
 
   completeFocusTask: () => {
-    const { currentFocusTask, selectedProjectId } = get()
-    if (currentFocusTask && selectedProjectId) {
+    const { currentFocusTask } = get()
+    const currentProjectId = getProjectId(get().currentPath)
+    if (currentFocusTask && currentProjectId) {
       // Find the path to the currentFocusTask to mark it completed in the main projects data
-      const project = get().projects.find((p) => p.id === selectedProjectId)
+      const project = get().projects.find((p) => p.id === currentProjectId)
       if (project) {
-        const taskPath = findTaskPath(project.tasks, currentFocusTask.id)
-        if (taskPath) {
+        const taskPathInProject = findTaskPath(project.tasks, currentFocusTask.id)
+        if (taskPathInProject) {
+          const fullTaskPath = [currentProjectId, ...taskPathInProject]
           // Complete the task directly without showing dialog in focus mode
           set(
             produce((draft: AppState) => {
-              const project = draft.projects.find((p) => p.id === selectedProjectId)
-              if (project) {
-                findAndUpdateTask(project.tasks, taskPath, (task) => {
-                  task.completed = true
-                  task.completedAt = new Date().toISOString()
-                  markAllSubtasksCompleted(task)
-                })
-              }
+              updateTaskByPath(draft.projects, fullTaskPath, (task) => {
+                task.completed = true
+                task.completedAt = new Date().toISOString()
+                markAllSubtasksCompleted(task)
+              })
             }),
           )
         }
@@ -353,15 +332,16 @@ export const useAppStore = create<AppState>((set, get) => ({
   },
 
   keepGoingFocus: () => {
-    const { selectedProjectId, focusStartPath, projects } = get()
-    if (!selectedProjectId) return
+    const { focusStartPath, projects } = get()
+    const currentProjectId = getProjectId(get().currentPath)
+    if (!currentProjectId) return
 
-    const project = projects.find((p) => p.id === selectedProjectId)
+    const project = projects.find((p) => p.id === currentProjectId)
     if (!project) return
 
     // If we were focusing at a specific task level, show the parent task
-    if (focusStartPath.length > 0) {
-      const parentTask = findTaskRecursive(project.tasks, focusStartPath)
+    if (focusStartPath.length > 1) {
+      const parentTask = findTaskByPath(projects, focusStartPath)
       if (parentTask && !parentTask.completed) {
         // Show the parent task as the focus task
         set({
@@ -373,7 +353,8 @@ export const useAppStore = create<AppState>((set, get) => ({
 
       // If parent is completed or doesn't exist, go one level up
       const parentPath = focusStartPath.slice(0, -1)
-      const leaves = getHierarchicalLeafNodes(project.tasks, parentPath)
+      const taskPath = isProject(parentPath) ? [] : parentPath.slice(1)
+      const leaves = getHierarchicalLeafNodes(project.tasks, taskPath)
 
       set({
         focusStartPath: parentPath,
@@ -382,14 +363,14 @@ export const useAppStore = create<AppState>((set, get) => ({
       })
     } else {
       // We were at project level, pick a random project
-      const availableProjects = projects.filter((p) => p.id !== selectedProjectId)
+      const availableProjects = projects.filter((p) => p.id !== currentProjectId)
       if (availableProjects.length > 0) {
         const randomProject = availableProjects[Math.floor(Math.random() * availableProjects.length)]
         const leaves = getHierarchicalLeafNodes(randomProject.tasks, [])
 
         set({
-          selectedProjectId: randomProject.id,
-          focusStartPath: [],
+          currentPath: [randomProject.id],
+          focusStartPath: [randomProject.id],
           focusModeProjectLeaves: leaves,
           currentFocusTask: leaves.length > 0 ? leaves[Math.floor(Math.random() * leaves.length)] : null,
         })
@@ -406,28 +387,26 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   toggleShowCompleted: () => set((state) => ({ showCompleted: !state.showCompleted })),
 
-  addSubtask: (projectId, parentTaskPath, subtaskName) =>
+  addSubtaskToParent: (parentPath, subtaskName) =>
     set(
       produce((draft: AppState) => {
-        const project = draft.projects.find((p) => p.id === projectId)
-        if (project) {
-          const newTask: TaskItemData = {
-            id: uuidv4(),
-            name: subtaskName,
-            completed: false,
-            subtasks: [],
-          }
+        const newTask: TaskItemData = {
+          id: uuidv4(),
+          name: subtaskName,
+          completed: false,
+          subtasks: [],
+        }
 
-          // If parentTaskPath is empty, add to project root
-          if (parentTaskPath.length === 0) {
-            project.tasks.push(newTask)
-          } else {
-            // Find the parent task and add to its subtasks
-            const parentTask = findTaskRecursive(project.tasks, parentTaskPath)
-            if (parentTask) {
-              parentTask.subtasks.push(newTask)
-            }
-          }
+        if (parentPath.length === 0) return // Can't add to empty path
+
+        const project = draft.projects.find((p) => p.id === parentPath[0])
+        if (!project) return
+
+        // If parentPath is project level, add to project root
+        if (parentPath.length === 1) {
+          project.tasks.push(newTask)
+        } else {
+          addTaskToParent(draft.projects, parentPath, newTask)
         }
       }),
     ),
@@ -442,17 +421,15 @@ export const useAppStore = create<AppState>((set, get) => ({
       }),
     ),
 
-  updateTaskName: (projectId, taskPath, newName) =>
+  updateTaskName: (taskPath, newName) =>
     set(
       produce((draft: AppState) => {
-        const project = draft.projects.find((p) => p.id === projectId)
-        if (project) {
-          findAndUpdateTask(project.tasks, taskPath, (task) => {
-            task.name = newName
-          })
-        }
+        updateTaskByPath(draft.projects, taskPath, (task) => {
+          task.name = newName
+        })
       }),
     ),
+
   addProject: (projectName) =>
     set(
       produce((draft: AppState) => {
@@ -468,16 +445,17 @@ export const useAppStore = create<AppState>((set, get) => ({
 
 // Helper to get current tasks to display based on path
 export const getCurrentTasksForView = (store: AppState): TaskItemData[] => {
-  if (!store.selectedProjectId) return []
-  const project = store.projects.find((p) => p.id === store.selectedProjectId)
+  if (isProjectList(store.currentPath)) return []
+  
+  const project = findProjectByPath(store.projects, store.currentPath)
   if (!project) return []
 
   // Get tasks at the current path level
   let tasksToShow: TaskItemData[]
-  if (store.currentTaskPath.length === 0) {
+  if (isProject(store.currentPath)) {
     tasksToShow = project.tasks
   } else {
-    const currentTask = findTaskRecursive(project.tasks, store.currentTaskPath)
+    const currentTask = findTaskByPath(store.projects, store.currentPath)
     if (!currentTask) {
       // Path is invalid, return empty array
       return []
@@ -505,13 +483,15 @@ export const getCurrentTasksForView = (store: AppState): TaskItemData[] => {
 }
 
 export const getCurrentTaskChain = (store: AppState): TaskItemData[] => {
-  if (!store.selectedProjectId || store.currentTaskPath.length === 0) return []
-  const project = store.projects.find((p) => p.id === store.selectedProjectId)
+  if (isProjectList(store.currentPath) || isProject(store.currentPath)) return []
+  
+  const project = findProjectByPath(store.projects, store.currentPath)
   if (!project) return []
 
   const chain: TaskItemData[] = []
   let currentTasks = project.tasks
-  for (const taskId of store.currentTaskPath) {
+  const taskPath = store.currentPath.slice(1) // Remove project ID
+  for (const taskId of taskPath) {
     const task = currentTasks.find((t) => t.id === taskId)
     if (task) {
       chain.push(task)

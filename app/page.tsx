@@ -13,14 +13,13 @@ import { EditableTitle, type EditableTitleRef } from "@/components/editable-titl
 import { TaskOptionsMenu } from "@/components/task/task-options-menu"
 import { triggerConfetti } from "@/lib/confetti"
 import { useRef } from "react"
-import { countSubtasksRecursively, findTaskRecursive } from "@/lib/task-utils"
+import { countSubtasksRecursively, findTaskByPath, findProjectByPath, getProjectId, isProject, isProjectList } from "@/lib/task-utils"
 
 export default function HomePage() {
   const store = useAppStore()
   const {
     projects,
-    selectedProjectId,
-    currentTaskPath,
+    currentPath,
     isFocusMode,
     navigateBack,
     selectProject,
@@ -46,19 +45,14 @@ export default function HomePage() {
   const titleRef = useRef<EditableTitleRef>(null)
 
   const tasksToDisplay = getCurrentTasksForView(store)
-  const currentProject = projects.find((p) => p.id === selectedProjectId)
+  const currentProject = findProjectByPath(projects, currentPath)
   const taskChain = getCurrentTaskChain(store)
   const currentTask = taskChain.length > 0 ? taskChain[taskChain.length - 1] : null
   const isCurrentTaskCompleted = currentTask?.completed || false
 
   // Get pending task info for dialog
   const pendingTask = pendingTaskCompletion
-    ? (() => {
-        const project = projects.find((p) => p.id === pendingTaskCompletion.projectId)
-        if (!project) return null
-
-        return findTaskRecursive(project.tasks, pendingTaskCompletion.taskPath)
-      })()
+    ? findTaskByPath(projects, pendingTaskCompletion)
     : null
 
   const pendingTaskSubtaskCount = pendingTask ? pendingTask.subtasks.filter((st: any) => !st.completed).length : 0
@@ -66,33 +60,29 @@ export default function HomePage() {
   // Get pending deletion info
   const pendingDeletionItem = pendingDeletion
     ? (() => {
-        const project = projects.find((p) => p.id === pendingDeletion.projectId)
-        if (!project) return null
-
-        // If taskPath is empty, we're deleting a project
-        if (pendingDeletion.taskPath.length === 0) {
+        if (isProject(pendingDeletion)) {
+          // Deleting a project
+          const project = findProjectByPath(projects, pendingDeletion)
+          if (!project) return null
+          
           return {
             name: project.name,
             type: "project" as const,
             subtaskCount: project.tasks.reduce((acc, task) => acc + 1 + countSubtasksRecursively(task), 0),
           }
-        }
+        } else {
+          // Deleting a task
+          const task = findTaskByPath(projects, pendingDeletion)
+          if (!task) return null
 
-        // Otherwise, we're deleting a task
-        const task = findTaskRecursive(project.tasks, pendingDeletion.taskPath)
-        if (!task) return null
-
-        return {
-          name: task.name,
-          type: "task" as const,
-          subtaskCount: countSubtasksRecursively(task),
+          return {
+            name: task.name,
+            type: "task" as const,
+            subtaskCount: countSubtasksRecursively(task),
+          }
         }
       })()
     : null
-
-
-
-
 
   if (isFocusMode) {
     return (
@@ -103,11 +93,11 @@ export default function HomePage() {
   }
 
   const getBackButtonText = () => {
-    if (!selectedProjectId) return ""
+    if (isProjectList(currentPath)) return ""
 
-    if (currentTaskPath.length === 0) {
+    if (isProject(currentPath)) {
       return "Projects"
-    } else if (currentTaskPath.length === 1) {
+    } else if (currentPath.length === 2) {
       return currentProject?.name || "Project"
     } else {
       // Get the parent task name
@@ -117,7 +107,7 @@ export default function HomePage() {
   }
 
   const handleBackClick = () => {
-    if (currentTaskPath.length === 0) {
+    if (isProject(currentPath)) {
       selectProject(null)
     } else {
       navigateBack()
@@ -125,26 +115,32 @@ export default function HomePage() {
   }
 
   const handleTitleChange = (newTitle: string) => {
-    if (!selectedProjectId) return
+    if (isProjectList(currentPath)) return
 
-    if (currentTaskPath.length === 0) {
+    if (isProject(currentPath)) {
       // Editing project name
-      updateProjectName(selectedProjectId, newTitle)
+      const projectId = getProjectId(currentPath)
+      if (projectId) {
+        updateProjectName(projectId, newTitle)
+      }
     } else {
       // Editing task name
-      updateTaskName(selectedProjectId, currentTaskPath, newTitle)
+      updateTaskName(currentPath, newTitle)
     }
   }
 
   const handleDelete = () => {
-    if (!selectedProjectId) return
+    if (isProjectList(currentPath)) return
 
-    if (currentTaskPath.length === 0) {
+    if (isProject(currentPath)) {
       // Delete project
-      deleteProject(selectedProjectId)
+      const projectId = getProjectId(currentPath)
+      if (projectId) {
+        deleteProject(projectId)
+      }
     } else {
       // Delete task
-      deleteTask(selectedProjectId, currentTaskPath)
+      deleteTask(currentPath)
     }
   }
 
@@ -158,34 +154,21 @@ export default function HomePage() {
 
   // Check if current task/project should show complete button
   const shouldShowCompleteButton = () => {
-    if (!selectedProjectId) return false
+    if (isProjectList(currentPath) || isProject(currentPath)) return false
 
-    if (currentTaskPath.length === 0) {
-      // At project level - never show complete button for projects
-      return false
-    } else {
-      // At task level - show if current task is not completed AND has no incomplete subtasks
-      if (isCurrentTaskCompleted) return false
-      const hasIncompleteSubtasks = currentTask?.subtasks.some((subtask) => !subtask.completed) || false
-      return !hasIncompleteSubtasks
-    }
+    // At task level - show if current task is not completed AND has no incomplete subtasks
+    if (isCurrentTaskCompleted) return false
+    const hasIncompleteSubtasks = currentTask?.subtasks.some((subtask) => !subtask.completed) || false
+    return !hasIncompleteSubtasks
   }
 
   const handleCompleteCurrentItem = () => {
-    if (!selectedProjectId || currentTaskPath.length === 0) return
-
-    // Trigger confetti
     triggerConfetti()
-
-    // Complete current task
-    toggleTaskCompletion(selectedProjectId, currentTaskPath)
+    toggleTaskCompletion(currentPath)
   }
 
   const handleUncompleteCurrentItem = () => {
-    if (!selectedProjectId || currentTaskPath.length === 0) return
-
-    // Uncomplete current task
-    toggleTaskCompletion(selectedProjectId, currentTaskPath)
+    toggleTaskCompletion(currentPath)
   }
 
   const handleAddProject = (projectName: string) => {
@@ -198,8 +181,7 @@ export default function HomePage() {
   }
 
   const pageContent = () => {
-    if (!selectedProjectId) {
-      // Project List View
+    if (isProjectList(currentPath)) {
       return (
         <div className="space-y-6">
           <div className="flex items-center justify-between">
@@ -219,12 +201,15 @@ export default function HomePage() {
               <ProjectListItem key={project.id} project={project} />
             ))}
           </div>
+
           <AddProjectForm onAddProject={handleAddProject} />
         </div>
       )
     }
 
-    // Task View (Project selected)
+    const currentProjectId = getProjectId(currentPath)
+    if (!currentProjectId) return null
+
     return (
       <div className="space-y-6 pb-32">
         {/* Navigation and Focus button */}
@@ -307,11 +292,11 @@ export default function HomePage() {
         )}
 
         <div className="space-y-2">
-          <TaskListView tasks={tasksToDisplay} projectId={selectedProjectId} basePathInProject={currentTaskPath} />
+          <TaskListView tasks={tasksToDisplay} currentPath={currentPath} />
         </div>
 
         {/* Show AddTaskForm for all levels */}
-        {selectedProjectId && <AddTaskForm projectId={selectedProjectId} />}
+        {!isProjectList(currentPath) && <AddTaskForm currentPath={currentPath} />}
       </div>
     )
   }

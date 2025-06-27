@@ -5,11 +5,12 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useAppStore } from "@/store/app-store"
 import { Send } from "lucide-react"
+import { isProjectList } from "@/lib/task-utils"
 
 export function FloatingAddWidget() {
   const [taskName, setTaskName] = useState("")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const { selectedProjectId, currentTaskPath, addSubtask, isFocusMode } = useAppStore()
+  const { currentPath, addSubtaskToParent, isFocusMode } = useAppStore()
 
   // Auto-resize textarea
   useEffect(() => {
@@ -36,8 +37,8 @@ export function FloatingAddWidget() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (taskName.trim() && selectedProjectId) {
-      addSubtask(selectedProjectId, currentTaskPath, taskName.trim())
+    if (taskName.trim() && !isProjectList(currentPath)) {
+      addSubtaskToParent(currentPath, taskName.trim())
       setTaskName("")
       textareaRef.current?.focus()
     }
@@ -50,8 +51,8 @@ export function FloatingAddWidget() {
     }
   }
 
-  // Don't show in focus mode or when no project is selected
-  if (isFocusMode || !selectedProjectId) {
+  // Don't show in focus mode or when at project list
+  if (isFocusMode || isProjectList(currentPath)) {
     return null
   }
 

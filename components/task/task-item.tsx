@@ -12,11 +12,10 @@ import { useState, useRef } from "react"
 
 interface TaskItemProps {
   task: TaskItemData
-  projectId: string
-  currentPathInProject: string[] // Path to this task from project root
+  currentPath: string[] // Unified path to the parent of this task
 }
 
-export function TaskItem({ task, projectId, currentPathInProject }: TaskItemProps) {
+export function TaskItem({ task, currentPath }: TaskItemProps) {
   const navigateToTask = useAppStore((state) => state.navigateToTask)
   const toggleTaskCompletion = useAppStore((state) => state.toggleTaskCompletion)
   const deleteTask = useAppStore((state) => state.deleteTask)
@@ -24,11 +23,11 @@ export function TaskItem({ task, projectId, currentPathInProject }: TaskItemProp
   const [isEditing, setIsEditing] = useState(false)
   const editableTitleRef = useRef<EditableTitleRef>(null)
 
-  const taskPath = [...currentPathInProject, task.id]
+  const taskPath = [...currentPath, task.id]
 
   const handleToggleCompletion = (e: React.MouseEvent) => {
     e.stopPropagation()
-    toggleTaskCompletion(projectId, taskPath)
+    toggleTaskCompletion(taskPath)
   }
 
   const handleNavigate = () => {
@@ -39,7 +38,7 @@ export function TaskItem({ task, projectId, currentPathInProject }: TaskItemProp
   }
 
   const handleTaskNameChange = (newName: string) => {
-    updateTaskName(projectId, taskPath, newName)
+    updateTaskName(taskPath, newName)
     setIsEditing(false)
   }
 
@@ -101,8 +100,8 @@ export function TaskItem({ task, projectId, currentPathInProject }: TaskItemProp
         // Focus the editable title after state updates
         setTimeout(() => editableTitleRef.current?.focus(), 0)
       }}
-      onToggleComplete={() => toggleTaskCompletion(projectId, taskPath)}
-      onDelete={() => deleteTask(projectId, taskPath)}
+      onToggleComplete={() => toggleTaskCompletion(taskPath)}
+      onDelete={() => deleteTask(taskPath)}
       isCompleted={task.completed}
     >
       {taskContent}

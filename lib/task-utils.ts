@@ -1,4 +1,4 @@
-import type { TaskItemData } from "./types"
+import type { TaskItemData, ProjectData } from "./types"
 
 /**
  * Find and update a task with a task path with a certain update function
@@ -19,11 +19,11 @@ export const findAndUpdateTask = (tasks: TaskItemData[], path: string[], updateF
 /**
  * Find a task with a task path
  */
-export const findTaskRecursive = (tasks: TaskItemData[], path: string[]): TaskItemData | undefined => {
-  if (!path.length) return undefined
+export const findTaskRecursive = (tasks: TaskItemData[], path: string[]): TaskItemData | null => {
+  if (!path.length) return null
   const currentId = path[0]
   const task = tasks.find((t) => t.id === currentId)
-  if (!task) return undefined
+  if (!task) return null
   if (path.length === 1) return task
   return findTaskRecursive(task.subtasks, path.slice(1))
 }
@@ -138,4 +138,86 @@ export const getHierarchicalLeafNodes = (tasks: TaskItemData[], startPath: strin
     // Parent is completed or doesn't exist, go up one level
     currentPath = currentPath.slice(0, -1)
   }
-} 
+}
+
+/**
+ * Find a task by unified path (includes projectId)
+ */
+export const findTaskByPath = (projects: ProjectData[], taskPath: string[]): TaskItemData | null => {
+  if (taskPath.length <= 1) return null // Project level or invalid
+  
+  const project = projects.find(p => p.id === taskPath[0])
+  if (!project) return null
+  
+  return findTaskRecursive(project.tasks, taskPath.slice(1))
+}
+
+/**
+ * Find a project by unified path
+ */
+export const findProjectByPath = (projects: ProjectData[], taskPath: string[]): ProjectData | null => {
+  if (taskPath.length === 0) return null
+  return projects.find(p => p.id === taskPath[0]) || null
+}
+
+/**
+ * Update a task by unified path
+ */
+export const updateTaskByPath = (projects: ProjectData[], taskPath: string[], updateFn: (task: TaskItemData) => void): boolean => {
+  if (taskPath.length <= 1) return false
+  
+  const project = projects.find(p => p.id === taskPath[0])
+  if (!project) return false
+  
+  return findAndUpdateTask(project.tasks, taskPath.slice(1), updateFn)
+}
+
+/**
+ * Delete by unified path (can delete project or task)
+ */
+export const deleteByPath = (projects: ProjectData[], taskPath: string[]): boolean => {
+  if (taskPath.length === 0) return false
+  
+  if (taskPath.length === 1) {
+    // Delete project
+    const projectIndex = projects.findIndex(p => p.id === taskPath[0])
+    if (projectIndex !== -1) {
+      projects.splice(projectIndex, 1)
+      return true
+    }
+    return false
+  }
+  
+  // Delete task
+  const project = projects.find(p => p.id === taskPath[0])
+  if (!project) return false
+  
+  return deleteTaskFromArray(project.tasks, taskPath.slice(1))
+}
+
+/**
+ * Add a task to parent by unified path
+ */
+export const addTaskToParent = (projects: ProjectData[], parentPath: string[], taskData: TaskItemData): TaskItemData | null => {
+  if (parentPath.length === 0) return null
+  
+  const project = projects.find(p => p.id === parentPath[0])
+  if (!project) return null
+  
+  if (parentPath.length === 1) {
+    // Add to project root
+    project.tasks.push(taskData)
+  } else {
+    // Add to parent task
+    const parentTask = findTaskRecursive(project.tasks, parentPath.slice(1))
+    if (!parentTask) return null
+    parentTask.subtasks.push(taskData)
+  }
+  
+  return taskData
+}
+
+// Helper functions for unified paths
+export const getProjectId = (taskPath: string[]): string | null => taskPath[0] || null
+export const isProject = (taskPath: string[]): boolean => taskPath.length === 1
+export const isProjectList = (taskPath: string[]): boolean => taskPath.length === 0 

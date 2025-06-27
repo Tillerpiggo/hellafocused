@@ -4,19 +4,17 @@ import { TaskItem } from "./task-item"
 
 interface TaskListViewProps {
   tasks: TaskItemData[]
-  projectId: string
-  basePathInProject: string[] // Path to the parent of these tasks
+  currentPath: string[] // Unified path including project and task hierarchy
 }
 
-export function TaskListView({ tasks, projectId, basePathInProject }: TaskListViewProps) {
+export function TaskListView({ tasks, currentPath }: TaskListViewProps) {
   return (
     <div className="space-y-1">
       {tasks.map((task) => (
         <TaskItem
           key={task.id}
           task={task}
-          projectId={projectId}
-          currentPathInProject={basePathInProject} // TaskItem will append its own ID
+          currentPath={currentPath} // TaskItem will append its own ID
         />
       ))}
     </div>

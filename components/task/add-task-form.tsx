@@ -1,21 +1,20 @@
 "use client"
 import { useAppStore } from "@/store/app-store"
 import { AddForm } from "@/components/ui/add-form"
+import { isProject } from "@/lib/task-utils"
 
 interface AddTaskFormProps {
-  projectId: string
+  currentPath: string[] // Unified path including project and task hierarchy
 }
 
-export function AddTaskForm({ projectId }: AddTaskFormProps) {
-  const addSubtask = useAppStore((state) => state.addSubtask)
-  const currentTaskPath = useAppStore((state) => state.currentTaskPath)
+export function AddTaskForm({ currentPath }: AddTaskFormProps) {
+  const addSubtaskToParent = useAppStore((state) => state.addSubtaskToParent)
 
   const addTask = (taskName: string) => {
-    // Use currentTaskPath to add subtask at the current level
-    addSubtask(projectId, currentTaskPath, taskName)
+    addSubtaskToParent(currentPath, taskName)
   }
 
-  const placeholderText = currentTaskPath.length === 0 ? "Add task..." : "Add subtask..."
+  const placeholderText = isProject(currentPath) ? "Add task..." : "Add subtask..."
 
   return (
     <AddForm

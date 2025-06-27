@@ -24,7 +24,7 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
   const [isDismissing, setIsDismissing] = useState(false)
   const [shouldRender, setShouldRender] = useState(false)
   const viewRef = useRef<HTMLDivElement>(null)
-  const { projects, selectedProjectId, addSubtask, currentFocusTask } = useAppStore()
+  const { projects, currentPath: globalCurrentPath, addSubtaskToParent, currentFocusTask } = useAppStore()
 
   // Handle visibility changes
   useEffect(() => {
@@ -34,20 +34,21 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
       setIsDismissing(false)
 
       // Initialize with current focus task context
-      if (selectedProjectId && currentFocusTask) {
-        const project = projects.find((p) => p.id === selectedProjectId)
+      const currentProjectId = globalCurrentPath[0]
+      if (currentProjectId && currentFocusTask) {
+        const project = projects.find((p) => p.id === currentProjectId)
         if (project) {
           const taskPath = findTaskPath(project.tasks, currentFocusTask.id)
           if (taskPath) {
-            setCurrentProjectId(selectedProjectId)
+            setCurrentProjectId(currentProjectId)
             setCurrentPath(taskPath)
           } else {
-            setCurrentProjectId(selectedProjectId)
+            setCurrentProjectId(currentProjectId)
             setCurrentPath([])
           }
         }
-      } else if (selectedProjectId) {
-        setCurrentProjectId(selectedProjectId)
+      } else if (currentProjectId) {
+        setCurrentProjectId(currentProjectId)
         setCurrentPath([])
       } else {
         setCurrentProjectId(null)
@@ -63,7 +64,7 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
       setIsDismissing(true)
       setIsAnimating(false)
     }
-  }, [isVisible, shouldRender, isDismissing, selectedProjectId, currentFocusTask, projects])
+  }, [isVisible, shouldRender, isDismissing, globalCurrentPath, currentFocusTask, projects])
 
   // Handle dismissal animation completion
   useEffect(() => {
@@ -207,7 +208,7 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
           <div className={currentTasks.length > 0 ? "mt-6" : "mt-2"}>
             <AddForm
               placeholder={currentPath.length === 0 ? "Add task..." : "Add subtask..."}
-              onSubmit={(taskName) => addSubtask(currentProjectId, currentPath, taskName)}
+              onSubmit={(taskName) => addSubtaskToParent([currentProjectId, ...currentPath], taskName)}
               inputId="add-task-input-inline"
             />
           </div>
