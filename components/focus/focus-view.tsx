@@ -7,7 +7,6 @@ import { AllTasksCompletedView } from "./all-tasks-completed-view"
 import { NoTasksAvailableView } from "./no-tasks-available-view"
 import { FocusTaskView } from "./focus-task-view"
 import { FocusHeaderButtons } from "./focus-header-buttons"
-import { getProjectId } from "@/lib/task-utils"
 import { randomFrom } from "@/lib/utils"
 
 interface FocusViewProps {
@@ -39,16 +38,27 @@ export function FocusView({ projectId, startPath }: FocusViewProps) {
 
   // Initialize focus store when component mounts
   useEffect(() => {
-    const focusProjectId = projectId || getProjectId(currentPath)
-    const focusStartPath = startPath || currentPath
+    let focusStartPath: string[]
 
-    if (focusProjectId) {
-      initializeFocus(projects, focusProjectId, focusStartPath)
+    if (startPath) {
+      // Use provided startPath (should include project ID)
+      focusStartPath = startPath
+    } else if (projectId) {
+      // Create path from projectId
+      focusStartPath = [projectId]
     } else {
-      // If no project specified, randomly select one
+      // Use current path (should include project ID)
+      focusStartPath = currentPath
+    }
+
+    // Ensure we have a valid path with project ID
+    if (focusStartPath.length > 0) {
+      initializeFocus(projects, focusStartPath)
+    } else {
+      // If no valid path, randomly select a project
       const randomProject = randomFrom(projects)
       if (randomProject) {
-        initializeFocus(projects, randomProject.id, [randomProject.id])
+        initializeFocus(projects, [randomProject.id])
       }
     }
 
