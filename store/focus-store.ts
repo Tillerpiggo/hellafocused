@@ -5,13 +5,11 @@ import { triggerConfetti } from "@/lib/confetti"
 import { randomFrom } from "@/lib/utils"
 import {
   findTaskByPath,
-  updateTaskByPath,
-  markAllSubtasksCompleted,
   getHierarchicalLeafNodes,
   findTaskPath,
   getProjectId,
-  isProject,
 } from "@/lib/task-utils"
+import { useAppStore } from "./app-store"
 
 interface FocusState {
   // Focus-specific state
@@ -24,7 +22,7 @@ interface FocusState {
   initializeFocus: (projects: ProjectData[], startPath: string[]) => void
   resetFocus: () => void
   getNextFocusTask: () => void
-  completeFocusTask: (projects: ProjectData[], onProjectsUpdate: (projects: ProjectData[]) => void) => void
+  completeFocusTask: () => void
   keepGoingFocus: (projects: ProjectData[]) => void
   setShowAddTasksView: (show: boolean) => void
 }
@@ -73,32 +71,21 @@ export const useFocusStore = create<FocusState>((set, get) => ({
       return { currentFocusTask: randomFrom(allLeaves) }
     }),
 
-  completeFocusTask: (projects, onProjectsUpdate) => {
+  completeFocusTask: () => {
     const { currentFocusTask, focusStartPath } = get()
     const currentProjectId = getProjectId(focusStartPath)
     
     if (currentFocusTask && currentProjectId) {
-      // Trigger confetti for task completion
-      triggerConfetti()
-
       // Find the path to the currentFocusTask to mark it completed in the main projects data
+      const projects = useAppStore.getState().projects
       const project = projects.find((p) => p.id === currentProjectId)
       if (project) {
         const taskPathInProject = findTaskPath(project.tasks, currentFocusTask.id)
         if (taskPathInProject) {
           const fullTaskPath = [currentProjectId, ...taskPathInProject]
           
-          // Update projects data
-          const updatedProjects = produce(projects, (draft) => {
-            updateTaskByPath(draft, fullTaskPath, (task) => {
-              task.completed = true
-              task.completedAt = new Date().toISOString()
-              markAllSubtasksCompleted(task)
-            })
-          })
-          
-          // Notify the parent about the update
-          onProjectsUpdate(updatedProjects)
+          // Use the app store's toggleTaskCompletion function directly
+          useAppStore.getState().toggleTaskCompletion(fullTaskPath)
         }
       }
 

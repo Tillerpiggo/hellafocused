@@ -74,10 +74,7 @@ export function FocusView({ startPath }: FocusViewProps) {
   }
 
   const handleCompleteFocusTask = () => {
-    completeFocusTask(projects, (updatedProjects) => {
-      // Update the main app store with the new projects data
-      useAppStore.setState({ projects: updatedProjects })
-    })
+    completeFocusTask()
   }
 
   const handleKeepGoing = () => {
