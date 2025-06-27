@@ -91,7 +91,7 @@ export default function HomePage() {
 
     return (
       <div className="bg-background text-foreground">
-        <FocusView projectId={focusProjectId} startPath={focusStartPath} />
+        <FocusView startPath={focusStartPath} />
       </div>
     )
   }

@@ -93,7 +93,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     // Trigger confetti for task completion (only when completing, not uncompleting)
-    if (!task.completed && typeof window !== "undefined") {
+    if (!task.completed) {
       triggerConfetti()
     }
 
@@ -122,9 +122,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     if (!pendingTaskCompletion) return
 
     // Trigger confetti for task completion
-    if (typeof window !== "undefined") {
-      triggerConfetti()
-    }
+    triggerConfetti()
 
     set(
       produce((draft: AppState) => {

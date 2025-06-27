@@ -79,9 +79,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
     
     if (currentFocusTask && currentProjectId) {
       // Trigger confetti for task completion
-      if (typeof window !== "undefined") {
-        triggerConfetti()
-      }
+      triggerConfetti()
 
       // Find the path to the currentFocusTask to mark it completed in the main projects data
       const project = projects.find((p) => p.id === currentProjectId)

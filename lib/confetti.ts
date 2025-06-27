@@ -1,6 +1,8 @@
 import { randomFrom } from "./utils"
 
 export const triggerConfetti = () => {
+  if (typeof window === "undefined") return
+  
   const colors = ["#10b981", "#6ee7b7", "#a7f3d0", "#34d399", "#059669", "#065f46"]
   const confettiContainer = document.createElement("div")
   confettiContainer.style.position = "fixed"
