@@ -106,12 +106,16 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
     const currentProject = findProjectByPath(projects, currentPath)
     if (!currentProject) return []
 
+    let tasks: TaskItemData[]
     if (isProject(currentPath)) {
-      return currentProject.tasks
+      tasks = currentProject.tasks
+    } else {
+      const currentTask = findTaskByPath(projects, currentPath)
+      tasks = currentTask?.subtasks || []
     }
 
-    const currentTask = findTaskByPath(projects, currentPath)
-    return currentTask?.subtasks || []
+    // Only show uncompleted tasks
+    return tasks.filter(task => !task.completed)
   }
 
   // Get current title based on path
