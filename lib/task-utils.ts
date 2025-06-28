@@ -64,7 +64,7 @@ export const countSubtasksRecursively = (task: TaskItemData): number => {
 export const markAllSubtasksCompleted = (task: TaskItemData) => {
   task.subtasks.forEach((subtask) => {
     subtask.completed = true
-    subtask.completedAt = new Date().toISOString()
+    subtask.completionDate = new Date()
     markAllSubtasksCompleted(subtask)
   })
 }

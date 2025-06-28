@@ -2,7 +2,7 @@ export interface TaskItemData {
   id: string
   name: string
   completed: boolean
-  completedAt?: string // ISO string for when task was completed
+  completionDate?: Date
   subtasks: TaskItemData[]
   isCompleting?: boolean // For animation
 }

@@ -103,14 +103,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         updateTaskByPath(draft.projects, taskPath, (task) => {
           task.completed = !task.completed
 
-          // If completing a task, mark all subtasks as completed too and set completion time
+          // If completing a task, mark all subtasks as completed too and set completion date
           if (task.completed) {
-            task.completedAt = new Date().toISOString()
+            task.completionDate = new Date()
             markAllSubtasksCompleted(task)
             // DO NOT automatically change showCompleted state here
           } else {
-            // If uncompleting, remove completion time
-            delete task.completedAt
+            // If uncompleting, remove completion date
+            delete task.completionDate
           }
         })
       }),
@@ -128,7 +128,7 @@ export const useAppStore = create<AppState>((set, get) => ({
       produce((draft: AppState) => {
         updateTaskByPath(draft.projects, pendingTaskCompletion, (task) => {
           task.completed = true
-          task.completedAt = new Date().toISOString()
+          task.completionDate = new Date()
           markAllSubtasksCompleted(task)
         })
         draft.showTaskCompletionDialog = false
@@ -309,8 +309,8 @@ export const getCurrentTasksForView = (store: AppState): TaskItemData[] => {
     const completedTasks = tasksToShow
       .filter((task) => task.completed)
       .sort((a, b) => {
-        const aTime = a.completedAt ? new Date(a.completedAt).getTime() : 0
-        const bTime = b.completedAt ? new Date(b.completedAt).getTime() : 0
+        const aTime = a.completionDate ? a.completionDate.getTime() : 0
+        const bTime = b.completionDate ? b.completionDate.getTime() : 0
         return aTime - bTime // Earlier completed tasks first, recent ones at bottom
       })
 
