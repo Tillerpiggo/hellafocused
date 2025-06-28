@@ -9,18 +9,22 @@ import { ArrowDown, ArrowLeft } from "lucide-react"
 import type { TaskItemData } from "@/lib/types"
 import { ProjectsView } from "./projects-view"
 import { TasksView } from "./tasks-view"
-import { findTaskPath } from "@/lib/task-utils"
+import { 
+  findTaskPath, 
+  getProjectId, 
+  isProject, 
+  isProjectList,
+  findProjectByPath,
+  findTaskByPath
+} from "@/lib/task-utils"
 
 interface AddTasksViewProps {
   isVisible: boolean
   onClose: () => void
 }
 
-
-
 export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
   const [currentPath, setCurrentPath] = useState<string[]>([])
-  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null)
   const [isAnimating, setIsAnimating] = useState(false)
   const [isDismissing, setIsDismissing] = useState(false)
   const [shouldRender, setShouldRender] = useState(false)
@@ -36,24 +40,20 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
       setIsDismissing(false)
 
       // Initialize with current focus task context
-      const currentProjectId = globalCurrentPath[0]
-      if (currentProjectId && currentFocusTask) {
-        const project = projects.find((p) => p.id === currentProjectId)
+      const globalProjectId = getProjectId(globalCurrentPath)
+      if (globalProjectId && currentFocusTask) {
+        const project = projects.find((p) => p.id === globalProjectId)
         if (project) {
           const taskPath = findTaskPath(project.tasks, currentFocusTask.id)
           if (taskPath) {
-            setCurrentProjectId(currentProjectId)
-            setCurrentPath(taskPath)
+            setCurrentPath([globalProjectId, ...taskPath])
           } else {
-            setCurrentProjectId(currentProjectId)
-            setCurrentPath([])
+            setCurrentPath([globalProjectId])
           }
         }
-      } else if (currentProjectId) {
-        setCurrentProjectId(currentProjectId)
-        setCurrentPath([])
+      } else if (globalProjectId) {
+        setCurrentPath([globalProjectId])
       } else {
-        setCurrentProjectId(null)
         setCurrentPath([])
       }
 
@@ -101,46 +101,31 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
 
   // Get tasks at the current path
   const getTasksAtPath = (): TaskItemData[] => {
-    if (!currentProjectId) return []
+    if (isProjectList(currentPath)) return []
 
-    const currentProject = projects.find((p) => p.id === currentProjectId)
+    const currentProject = findProjectByPath(projects, currentPath)
     if (!currentProject) return []
 
-    let tasks = currentProject.tasks
-    for (const taskId of currentPath) {
-      const task = tasks.find((t) => t.id === taskId)
-      if (task) {
-        tasks = task.subtasks
-      } else {
-        return []
-      }
+    if (isProject(currentPath)) {
+      return currentProject.tasks
     }
-    return tasks
+
+    const currentTask = findTaskByPath(projects, currentPath)
+    return currentTask?.subtasks || []
   }
 
   // Get current title based on path
   const getCurrentTitle = (): string => {
-    if (!currentProjectId) return "Projects"
+    if (isProjectList(currentPath)) return "Projects"
 
-    const currentProject = projects.find((p) => p.id === currentProjectId)
+    const currentProject = findProjectByPath(projects, currentPath)
     if (!currentProject) return "Projects"
 
-    if (currentPath.length === 0) {
+    if (isProject(currentPath)) {
       return currentProject.name
     }
 
-    let tasks = currentProject.tasks
-    let currentTask = null
-
-    for (const taskId of currentPath) {
-      currentTask = tasks.find((t) => t.id === taskId)
-      if (currentTask) {
-        tasks = currentTask.subtasks
-      } else {
-        return currentProject.name
-      }
-    }
-
+    const currentTask = findTaskByPath(projects, currentPath)
     return currentTask?.name || currentProject.name
   }
 
@@ -149,16 +134,14 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
   }
 
   const handleNavigateToProject = (projectId: string) => {
-    setCurrentProjectId(projectId)
-    setCurrentPath([])
+    setCurrentPath([projectId])
   }
 
   const handleNavigateBack = () => {
-    if (currentPath.length > 0) {
-      setCurrentPath(currentPath.slice(0, -1))
-    } else if (currentProjectId) {
-      setCurrentProjectId(null)
+    if (isProject(currentPath)) {
       setCurrentPath([])
+    } else if (currentPath.length > 1) {
+      setCurrentPath(currentPath.slice(0, -1))
     }
   }
 
@@ -185,7 +168,7 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b">
         <div className="w-10">
-          {(currentPath.length > 0 || currentProjectId) && (
+          {!isProjectList(currentPath) && (
             <Button variant="ghost" size="icon" onClick={handleNavigateBack}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -201,16 +184,16 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto p-6">
-        {!currentProjectId ? (
+        {isProjectList(currentPath) ? (
           <ProjectsView projects={projects} onNavigateToProject={handleNavigateToProject} />
         ) : (
           <TasksView tasks={currentTasks} onNavigateToTask={handleNavigateToTask} />
         )}
-        {currentProjectId && (
+        {!isProjectList(currentPath) && (
           <div className={currentTasks.length > 0 ? "mt-6" : "mt-2"}>
             <AddForm
-              placeholder={currentPath.length === 0 ? "Add task..." : "Add subtask..."}
-              onSubmit={(taskName) => addSubtaskToParent([currentProjectId, ...currentPath], taskName)}
+              placeholder={isProject(currentPath) ? "Add task..." : "Add subtask..."}
+              onSubmit={(taskName) => addSubtaskToParent(currentPath, taskName)}
               inputId="add-task-input-inline"
             />
           </div>
@@ -219,3 +202,4 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
     </div>
   )
 }
+
