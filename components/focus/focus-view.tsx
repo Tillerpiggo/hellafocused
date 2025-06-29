@@ -74,8 +74,6 @@ export function FocusView({ startPath }: FocusViewProps) {
     }, 500) // Increased from 300ms to 500ms for gentler exit
   }
 
-
-
   // Determine the main content based on current state
   const renderMainContent = () => {
     if (!currentFocusTask) {
