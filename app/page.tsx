@@ -5,12 +5,14 @@ import { TaskListView } from "@/components/task/task-list-view"
 import { FocusView } from "@/components/focus/focus-view"
 import { TaskCompletionDialog } from "@/components/task/task-completion-dialog"
 import { DeleteConfirmationDialog } from "@/components/task/delete-confirmation-dialog"
+import { PageHeader } from "@/components/page/page-header"
+import { PageNavigation } from "@/components/page/page-navigation"
+import { BreadcrumbPath } from "@/components/page/breadcrumb-path"
 import { useAppStore, getCurrentTasksForView, getCurrentTaskChain } from "@/store/app-store"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Check, X, Target } from "lucide-react"
+import { Target } from "lucide-react"
 import { AddTaskForm } from "@/components/task/add-task-form"
-import { EditableTitle, type EditableTitleRef } from "@/components/editable-title"
-import { TaskOptionsMenu } from "@/components/task/task-options-menu"
+import { type EditableTitleRef } from "@/components/editable-title"
 import { triggerConfetti } from "@/lib/confetti"
 import { useRef } from "react"
 import { countSubtasksRecursively, findTaskByPath, findProjectByPath, getProjectId, isProject, isProjectList } from "@/lib/task-utils"
@@ -85,13 +87,9 @@ export default function HomePage() {
     : null
 
   if (isFocusMode) {
-    // Determine focus parameters
-    const focusProjectId = getProjectId(currentPath) || undefined
-    const focusStartPath = currentPath
-
     return (
       <div className="bg-background text-foreground">
-        <FocusView startPath={focusStartPath} />
+        <FocusView startPath={currentPath} />
       </div>
     )
   }
@@ -217,83 +215,35 @@ export default function HomePage() {
     return (
       <div className="space-y-6 pb-32">
         {/* Navigation and Focus button */}
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            onClick={handleBackClick}
-            className="text-muted-foreground hover:text-foreground px-0 py-3 h-auto font-normal -ml-2 pl-2 pr-4 rounded-lg"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {getBackButtonText()}
-          </Button>
-          <Button
-            variant={isFocusMode ? "secondary" : "outline"}
-            size="sm"
-            className="transition-all duration-200 hover:scale-105"
-            onClick={handleFocusClick}
-          >
-            <Target className="h-4 w-4 mr-2" />
-            Focus
-          </Button>
-        </div>
+        <PageNavigation
+          backButtonText={getBackButtonText()}
+          onBackClick={handleBackClick}
+          isFocusMode={isFocusMode}
+          onFocusClick={handleFocusClick}
+        />
 
         {/* Title and Action Buttons */}
-        <div className="flex items-start justify-between gap-4">
-          <h1 className="text-3xl font-light tracking-wide text-foreground flex-1">
-            <EditableTitle
-              ref={titleRef}
-              value={
-                isProject(currentPath) ? currentProject?.name || "" : taskChain[taskChain.length - 1]?.name || ""
-              }
-              onChange={handleTitleChange}
-              className="text-3xl font-light tracking-wide text-foreground"
-              isCompleted={isCurrentTaskCompleted}
-            />
-          </h1>
-          <div className="flex items-center gap-3 flex-shrink-0">
-            <TaskOptionsMenu
-              onRename={handleRename}
-              onDelete={handleDelete}
-              showCompleted={showCompleted}
-              isProject={isProject(currentPath)}
-            />
-            {shouldShowCompleteButton() && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCompleteCurrentItem}
-                className="text-primary border-primary/50 hover:bg-primary/10 hover:text-primary hover:border-primary rounded-full px-4"
-              >
-                <Check className="h-4 w-4 mr-1" />
-                Complete
-              </Button>
-            )}
-            {isCurrentTaskCompleted && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleUncompleteCurrentItem}
-                className="text-muted-foreground border-muted-foreground/30 hover:bg-muted/30 hover:text-foreground hover:border-muted-foreground rounded-full px-4"
-              >
-                <X className="h-4 w-4 mr-1" />
-                Uncomplete
-              </Button>
-            )}
-          </div>
-        </div>
+        <PageHeader
+          ref={titleRef}
+          title={
+            isProject(currentPath) ? currentProject?.name || "" : taskChain[taskChain.length - 1]?.name || ""
+          }
+          onTitleChange={handleTitleChange}
+          isCompleted={isCurrentTaskCompleted}
+          onRename={handleRename}
+          onDelete={handleDelete}
+          showCompleted={showCompleted}
+          isProject={isProject(currentPath)}
+          shouldShowCompleteButton={shouldShowCompleteButton()}
+          onComplete={handleCompleteCurrentItem}
+          onUncomplete={handleUncompleteCurrentItem}
+        />
 
         {/* Breadcrumb path (if deeper than one level) */}
-        {taskChain.length > 1 && (
-          <div className="text-sm text-muted-foreground font-light">
-            <span>{currentProject?.name}</span>
-            {taskChain.slice(0, -1).map((task) => (
-              <span key={task.id}>
-                {" / "}
-                {task.name}
-              </span>
-            ))}
-          </div>
-        )}
+        <BreadcrumbPath
+          projectName={currentProject?.name || ""}
+          taskChain={taskChain}
+        />
 
         <div className="space-y-2">
           <TaskListView tasks={tasksToDisplay} currentPath={currentPath} />
