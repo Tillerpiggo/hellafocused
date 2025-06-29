@@ -44,8 +44,7 @@ export default function HomePage() {
     confirmDeletion,
     cancelDeletion,
     isFocusMode,
-    enterFocusMode,
-    exitFocusMode,
+    setFocusMode,
   } = uiStore
 
   const titleRef = useRef<EditableTitleRef>(null)
@@ -149,11 +148,7 @@ export default function HomePage() {
   }
 
   const handleFocusClick = () => {
-    if (isFocusMode) {
-      exitFocusMode()
-    } else {
-      enterFocusMode() // Store handles logic if project not selected
-    }
+    setFocusMode(!isFocusMode)
   }
 
   // Check if current task/project should show complete button

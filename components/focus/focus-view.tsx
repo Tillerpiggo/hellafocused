@@ -16,7 +16,7 @@ interface FocusViewProps {
 export function FocusView({ startPath }: FocusViewProps) {
   // App store for projects data and app state updates
   const projects = useAppStore((state) => state.projects)
-  const exitFocusMode = useUIStore((state) => state.exitFocusMode)
+  const setFocusMode = useUIStore((state) => state.setFocusMode)
 
   // Focus store for focus-specific state
   const {
@@ -70,7 +70,7 @@ export function FocusView({ startPath }: FocusViewProps) {
     setIsExiting(true)
     setTimeout(() => {
       resetFocus()
-      exitFocusMode()
+      setFocusMode(false)
     }, 500) // Increased from 300ms to 500ms for gentler exit
   }
 

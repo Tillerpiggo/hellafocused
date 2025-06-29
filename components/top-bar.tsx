@@ -7,18 +7,14 @@ import { useUIStore } from "@/store/ui-store"
 
 export function TopBar() {
   const selectProject = useAppStore((state) => state.selectProject)
-  const { isFocusMode, enterFocusMode, exitFocusMode } = useUIStore()
+  const { isFocusMode, setFocusMode } = useUIStore()
 
   const handleHomeClick = () => {
     selectProject(null) // Go to project list view
   }
 
   const handleFocusClick = () => {
-    if (isFocusMode) {
-      exitFocusMode()
-    } else {
-      enterFocusMode() // Store handles logic if project not selected
-    }
+    setFocusMode(!isFocusMode)
   }
 
   return (

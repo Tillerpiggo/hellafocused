@@ -19,8 +19,7 @@ interface UIActions {
   confirmDeletion: () => void
   cancelDeletion: () => void
 
-  enterFocusMode: () => void
-  exitFocusMode: () => void
+  setFocusMode: (isFocusMode: boolean) => void
 }
 
 export type UIState = UIDialogState & UIActions
@@ -127,6 +126,5 @@ export const useUIStore = create<UIState>((set, get) => ({
     pendingDeletion: null,
   }),
 
-  enterFocusMode: () => set({ isFocusMode: true }),
-  exitFocusMode: () => set({ isFocusMode: false }),
+  setFocusMode: (isFocusMode) => set({ isFocusMode }),
 })) 
