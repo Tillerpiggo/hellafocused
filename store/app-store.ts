@@ -22,23 +22,14 @@ interface AppState {
   projects: ProjectData[]
   currentPath: string[] // [] for project list, [projectId] for project, [projectId, taskId, ...] for tasks
   isFocusMode: boolean
-  showTaskCompletionDialog: boolean
-  pendingTaskCompletion: string[] | null
   showCompleted: boolean
-  showDeleteConfirmationDialog: boolean
-  pendingDeletion: string[] | null
   // Actions
   selectProject: (projectId: string | null) => void
   navigateToTask: (taskId: string) => void
   navigateBack: () => void // Navigates one level up in task hierarchy or to project list
 
   toggleTaskCompletion: (taskPath: string[]) => void
-  confirmTaskCompletion: () => void
-  cancelTaskCompletion: () => void
-
   deleteTask: (taskPath: string[]) => void
-  confirmDeletion: () => void
-  cancelDeletion: () => void
   deleteProject: (projectId: string) => void
 
   enterFocusMode: () => void
@@ -58,11 +49,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   projects: initialProjectsData,
   currentPath: [], // Start at project list
   isFocusMode: false,
-  showTaskCompletionDialog: false,
-  pendingTaskCompletion: null,
   showCompleted: false,
-  showDeleteConfirmationDialog: false,
-  pendingDeletion: null,
 
   selectProject: (projectId) => set({ currentPath: projectId ? [projectId] : [] }),
 
@@ -79,18 +66,6 @@ export const useAppStore = create<AppState>((set, get) => ({
   toggleTaskCompletion: (taskPath) => {
     const task = findTaskByPath(get().projects, taskPath)
     if (!task) return
-
-    // Check if task has incomplete subtasks
-    const hasIncompleteSubtasks = task.subtasks.some((subtask) => !subtask.completed)
-
-    if (!task.completed && hasIncompleteSubtasks) {
-      // Show confirmation dialog
-      set({
-        showTaskCompletionDialog: true,
-        pendingTaskCompletion: taskPath,
-      })
-      return
-    }
 
     // Trigger confetti for task completion (only when completing, not uncompleting)
     if (!task.completed) {
@@ -117,48 +92,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     )
   },
 
-  confirmTaskCompletion: () => {
-    const { pendingTaskCompletion } = get()
-    if (!pendingTaskCompletion) return
-
-    // Trigger confetti for task completion
-    triggerConfetti()
-
-    set(
-      produce((draft: AppState) => {
-        updateTaskByPath(draft.projects, pendingTaskCompletion, (task) => {
-          task.completed = true
-          task.completionDate = new Date()
-          markAllSubtasksCompleted(task)
-        })
-        draft.showTaskCompletionDialog = false
-        draft.pendingTaskCompletion = null
-        // DO NOT automatically change showCompleted state here
-      }),
-    )
-  },
-
-  cancelTaskCompletion: () => {
-    set({
-      showTaskCompletionDialog: false,
-      pendingTaskCompletion: null,
-    })
-  },
-
   deleteTask: (taskPath) => {
-    const task = findTaskByPath(get().projects, taskPath)
-    if (!task) return
-
-    // If there are subtasks, show a confirmation dialog
-    if (task.subtasks.length > 0) {
-      set({
-        showDeleteConfirmationDialog: true,
-        pendingDeletion: taskPath,
-      })
-      return
-    }
-
-    // If there are no subtasks, just delete it
     set(
       produce((draft: AppState) => {
         deleteByPath(draft.projects, taskPath)
@@ -171,47 +105,8 @@ export const useAppStore = create<AppState>((set, get) => ({
     )
   },
 
-  confirmDeletion: () => {
-    const { pendingDeletion } = get()
-    if (!pendingDeletion) return
-
-    set(
-      produce((draft: AppState) => {
-        deleteByPath(draft.projects, pendingDeletion)
-
-        // Navigate up one level if we can
-        if (draft.currentPath.length > 0) {
-          draft.currentPath = draft.currentPath.slice(0, -1)
-        }
-        draft.showDeleteConfirmationDialog = false
-        draft.pendingDeletion = null
-      }),
-    )
-  },
-
-  cancelDeletion: () => {
-    set({
-      showDeleteConfirmationDialog: false,
-      pendingDeletion: null,
-    })
-  },
-
   deleteProject: (projectId) => {
     const projectPath = [projectId]
-    const project = findProjectByPath(get().projects, projectPath)
-    if (!project) return
-
-    // If the project has tasks, show a confirmation dialog
-    const hasTasks = project.tasks.length > 0
-    if (hasTasks) {
-      set({
-        showDeleteConfirmationDialog: true,
-        pendingDeletion: projectPath,
-      })
-      return
-    }
-
-    // If there are no tasks, delete the project
     set(
       produce((draft: AppState) => {
         deleteByPath(draft.projects, projectPath)

@@ -9,11 +9,11 @@ import { PageHeader } from "@/components/page/page-header"
 import { PageNavigation } from "@/components/page/page-navigation"
 import { BreadcrumbPath } from "@/components/page/breadcrumb-path"
 import { useAppStore, getCurrentTasksForView, getCurrentTaskChain } from "@/store/app-store"
+import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
 import { Target } from "lucide-react"
 import { AddTaskForm } from "@/components/task/add-task-form"
 import { type EditableTitleRef } from "@/components/editable-title"
-import { triggerConfetti } from "@/lib/confetti"
 import { useRef } from "react"
 import { countSubtasksRecursively, findTaskByPath, findProjectByPath, getProjectId, isProject, isProjectList } from "@/lib/task-utils"
 
@@ -27,22 +27,26 @@ export default function HomePage() {
     selectProject,
     updateProjectName,
     updateTaskName,
-    showTaskCompletionDialog,
-    pendingTaskCompletion,
-    confirmTaskCompletion,
-    cancelTaskCompletion,
-    toggleTaskCompletion,
+    toggleTaskCompletion, // Still needed for uncompleting tasks (no confirmation needed)
     addProject,
-    deleteTask,
-    deleteProject,
     showCompleted,
-    showDeleteConfirmationDialog,
-    pendingDeletion,
-    confirmDeletion,
-    cancelDeletion,
     enterFocusMode,
     exitFocusMode,
   } = store
+
+  const uiStore = useUIStore()
+  const {
+    showTaskCompletionDialog,
+    pendingTaskCompletion,
+    showDeleteConfirmationDialog,
+    pendingDeletion,
+    attemptTaskCompletion,
+    confirmTaskCompletion,
+    cancelTaskCompletion,
+    attemptDeletion,
+    confirmDeletion,
+    cancelDeletion,
+  } = uiStore
 
   const titleRef = useRef<EditableTitleRef>(null)
 
@@ -135,14 +139,12 @@ export default function HomePage() {
     if (isProjectList(currentPath)) return
 
     if (isProject(currentPath)) {
-      // Delete project
       const projectId = getProjectId(currentPath)
       if (projectId) {
-        deleteProject(projectId)
+        attemptDeletion([projectId])
       }
     } else {
-      // Delete task
-      deleteTask(currentPath)
+      attemptDeletion(currentPath)
     }
   }
 
@@ -165,8 +167,7 @@ export default function HomePage() {
   }
 
   const handleCompleteCurrentItem = () => {
-    triggerConfetti()
-    toggleTaskCompletion(currentPath)
+    attemptTaskCompletion(currentPath)
   }
 
   const handleUncompleteCurrentItem = () => {

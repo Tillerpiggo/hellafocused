@@ -3,6 +3,7 @@ import type { TaskItemData } from "@/lib/types"
 import type React from "react"
 
 import { useAppStore } from "@/store/app-store"
+import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
 import { CheckSquare, Square, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -17,9 +18,9 @@ interface TaskItemProps {
 
 export function TaskItem({ task, currentPath }: TaskItemProps) {
   const navigateToTask = useAppStore((state) => state.navigateToTask)
-  const toggleTaskCompletion = useAppStore((state) => state.toggleTaskCompletion)
-  const deleteTask = useAppStore((state) => state.deleteTask)
   const updateTaskName = useAppStore((state) => state.updateTaskName)
+  const attemptTaskCompletion = useUIStore((state) => state.attemptTaskCompletion)
+  const attemptDeletion = useUIStore((state) => state.attemptDeletion)
   const [isEditing, setIsEditing] = useState(false)
   const editableTitleRef = useRef<EditableTitleRef>(null)
 
@@ -27,7 +28,7 @@ export function TaskItem({ task, currentPath }: TaskItemProps) {
 
   const handleToggleCompletion = (e: React.MouseEvent) => {
     e.stopPropagation()
-    toggleTaskCompletion(taskPath)
+    attemptTaskCompletion(taskPath)
   }
 
   const handleNavigate = () => {
@@ -100,8 +101,8 @@ export function TaskItem({ task, currentPath }: TaskItemProps) {
         // Focus the editable title after state updates
         setTimeout(() => editableTitleRef.current?.focus(), 0)
       }}
-      onToggleComplete={() => toggleTaskCompletion(taskPath)}
-      onDelete={() => deleteTask(taskPath)}
+      onToggleComplete={() => attemptTaskCompletion(taskPath)}
+      onDelete={() => attemptDeletion(taskPath)}
       isCompleted={task.completed}
     >
       {taskContent}
