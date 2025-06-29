@@ -14,8 +14,8 @@ import {
   getProjectId, 
   isProject, 
   isProjectList,
-  findProjectByPath,
-  findTaskByPath
+  findProjectAtPath,
+  findTaskAtPath
 } from "@/lib/task-utils"
 
 interface AddTasksViewProps {
@@ -103,14 +103,14 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
   const getTasksAtPath = (): TaskItemData[] => {
     if (isProjectList(currentPath)) return []
 
-    const currentProject = findProjectByPath(projects, currentPath)
+    const currentProject = findProjectAtPath(projects, currentPath)
     if (!currentProject) return []
 
     let tasks: TaskItemData[]
     if (isProject(currentPath)) {
       tasks = currentProject.tasks
     } else {
-      const currentTask = findTaskByPath(projects, currentPath)
+      const currentTask = findTaskAtPath(projects, currentPath)
       tasks = currentTask?.subtasks || []
     }
 
@@ -122,14 +122,14 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
   const getCurrentTitle = (): string => {
     if (isProjectList(currentPath)) return "Projects"
 
-    const currentProject = findProjectByPath(projects, currentPath)
+    const currentProject = findProjectAtPath(projects, currentPath)
     if (!currentProject) return "Projects"
 
     if (isProject(currentPath)) {
       return currentProject.name
     }
 
-    const currentTask = findTaskByPath(projects, currentPath)
+    const currentTask = findTaskAtPath(projects, currentPath)
     return currentTask?.name || currentProject.name
   }
 

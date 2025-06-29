@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { useAppStore } from "./app-store"
-import { findTaskByPath, findProjectByPath, isProject } from "@/lib/task-utils"
+import { findTaskAtPath, findProjectAtPath, isProject } from "@/lib/task-utils"
 
 interface UIDialogState {
   showTaskCompletionDialog: boolean
@@ -35,7 +35,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   // Actions
   attemptTaskCompletion: (taskPath) => {
     const { projects, toggleTaskCompletion } = useAppStore.getState()
-    const task = findTaskByPath(projects, taskPath)
+    const task = findTaskAtPath(projects, taskPath)
     if (!task) return
 
     // Check if task has incomplete subtasks when completing
@@ -72,11 +72,11 @@ export const useUIStore = create<UIState>((set, get) => ({
   }),
 
   attemptDeletion: (itemPath) => {
-    const { projects, deleteTask, deleteProject } = useAppStore.getState()
+    const { projects, deleteAtPath } = useAppStore.getState()
 
     if (isProject(itemPath)) {
       // Deleting a project
-      const project = findProjectByPath(projects, itemPath)
+      const project = findProjectAtPath(projects, itemPath)
       if (!project) return
 
       if (project.tasks.length > 0) {
@@ -85,11 +85,11 @@ export const useUIStore = create<UIState>((set, get) => ({
           pendingDeletion: itemPath,
         })
       } else {
-        deleteProject(itemPath[0])
+        deleteAtPath(itemPath)
       }
     } else {
       // Deleting a task
-      const task = findTaskByPath(projects, itemPath)
+      const task = findTaskAtPath(projects, itemPath)
       if (!task) return
 
       if (task.subtasks.length > 0) {
@@ -98,7 +98,7 @@ export const useUIStore = create<UIState>((set, get) => ({
           pendingDeletion: itemPath,
         })
       } else {
-        deleteTask(itemPath)
+        deleteAtPath(itemPath)
       }
     }
   },
@@ -107,13 +107,8 @@ export const useUIStore = create<UIState>((set, get) => ({
     const { pendingDeletion } = get()
     if (!pendingDeletion) return
 
-    const { deleteTask, deleteProject } = useAppStore.getState()
-
-    if (isProject(pendingDeletion)) {
-      deleteProject(pendingDeletion[0])
-    } else {
-      deleteTask(pendingDeletion)
-    }
+    const { deleteAtPath } = useAppStore.getState()
+    deleteAtPath(pendingDeletion)
 
     set({
       showDeleteConfirmationDialog: false,

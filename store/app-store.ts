@@ -6,10 +6,10 @@ import { triggerConfetti } from "@/lib/confetti"
 import { v4 as uuidv4 } from "uuid"
 import {
   markAllSubtasksCompleted,
-  findTaskByPath,
-  findProjectByPath,
-  updateTaskByPath,
-  deleteByPath,
+  findTaskAtPath,
+  findProjectAtPath,
+  updateTaskAtPath,
+  deleteAtPath,
   addTaskToParent,
   isProject,
   isProjectList,
@@ -25,8 +25,7 @@ interface AppState {
   navigateBack: () => void // Navigates one level up in task hierarchy or to project list
 
   toggleTaskCompletion: (taskPath: string[]) => void
-  deleteTask: (taskPath: string[]) => void
-  deleteProject: (projectId: string) => void
+  deleteAtPath: (itemPath: string[]) => void
 
   toggleShowCompleted: () => void
 
@@ -56,7 +55,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     }),
 
   toggleTaskCompletion: (taskPath) => {
-    const task = findTaskByPath(get().projects, taskPath)
+    const task = findTaskAtPath(get().projects, taskPath)
     if (!task) return
 
     // Trigger confetti for task completion (only when completing, not uncompleting)
@@ -67,7 +66,7 @@ export const useAppStore = create<AppState>((set, get) => ({
     // Proceed with completion
     set(
       produce((draft: AppState) => {
-        updateTaskByPath(draft.projects, taskPath, (task) => {
+        updateTaskAtPath(draft.projects, taskPath, (task) => {
           task.completed = !task.completed
 
           // If completing a task, mark all subtasks as completed too and set completion date
@@ -84,25 +83,15 @@ export const useAppStore = create<AppState>((set, get) => ({
     )
   },
 
-  deleteTask: (taskPath) => {
+  deleteAtPath: (itemPath) => {
     set(
       produce((draft: AppState) => {
-        deleteByPath(draft.projects, taskPath)
+        deleteAtPath(draft.projects, itemPath)
 
-        // If the current path is no longer valid, navigate up one level
-        if (!findTaskByPath(draft.projects, draft.currentPath) && !findProjectByPath(draft.projects, draft.currentPath)) {
+        // If the current path is no longer valid, navigate up appropriately
+        if (!findTaskAtPath(draft.projects, draft.currentPath) && !findProjectAtPath(draft.projects, draft.currentPath)) {
           draft.currentPath = draft.currentPath.slice(0, -1)
         }
-      }),
-    )
-  },
-
-  deleteProject: (projectId) => {
-    const projectPath = [projectId]
-    set(
-      produce((draft: AppState) => {
-        deleteByPath(draft.projects, projectPath)
-        draft.currentPath = [] // Navigate to the project list
       }),
     )
   },
@@ -146,7 +135,7 @@ export const useAppStore = create<AppState>((set, get) => ({
   updateTaskName: (taskPath, newName) =>
     set(
       produce((draft: AppState) => {
-        updateTaskByPath(draft.projects, taskPath, (task) => {
+        updateTaskAtPath(draft.projects, taskPath, (task) => {
           task.name = newName
         })
       }),
@@ -169,7 +158,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 export const getCurrentTasksForView = (store: AppState): TaskItemData[] => {
   if (isProjectList(store.currentPath)) return []
   
-  const project = findProjectByPath(store.projects, store.currentPath)
+  const project = findProjectAtPath(store.projects, store.currentPath)
   if (!project) return []
 
   // Get tasks at the current path level
@@ -177,7 +166,7 @@ export const getCurrentTasksForView = (store: AppState): TaskItemData[] => {
   if (isProject(store.currentPath)) {
     tasksToShow = project.tasks
   } else {
-    const currentTask = findTaskByPath(store.projects, store.currentPath)
+    const currentTask = findTaskAtPath(store.projects, store.currentPath)
     if (!currentTask) {
       // Path is invalid, return empty array
       return []
@@ -207,7 +196,7 @@ export const getCurrentTasksForView = (store: AppState): TaskItemData[] => {
 export const getCurrentTaskChain = (store: AppState): TaskItemData[] => {
   if (isProjectList(store.currentPath) || isProject(store.currentPath)) return []
   
-  const project = findProjectByPath(store.projects, store.currentPath)
+  const project = findProjectAtPath(store.projects, store.currentPath)
   if (!project) return []
 
   const chain: TaskItemData[] = []

@@ -15,7 +15,7 @@ import { Target } from "lucide-react"
 import { AddTaskForm } from "@/components/task/add-task-form"
 import { type EditableTitleRef } from "@/components/editable-title"
 import { useRef } from "react"
-import { countSubtasksRecursively, findTaskByPath, findProjectByPath, getProjectId, isProject, isProjectList } from "@/lib/task-utils"
+import { countSubtasksRecursively, findTaskAtPath, findProjectAtPath, getProjectId, isProject, isProjectList } from "@/lib/task-utils"
 
 export default function HomePage() {
   const store = useAppStore()
@@ -50,14 +50,14 @@ export default function HomePage() {
   const titleRef = useRef<EditableTitleRef>(null)
 
   const tasksToDisplay = getCurrentTasksForView(store)
-  const currentProject = findProjectByPath(projects, currentPath)
+  const currentProject = findProjectAtPath(projects, currentPath)
   const taskChain = getCurrentTaskChain(store)
   const currentTask = taskChain.length > 0 ? taskChain[taskChain.length - 1] : null
   const isCurrentTaskCompleted = currentTask?.completed || false
 
   // Get pending task info for dialog
   const pendingTask = pendingTaskCompletion
-    ? findTaskByPath(projects, pendingTaskCompletion)
+    ? findTaskAtPath(projects, pendingTaskCompletion)
     : null
 
   const pendingTaskSubtaskCount = pendingTask ? pendingTask.subtasks.filter((st: any) => !st.completed).length : 0
@@ -67,7 +67,7 @@ export default function HomePage() {
     ? (() => {
         if (isProject(pendingDeletion)) {
           // Deleting a project
-          const project = findProjectByPath(projects, pendingDeletion)
+          const project = findProjectAtPath(projects, pendingDeletion)
           if (!project) return null
           
           return {
@@ -77,7 +77,7 @@ export default function HomePage() {
           }
         } else {
           // Deleting a task
-          const task = findTaskByPath(projects, pendingDeletion)
+          const task = findTaskAtPath(projects, pendingDeletion)
           if (!task) return null
 
           return {

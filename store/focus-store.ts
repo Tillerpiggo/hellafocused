@@ -4,7 +4,7 @@ import { produce } from "immer"
 import { triggerConfetti } from "@/lib/confetti"
 import { randomFrom } from "@/lib/utils"
 import {
-  findTaskByPath,
+  findTaskAtPath,
   getHierarchicalLeafNodes,
   findTaskPath,
   getProjectId,
@@ -111,7 +111,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
 
     // If we were focusing at a specific task level, show the parent task
     if (focusStartPath.length > 1) {
-      const parentTask = findTaskByPath(projects, focusStartPath)
+      const parentTask = findTaskAtPath(projects, focusStartPath)
       if (parentTask && !parentTask.completed) {
         // Show the parent task as the focus task
         set({

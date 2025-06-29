@@ -150,7 +150,7 @@ export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: stri
 /**
  * Find a task by unified path (includes projectId)
  */
-export const findTaskByPath = (projects: ProjectData[], taskPath: string[]): TaskItemData | null => {
+export const findTaskAtPath = (projects: ProjectData[], taskPath: string[]): TaskItemData | null => {
   if (taskPath.length <= 1) return null // Project level or invalid
   
   const project = projects.find(p => p.id === taskPath[0])
@@ -162,7 +162,7 @@ export const findTaskByPath = (projects: ProjectData[], taskPath: string[]): Tas
 /**
  * Find a project by unified path
  */
-export const findProjectByPath = (projects: ProjectData[], taskPath: string[]): ProjectData | null => {
+export const findProjectAtPath = (projects: ProjectData[], taskPath: string[]): ProjectData | null => {
   if (taskPath.length === 0) return null
   return projects.find(p => p.id === taskPath[0]) || null
 }
@@ -170,7 +170,7 @@ export const findProjectByPath = (projects: ProjectData[], taskPath: string[]): 
 /**
  * Update a task by unified path
  */
-export const updateTaskByPath = (projects: ProjectData[], taskPath: string[], updateFn: (task: TaskItemData) => void): boolean => {
+export const updateTaskAtPath = (projects: ProjectData[], taskPath: string[], updateFn: (task: TaskItemData) => void): boolean => {
   if (taskPath.length <= 1) return false
   
   const project = projects.find(p => p.id === taskPath[0])
@@ -182,7 +182,7 @@ export const updateTaskByPath = (projects: ProjectData[], taskPath: string[], up
 /**
  * Delete by unified path (can delete project or task)
  */
-export const deleteByPath = (projects: ProjectData[], taskPath: string[]): boolean => {
+export const deleteAtPath = (projects: ProjectData[], taskPath: string[]): boolean => {
   if (taskPath.length === 0) return false
   
   if (taskPath.length === 1) {
