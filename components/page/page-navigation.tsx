@@ -19,7 +19,7 @@ export function PageNavigation({
       <Button
         variant="ghost"
         onClick={onBackClick}
-        className="text-muted-foreground hover:text-foreground px-0 py-3 h-auto font-normal -ml-2 pl-2 pr-4 rounded-lg"
+        className="text-muted-foreground hover:text-foreground px-0 py-3 h-auto font-normal -ml-2 pl-4 pr-4 rounded-lg"
       >
         <ArrowLeft className="h-4 w-4 mr-2" />
         {backButtonText}
