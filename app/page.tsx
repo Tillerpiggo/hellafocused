@@ -147,10 +147,6 @@ export default function HomePage() {
     }
   }
 
-  const handleFocusClick = () => {
-    setFocusMode(!isFocusMode)
-  }
-
   // Check if current task/project should show complete button
   const shouldShowCompleteButton = () => {
     if (isProjectList(currentPath) || isProject(currentPath)) return false
@@ -159,23 +155,6 @@ export default function HomePage() {
     if (isCurrentTaskCompleted) return false
     const hasIncompleteSubtasks = currentTask?.subtasks.some((subtask) => !subtask.completed) || false
     return !hasIncompleteSubtasks
-  }
-
-  const handleCompleteCurrentItem = () => {
-    attemptTaskCompletion(currentPath)
-  }
-
-  const handleUncompleteCurrentItem = () => {
-    toggleTaskCompletion(currentPath)
-  }
-
-  const handleAddProject = (projectName: string) => {
-    addProject(projectName)
-  }
-
-  const handleRename = () => {
-    // Focus the editable title
-    setTimeout(() => titleRef.current?.focus(), 0)
   }
 
   const pageContent = () => {
@@ -188,7 +167,7 @@ export default function HomePage() {
               variant={isFocusMode ? "secondary" : "outline"}
               size="sm"
               className="transition-all duration-200 hover:scale-105"
-              onClick={handleFocusClick}
+              onClick={() => setFocusMode(!isFocusMode)}
             >
               <Target className="h-4 w-4 mr-2" />
               {isFocusMode ? "Exit" : "Focus"}
@@ -200,7 +179,7 @@ export default function HomePage() {
             ))}
           </div>
 
-          <AddProjectForm onAddProject={handleAddProject} />
+          <AddProjectForm onAddProject={addProject} />
         </div>
       )
     }
@@ -215,7 +194,7 @@ export default function HomePage() {
           backButtonText={getBackButtonText()}
           onBackClick={handleBackClick}
           isFocusMode={isFocusMode}
-          onFocusClick={handleFocusClick}
+          onFocusClick={() => setFocusMode(!isFocusMode)}
         />
 
         {/* Title and Action Buttons */}
@@ -226,13 +205,13 @@ export default function HomePage() {
           }
           onTitleChange={handleTitleChange}
           isCompleted={isCurrentTaskCompleted}
-          onRename={handleRename}
+          onRename={() => setTimeout(() => titleRef.current?.focus(), 0)}
           onDelete={handleDelete}
           showCompleted={showCompleted}
           isProject={isProject(currentPath)}
           shouldShowCompleteButton={shouldShowCompleteButton()}
-          onComplete={handleCompleteCurrentItem}
-          onUncomplete={handleUncompleteCurrentItem}
+          onComplete={() => attemptTaskCompletion(currentPath)}
+          onUncomplete={() => toggleTaskCompletion(currentPath)}
         />
 
         {/* Breadcrumb path (if deeper than one level) */}

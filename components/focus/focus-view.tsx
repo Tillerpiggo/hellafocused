@@ -74,20 +74,14 @@ export function FocusView({ startPath }: FocusViewProps) {
     }, 500) // Increased from 300ms to 500ms for gentler exit
   }
 
-  const handleCompleteFocusTask = () => {
-    completeFocusTask()
-  }
 
-  const handleKeepGoing = () => {
-    keepGoingFocus(projects)
-  }
 
   // Determine the main content based on current state
   const renderMainContent = () => {
     if (!currentFocusTask) {
       const allTasksInProjectCompleted = focusModeProjectLeaves.every((t) => t.completed)
       if (allTasksInProjectCompleted && focusModeProjectLeaves.length > 0) {
-        return <AllTasksCompletedView onKeepGoing={handleKeepGoing} />
+        return <AllTasksCompletedView onKeepGoing={() => keepGoingFocus(projects)} />
       } else {
         return <NoTasksAvailableView />
       }
@@ -95,7 +89,7 @@ export function FocusView({ startPath }: FocusViewProps) {
       return (
         <FocusTaskView
           currentTask={currentFocusTask}
-          completeFocusTask={handleCompleteFocusTask}
+          completeFocusTask={completeFocusTask}
           getNextFocusTask={getNextFocusTask}
         />
       )

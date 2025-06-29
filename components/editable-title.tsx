@@ -91,9 +91,7 @@ export const EditableTitle = forwardRef<EditableTitleRef, EditableTitleProps>(
       }, 0)
     }
 
-    const handleBlur = () => {
-      handleSubmit()
-    }
+
 
     return (
       <Textarea
@@ -102,7 +100,7 @@ export const EditableTitle = forwardRef<EditableTitleRef, EditableTitleProps>(
         onChange={(e) => setEditValue(e.target.value)}
         onKeyDown={handleKeyDown}
         onFocus={handleFocus}
-        onBlur={handleBlur}
+        onBlur={handleSubmit}
         className={cn(
           "border-none bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none cursor-pointer resize-none min-h-0 overflow-hidden",
           !isEditing && "cursor-pointer",
