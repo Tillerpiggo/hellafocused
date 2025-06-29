@@ -4,13 +4,15 @@ import type React from "react"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { useAppStore } from "@/store/app-store"
+import { useUIStore } from "@/store/ui-store"
 import { Send } from "lucide-react"
 import { isProjectList } from "@/lib/task-utils"
 
 export function FloatingAddWidget() {
   const [taskName, setTaskName] = useState("")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const { currentPath, addSubtaskToParent, isFocusMode } = useAppStore()
+  const { currentPath, addSubtaskToParent } = useAppStore()
+  const isFocusMode = useUIStore((state) => state.isFocusMode)
 
   // Auto-resize textarea
   useEffect(() => {

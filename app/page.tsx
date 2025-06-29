@@ -22,7 +22,6 @@ export default function HomePage() {
   const {
     projects,
     currentPath,
-    isFocusMode,
     navigateBack,
     selectProject,
     updateProjectName,
@@ -30,8 +29,6 @@ export default function HomePage() {
     toggleTaskCompletion, // Still needed for uncompleting tasks (no confirmation needed)
     addProject,
     showCompleted,
-    enterFocusMode,
-    exitFocusMode,
   } = store
 
   const uiStore = useUIStore()
@@ -46,6 +43,9 @@ export default function HomePage() {
     attemptDeletion,
     confirmDeletion,
     cancelDeletion,
+    isFocusMode,
+    enterFocusMode,
+    exitFocusMode,
   } = uiStore
 
   const titleRef = useRef<EditableTitleRef>(null)

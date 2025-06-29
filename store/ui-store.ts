@@ -2,14 +2,15 @@ import { create } from "zustand"
 import { useAppStore } from "./app-store"
 import { findTaskByPath, findProjectByPath, isProject } from "@/lib/task-utils"
 
-interface ConfirmationDialogState {
+interface UIDialogState {
   showTaskCompletionDialog: boolean
   pendingTaskCompletion: string[] | null
   showDeleteConfirmationDialog: boolean
   pendingDeletion: string[] | null
+  isFocusMode: boolean
 }
 
-interface ConfirmationDialogActions {
+interface UIActions {
   attemptTaskCompletion: (taskPath: string[]) => void
   confirmTaskCompletion: () => void
   cancelTaskCompletion: () => void
@@ -17,9 +18,12 @@ interface ConfirmationDialogActions {
   attemptDeletion: (itemPath: string[]) => void
   confirmDeletion: () => void
   cancelDeletion: () => void
+
+  enterFocusMode: () => void
+  exitFocusMode: () => void
 }
 
-export type UIState = ConfirmationDialogState & ConfirmationDialogActions
+export type UIState = UIDialogState & UIActions
 
 export const useUIStore = create<UIState>((set, get) => ({
   // State
@@ -27,6 +31,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   pendingTaskCompletion: null,
   showDeleteConfirmationDialog: false,
   pendingDeletion: null,
+  isFocusMode: false,
 
   // Actions
   attemptTaskCompletion: (taskPath) => {
@@ -121,4 +126,7 @@ export const useUIStore = create<UIState>((set, get) => ({
     showDeleteConfirmationDialog: false,
     pendingDeletion: null,
   }),
+
+  enterFocusMode: () => set({ isFocusMode: true }),
+  exitFocusMode: () => set({ isFocusMode: false }),
 })) 

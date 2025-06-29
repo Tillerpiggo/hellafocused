@@ -1,5 +1,6 @@
 "use client"
 import { useAppStore } from "@/store/app-store"
+import { useUIStore } from "@/store/ui-store"
 import { useFocusStore } from "@/store/focus-store"
 import { useEffect, useState } from "react"
 import { AddTasksView } from "./add-tasks-view"
@@ -15,7 +16,7 @@ interface FocusViewProps {
 export function FocusView({ startPath }: FocusViewProps) {
   // App store for projects data and app state updates
   const projects = useAppStore((state) => state.projects)
-  const exitFocusMode = useAppStore((state) => state.exitFocusMode)
+  const exitFocusMode = useUIStore((state) => state.exitFocusMode)
 
   // Focus store for focus-specific state
   const {

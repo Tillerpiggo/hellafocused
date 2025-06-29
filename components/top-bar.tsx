@@ -3,12 +3,11 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Target } from "lucide-react"
 import { useAppStore } from "@/store/app-store"
+import { useUIStore } from "@/store/ui-store"
 
 export function TopBar() {
   const selectProject = useAppStore((state) => state.selectProject)
-  const enterFocusMode = useAppStore((state) => state.enterFocusMode)
-  const isFocusMode = useAppStore((state) => state.isFocusMode)
-  const exitFocusMode = useAppStore((state) => state.exitFocusMode)
+  const { isFocusMode, enterFocusMode, exitFocusMode } = useUIStore()
 
   const handleHomeClick = () => {
     selectProject(null) // Go to project list view

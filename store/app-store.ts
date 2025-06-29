@@ -5,9 +5,6 @@ import { produce } from "immer"
 import { triggerConfetti } from "@/lib/confetti"
 import { v4 as uuidv4 } from "uuid"
 import {
-  findAndUpdateTask,
-  findTaskRecursive,
-  deleteTaskFromArray,
   markAllSubtasksCompleted,
   findTaskByPath,
   findProjectByPath,
@@ -21,7 +18,6 @@ import {
 interface AppState {
   projects: ProjectData[]
   currentPath: string[] // [] for project list, [projectId] for project, [projectId, taskId, ...] for tasks
-  isFocusMode: boolean
   showCompleted: boolean
   // Actions
   selectProject: (projectId: string | null) => void
@@ -31,9 +27,6 @@ interface AppState {
   toggleTaskCompletion: (taskPath: string[]) => void
   deleteTask: (taskPath: string[]) => void
   deleteProject: (projectId: string) => void
-
-  enterFocusMode: () => void
-  exitFocusMode: () => void
 
   toggleShowCompleted: () => void
 
@@ -48,7 +41,6 @@ interface AppState {
 export const useAppStore = create<AppState>((set, get) => ({
   projects: initialProjectsData,
   currentPath: [], // Start at project list
-  isFocusMode: false,
   showCompleted: false,
 
   selectProject: (projectId) => set({ currentPath: projectId ? [projectId] : [] }),
@@ -114,10 +106,6 @@ export const useAppStore = create<AppState>((set, get) => ({
       }),
     )
   },
-
-  enterFocusMode: () => set({ isFocusMode: true }),
-
-  exitFocusMode: () => set({ isFocusMode: false }),
 
   toggleShowCompleted: () => set((state) => ({ showCompleted: !state.showCompleted })),
 
