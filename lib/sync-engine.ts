@@ -2,10 +2,8 @@ import { supabase } from './supabase'
 import { useSyncStore } from '@/store/sync-store'
 import { useAppStore } from '@/store/app-store'
 import type { ProjectData, TaskItemData } from './types'
-import type { SyncAction, SyncData } from './sync-types'
 
 class SyncEngine {
-  private isInitialized = false
   private syncInterval: NodeJS.Timeout | null = null
 
   async init() {
@@ -24,7 +22,6 @@ class SyncEngine {
       // 5. Setup real-time sync
       this.setupRealtimeSync()
       
-      this.isInitialized = true
       console.log('✅ Sync initialized successfully')
     } catch (error) {
       console.error('❌ Sync initialization error:', error)
@@ -48,16 +45,16 @@ class SyncEngine {
           break
         case 'update':
           if (change.entityType === 'project') {
-            await this.updateProject(change.id, change.data as ProjectData)
+            await this.updateProject(change.entityId, change.data as ProjectData)
           } else if (change.entityType === 'task') {
-            await this.updateTask(change.id, change.data as TaskItemData)
+            await this.updateTask(change.entityId, change.data as TaskItemData)
           }
           break
         case 'delete':
           if (change.entityType === 'project') {
-            await this.deleteProject(change.id)
+            await this.deleteProject(change.entityId)
           } else if (change.entityType === 'task') {
-            await this.deleteTask(change.id)
+            await this.deleteTask(change.entityId)
           }
           break
       }
@@ -192,15 +189,6 @@ class SyncEngine {
       .eq('id', taskId)
   }
 
-  // Helper methods
-  private parseChangeData(change: SyncAction): { entityType: string, entityId: string, data: SyncData } {
-    return {
-      entityType: change.entityType,
-      entityId: change.id,
-      data: change.data,
-    }
-  }
-
   private convertCloudToLocal(cloudProjects: any[], cloudTasks: any[]): ProjectData[] {
     // TODO: Convert cloud format to local format
     return []
@@ -211,7 +199,6 @@ class SyncEngine {
       clearInterval(this.syncInterval)
       this.syncInterval = null
     }
-    this.isInitialized = false
   }
 }
 

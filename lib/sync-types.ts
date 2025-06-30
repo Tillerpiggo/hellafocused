@@ -7,9 +7,9 @@ export type SyncActionType = 'create' | 'update' | 'delete'
 export type SyncData = ProjectData | TaskItemData | null
 
 export interface SyncAction {
-  id: string
   type: SyncActionType
   entityType: 'project' | 'task'
+  entityId: string // The ID of the entity being synced (project ID or task ID)
   projectId?: string // For tasks, which project they belong to
   parentId?: string // For tasks, which parent task (if any)
   timestamp: number

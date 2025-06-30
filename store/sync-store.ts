@@ -2,18 +2,16 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { produce } from "immer"
 import { v4 as uuidv4 } from "uuid"
-import type { SyncActionType, SyncMetadata, SyncData } from "@/lib/sync-types"
+import type { SyncAction } from "@/lib/sync-types"
 
-interface SyncStore extends SyncMetadata {
+interface SyncStore {
+  // State
+  pendingChanges: Record<string, SyncAction>
+  lastSyncedAt: number
+  deviceId: string
+  
   // Actions
-  addPendingChange: (
-    id: string, 
-    type: SyncActionType, 
-    entityType: 'project' | 'task',
-    data: SyncData,
-    projectId?: string,
-    parentId?: string
-  ) => void
+  addPendingChange: (action: SyncAction) => string
   markSynced: (id: string) => void
   markFailed: (id: string, error: string) => void
   removeSynced: () => void
@@ -22,6 +20,7 @@ interface SyncStore extends SyncMetadata {
   // Getters
   getPendingCount: () => number
   getFailedCount: () => number
+  getPendingChanges: () => Record<string, SyncAction>
 }
 
 const DEVICE_ID = typeof window !== 'undefined' 
@@ -41,22 +40,15 @@ export const useSyncStore = create<SyncStore>()(
       deviceId: DEVICE_ID,
 
       // Actions
-      addPendingChange: (id, type, entityType, data, projectId, parentId) =>
+      addPendingChange: (action) => {
+        const id = uuidv4()
         set(
           produce((draft: SyncStore) => {
-            draft.pendingChanges[id] = {
-              id,
-              type,
-              entityType,
-              projectId,
-              parentId,
-              timestamp: Date.now(),
-              data,
-              synced: false,
-              retryCount: 0,
-            }
+            draft.pendingChanges[id] = action
           })
-        ),
+        )
+        return id
+      },
 
       markSynced: (id) =>
         set(
@@ -100,6 +92,11 @@ export const useSyncStore = create<SyncStore>()(
       getFailedCount: () => {
         const { pendingChanges } = get()
         return Object.values(pendingChanges).filter(change => change.retryCount > 0 && !change.synced).length
+      },
+
+      getPendingChanges: () => {
+        const { pendingChanges } = get()
+        return pendingChanges
       },
     }),
     {

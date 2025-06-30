@@ -2,23 +2,36 @@ import { useSyncStore } from '@/store/sync-store'
 import { syncEngine } from './sync-engine'
 import { useAppStore } from '@/store/app-store'
 import { findTaskAtPath, findProjectAtPath } from '@/lib/task-utils'
-import type { SyncActionType, SyncData } from './sync-types'
+import type { SyncActionType, SyncData, SyncAction } from './sync-types'
 import { TaskItemData } from './types'
 
 // Bridge function that intercepts mutations
 export const trackChange = (
-  id: string, 
   type: SyncActionType, 
   entityType: 'project' | 'task',
+  entityId: string,
   data: SyncData,
   projectId?: string,
   parentId?: string
 ) => {
-  // Add to queue
-  useSyncStore.getState().addPendingChange(id, type, entityType, data, projectId, parentId)
+  // Create SyncAction - sync store will manage ID separately
+  const action: SyncAction = {
+    type,
+    entityType,
+    entityId,
+    projectId,
+    parentId,
+    timestamp: Date.now(),
+    data,
+    synced: false,
+    retryCount: 0,
+  }
+  
+  // Add to queue - sync store will assign and return ID
+  const syncActionId = useSyncStore.getState().addPendingChange(action)
   
   // Try to sync immediately (non-blocking)
-  syncEngine.syncSingleChange(id).catch(() => {
+  syncEngine.syncSingleChange(syncActionId).catch(() => {
     // Silently fail, will retry in periodic sync
   })
 }
@@ -29,7 +42,7 @@ export const trackProjectCreated = (projectId: string) => {
   const project = projects.find(p => p.id === projectId)
   
   if (project) {
-    trackChange(projectId, 'create', 'project', project)
+    trackChange('create', 'project', projectId, project)
   }
 }
 
@@ -38,12 +51,12 @@ export const trackProjectUpdated = (projectId: string) => {
   const project = projects.find(p => p.id === projectId)
   
   if (project) {
-    trackChange(projectId, 'update', 'project', project)
+    trackChange('update', 'project', projectId, project)
   }
 }
 
 export const trackProjectDeleted = (projectId: string) => {
-  trackChange(projectId, 'delete', 'project', null)
+  trackChange('delete', 'project', projectId, null)
 }
 
 export const trackTaskCreated = (parentPath: string[]) => {
@@ -70,7 +83,7 @@ export const trackTaskCreated = (parentPath: string[]) => {
     const projectId = parentPath[0]
     const parentId = parentPath.length > 1 ? parentPath[parentPath.length - 1] : undefined
     
-    trackChange(newTask.id, 'create', 'task', newTask, projectId, parentId)
+    trackChange('create', 'task', newTask.id, newTask, projectId, parentId)
   }
 }
 
@@ -82,7 +95,7 @@ export const trackTaskUpdated = (taskPath: string[]) => {
     const projectId = taskPath[0]
     const parentId = taskPath.length > 2 ? taskPath[taskPath.length - 2] : undefined
     
-    trackChange(task.id, 'update', 'task', task, projectId, parentId)
+    trackChange('update', 'task', task.id, task, projectId, parentId)
   }
 }
 
@@ -91,5 +104,5 @@ export const trackTaskDeleted = (itemPath: string[]) => {
   const projectId = itemPath[0]
   const parentId = itemPath.length > 2 ? itemPath[itemPath.length - 2] : undefined
   
-  trackChange(taskId, 'delete', 'task', null, projectId, parentId)
+  trackChange('delete', 'task', taskId, null, projectId, parentId)
 } 
