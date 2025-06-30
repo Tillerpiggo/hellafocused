@@ -3,15 +3,16 @@ import { useSyncStore } from '@/store/sync-store'
 import { useAppStore } from '@/store/app-store'
 import type { ProjectData, TaskItemData } from './types'
 
-// Fake UUID for anonymous user (consistent across the app)
-const ANONYMOUS_USER_ID = '00000000-0000-0000-0000-000000000000'
-
 class SyncEngine {
   private syncInterval: NodeJS.Timeout | null = null
 
   async init() {
     console.log(`🚀 SyncEngine.init() called`)
     try {
+      // 0. Ensure we have an authenticated user (anonymous or real)
+      console.log(`🚀 Step 0: Ensuring authentication...`)
+      await this.ensureAuthenticated()
+      
       // 1. Load persisted local data (happens automatically via zustand persist)
       console.log(`🚀 Step 1: Local data loaded automatically`)
       
@@ -35,6 +36,33 @@ class SyncEngine {
     } catch (error) {
       console.error('❌ Sync initialization error:', error)
     }
+  }
+
+  private async ensureAuthenticated() {
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (!session) {
+      console.log('🔐 No session found, signing in anonymously...')
+      const { data, error } = await supabase.auth.signInAnonymously()
+      
+      if (error) {
+        throw new Error(`Failed to sign in anonymously: ${error.message}`)
+      }
+      
+      console.log(`🔐 Anonymous auth successful, user ID: ${data.user?.id}`)
+    } else {
+      console.log(`🔐 Existing session found, user ID: ${session.user.id}`)
+    }
+  }
+
+  private async getCurrentUserId(): Promise<string> {
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (!session?.user?.id) {
+      throw new Error('No authenticated user found')
+    }
+    
+    return session.user.id
   }
 
   async syncSingleChange(id: string): Promise<boolean> {
@@ -115,11 +143,13 @@ class SyncEngine {
     try {
       console.log('🔄 Merging with cloud data...')
       
+      const userId = await this.getCurrentUserId()
+      
       // Fetch projects and tasks from Supabase
       const { data: cloudProjects, error: projectsError } = await supabase
         .from('projects')
         .select('*')
-        .eq('user_id', ANONYMOUS_USER_ID)
+        .eq('user_id', userId)
         .eq('is_deleted', false)
 
       if (projectsError) {
@@ -130,7 +160,7 @@ class SyncEngine {
       const { data: cloudTasks, error: tasksError } = await supabase
         .from('tasks')
         .select('*')
-        .eq('user_id', ANONYMOUS_USER_ID)
+        .eq('user_id', userId)
         .eq('is_deleted', false)
 
       if (tasksError) {
@@ -170,10 +200,12 @@ class SyncEngine {
 
   // Database operations
   private async createProject(project: ProjectData) {
+    const userId = await this.getCurrentUserId()
+    
     const { error } = await supabase.from('projects').insert({
       id: project.id,
       name: project.name,
-      user_id: ANONYMOUS_USER_ID,
+      user_id: userId,
       device_id: useSyncStore.getState().deviceId,
       is_deleted: false,
     })
@@ -186,6 +218,8 @@ class SyncEngine {
   }
 
   private async updateProject(projectId: string, project: ProjectData) {
+    const userId = await this.getCurrentUserId()
+    
     const { error } = await supabase
       .from('projects')
       .update({
@@ -193,7 +227,7 @@ class SyncEngine {
         updated_at: new Date().toISOString(),
       })
       .eq('id', projectId)
-      .eq('user_id', ANONYMOUS_USER_ID)
+      .eq('user_id', userId)
 
     if (error) {
       throw new Error(`Failed to update project: ${error.message}`)
@@ -203,6 +237,8 @@ class SyncEngine {
   }
 
   private async deleteProject(projectId: string) {
+    const userId = await this.getCurrentUserId()
+    
     const { error } = await supabase
       .from('projects')
       .update({
@@ -210,7 +246,7 @@ class SyncEngine {
         updated_at: new Date().toISOString(),
       })
       .eq('id', projectId)
-      .eq('user_id', ANONYMOUS_USER_ID)
+      .eq('user_id', userId)
 
     if (error) {
       throw new Error(`Failed to delete project: ${error.message}`)
@@ -220,6 +256,8 @@ class SyncEngine {
   }
 
   private async createTask(task: TaskItemData, projectId: string, parentId?: string) {
+    const userId = await this.getCurrentUserId()
+    
     const { error } = await supabase.from('tasks').insert({
       id: task.id,
       name: task.name,
@@ -228,7 +266,7 @@ class SyncEngine {
       completed: task.completed,
       completion_date: task.completionDate || null,
       position: 0, // TODO: Calculate proper position
-      user_id: ANONYMOUS_USER_ID,
+      user_id: userId,
       device_id: useSyncStore.getState().deviceId,
       is_deleted: false,
     })
@@ -241,6 +279,8 @@ class SyncEngine {
   }
 
   private async updateTask(taskId: string, task: TaskItemData) {
+    const userId = await this.getCurrentUserId()
+    
     const { error } = await supabase
       .from('tasks')
       .update({
@@ -250,7 +290,7 @@ class SyncEngine {
         updated_at: new Date().toISOString(),
       })
       .eq('id', taskId)
-      .eq('user_id', ANONYMOUS_USER_ID)
+      .eq('user_id', userId)
 
     if (error) {
       throw new Error(`Failed to update task: ${error.message}`)
@@ -260,6 +300,8 @@ class SyncEngine {
   }
 
   private async deleteTask(taskId: string) {
+    const userId = await this.getCurrentUserId()
+    
     const { error } = await supabase
       .from('tasks')
       .update({
@@ -267,7 +309,7 @@ class SyncEngine {
         updated_at: new Date().toISOString(),
       })
       .eq('id', taskId)
-      .eq('user_id', ANONYMOUS_USER_ID)
+      .eq('user_id', userId)
 
     if (error) {
       throw new Error(`Failed to delete task: ${error.message}`)

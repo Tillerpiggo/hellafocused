@@ -8,6 +8,7 @@ import { DeleteConfirmationDialog } from "@/components/task/delete-confirmation-
 import { PageHeader } from "@/components/page/page-header"
 import { PageNavigation } from "@/components/page/page-navigation"
 import { BreadcrumbPath } from "@/components/page/breadcrumb-path"
+import { TopBar } from "@/components/top-bar"
 import { useAppStore, getCurrentTasksForView, getCurrentTaskChain } from "@/store/app-store"
 import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
@@ -232,6 +233,8 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
+      {/* Top Bar */}
+      <TopBar />
       <main className="flex-1 container max-w-4xl mx-auto py-12 px-6">{pageContent()}</main>
       <TaskCompletionDialog
         isOpen={showTaskCompletionDialog}
