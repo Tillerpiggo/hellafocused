@@ -3,7 +3,7 @@
 import { useSyncStore } from '@/store/sync-store'
 import { syncEngine } from '@/lib/sync-engine'
 import { useEffect, useState } from 'react'
-import { WifiOff, Upload, Check, RotateCcw } from 'lucide-react'
+import { WifiOff, MoreHorizontal, Check } from 'lucide-react'
 
 export function SyncStatus() {
   console.log(`🎨 SyncStatus component rendered`)
@@ -58,39 +58,35 @@ export function SyncStatus() {
 
   if (!isInitialized) {
     return (
-      <div className="flex items-center text-sm text-muted-foreground">
-        <RotateCcw className="h-4 w-4 mr-2 animate-spin" />
-        Initializing sync...
+      <div className="flex items-center text-xs text-muted-foreground/70">
+        <MoreHorizontal className="h-3 w-3 mr-1.5 animate-pulse" />
+        Syncing
       </div>
     )
   }
 
   if (!isOnline) {
     return (
-      <div className="flex items-center text-sm text-muted-foreground">
-        <WifiOff className="h-4 w-4 mr-2" />
-        Offline {lastSyncedAt ? `• Last synced ${new Date(lastSyncedAt).toLocaleTimeString()}` : ''}
+      <div className="flex items-center text-xs text-muted-foreground/70">
+        <WifiOff className="h-3 w-3 mr-1.5" />
+        {lastSyncedAt ? `Last synced ${new Date(lastSyncedAt).toLocaleTimeString()}` : 'Offline'}
       </div>
     )
   }
 
   if (pendingCount > 0) {
     return (
-      <div className="flex items-center text-sm text-muted-foreground">
-        <Upload className="h-4 w-4 mr-2" />
-        {pendingCount} pending
+      <div className="flex items-center text-xs text-muted-foreground/70">
+        <MoreHorizontal className="h-3 w-3 mr-1.5 animate-pulse" />
+        {lastSyncedAt ? `Last synced ${new Date(lastSyncedAt).toLocaleTimeString()}` : 'Syncing'}
       </div>
     )
   }
 
   return (
-    <div className="flex items-center text-sm text-muted-foreground">
-      <Check className="h-4 w-4 mr-2 text-green-600" />
-      {lastSyncedAt ? (
-        <>Synced {new Date(lastSyncedAt).toLocaleTimeString()}</>
-      ) : (
-        <>All synced</>
-      )}
+    <div className="flex items-center text-xs text-muted-foreground/70">
+      <Check className="h-3 w-3 mr-1.5 text-green-500/70" />
+      Synced
     </div>
   )
 } 
