@@ -93,13 +93,7 @@ export const useAppStore = create<AppState>()(
       }),
     )
 
-    // Track the change for sync
-    const updatedTask = findTaskAtPath(get().projects, taskPath)
-    if (updatedTask && taskPath.length > 0) {
-      const projectId = taskPath[0]
-      const parentId = taskPath.length > 2 ? taskPath[taskPath.length - 2] : undefined
-      trackTaskUpdated(updatedTask, projectId, parentId)
-    }
+    trackTaskUpdated(taskPath)
   },
 
   deleteAtPath: (itemPath) => {
@@ -109,10 +103,7 @@ export const useAppStore = create<AppState>()(
       trackProjectDeleted(itemPath[0])
     } else {
       // Deleting a task
-      const taskId = itemPath[itemPath.length - 1]
-      const projectId = itemPath[0]
-      const parentId = itemPath.length > 2 ? itemPath[itemPath.length - 2] : undefined
-      trackTaskDeleted(taskId, projectId, parentId)
+      trackTaskDeleted(itemPath)
     }
 
     set(
@@ -129,9 +120,16 @@ export const useAppStore = create<AppState>()(
 
   toggleShowCompleted: () => set((state) => ({ showCompleted: !state.showCompleted })),
 
-  addSubtaskToParent: (parentPath, subtaskName) =>
+  addSubtaskToParent: (parentPath, subtaskName) => {
+    
+
     set(
       produce((draft: AppState) => {
+        if (parentPath.length === 0) return // Can't add to empty path
+
+        const project = draft.projects.find((p) => p.id === parentPath[0])
+        if (!project) return
+
         const newTask: TaskItemData = {
           id: uuidv4(),
           name: subtaskName,
@@ -139,69 +137,58 @@ export const useAppStore = create<AppState>()(
           subtasks: [],
         }
 
-        if (parentPath.length === 0) return // Can't add to empty path
-
-        const project = draft.projects.find((p) => p.id === parentPath[0])
-        if (!project) return
-
         // If parentPath is project level, add to project root
         if (parentPath.length === 1) {
           project.tasks.push(newTask)
         } else {
           addTaskToParent(draft.projects, parentPath, newTask)
         }
-
-        // Track the new task
-        const projectId = parentPath[0]
-        const parentId = parentPath.length > 1 ? parentPath[parentPath.length - 1] : undefined
-        trackTaskCreated(newTask, projectId, parentId)
       }),
-    ),
+    )
 
-  updateProjectName: (projectId, newName) =>
+    trackTaskCreated(parentPath)
+  },
+
+  updateProjectName: (projectId, newName) => {
     set(
       produce((draft: AppState) => {
         const project = draft.projects.find((p) => p.id === projectId)
         if (project) {
           project.name = newName
-          
-          // Track the update
-          trackProjectUpdated(project)
         }
       }),
-    ),
+    )
 
-  updateTaskName: (taskPath, newName) =>
+    trackProjectUpdated(projectId)
+  },
+
+  updateTaskName: (taskPath, newName) => {
     set(
       produce((draft: AppState) => {
         updateTaskAtPath(draft.projects, taskPath, (task) => {
           task.name = newName
         })
-
-        // Track the update
-        const updatedTask = findTaskAtPath(draft.projects, taskPath)
-        if (updatedTask && taskPath.length > 0) {
-          const projectId = taskPath[0]
-          const parentId = taskPath.length > 2 ? taskPath[taskPath.length - 2] : undefined
-          trackTaskUpdated(updatedTask, projectId, parentId)
-        }
       }),
-    ),
+    )
 
-  addProject: (projectName) =>
+    trackTaskUpdated(taskPath)
+  },
+
+  addProject: (projectName) => {
+    const newProject: ProjectData = {
+      id: uuidv4(),
+      name: projectName,
+      tasks: [],
+    }
+
     set(
       produce((draft: AppState) => {
-        const newProject: ProjectData = {
-          id: uuidv4(),
-          name: projectName,
-          tasks: [],
-        }
         draft.projects.push(newProject)
-        
-        // Track the new project
-        trackProjectCreated(newProject)
       }),
-    ),
+    )
+
+    trackProjectCreated(newProject.id)
+  },
     }),
     {
       name: 'app-storage',
