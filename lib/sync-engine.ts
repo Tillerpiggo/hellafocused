@@ -2,6 +2,7 @@ import { supabase } from './supabase'
 import { useSyncStore } from '@/store/sync-store'
 import { useAppStore } from '@/store/app-store'
 import type { ProjectData, TaskItemData } from './types'
+import type { SyncAction, SyncData } from './sync-types'
 
 class SyncEngine {
   private isInitialized = false
@@ -37,28 +38,26 @@ class SyncEngine {
     if (!change || change.synced) return true
 
     try {
-      const { entityType, entityId, data } = this.parseChangeData(change)
-
       switch (change.type) {
         case 'create':
-          if (entityType === 'project') {
-            await this.createProject(data)
-          } else if (entityType === 'task') {
-            await this.createTask(data)
+          if (change.entityType === 'project') {
+            await this.createProject(change.data as ProjectData)
+          } else if (change.entityType === 'task') {
+            await this.createTask(change.data as TaskItemData, change.projectId!, change.parentId)
           }
           break
         case 'update':
-          if (entityType === 'project') {
-            await this.updateProject(entityId, data)
-          } else if (entityType === 'task') {
-            await this.updateTask(entityId, data)
+          if (change.entityType === 'project') {
+            await this.updateProject(change.id, change.data as ProjectData)
+          } else if (change.entityType === 'task') {
+            await this.updateTask(change.id, change.data as TaskItemData)
           }
           break
         case 'delete':
-          if (entityType === 'project') {
-            await this.deleteProject(entityId)
-          } else if (entityType === 'task') {
-            await this.deleteTask(entityId)
+          if (change.entityType === 'project') {
+            await this.deleteProject(change.id)
+          } else if (change.entityType === 'task') {
+            await this.deleteTask(change.id)
           }
           break
       }
@@ -156,12 +155,12 @@ class SyncEngine {
       .eq('id', projectId)
   }
 
-  private async createTask(task: TaskItemData & { projectId: string, parentId?: string }) {
+  private async createTask(task: TaskItemData, projectId: string, parentId?: string) {
     await supabase.from('tasks').insert({
       id: task.id,
       name: task.name,
-      project_id: task.projectId,
-      parent_id: task.parentId || null,
+      project_id: projectId,
+      parent_id: parentId || null,
       completed: task.completed,
       completion_date: task.completionDate?.toISOString() || null,
       position: 0,
@@ -194,11 +193,10 @@ class SyncEngine {
   }
 
   // Helper methods
-  private parseChangeData(change: any): { entityType: string, entityId: string, data: any } {
-    // Simple parsing - adjust based on how you structure the change data
+  private parseChangeData(change: SyncAction): { entityType: string, entityId: string, data: SyncData } {
     return {
-      entityType: change.data.entityType || 'project',
-      entityId: change.data.id || change.id,
+      entityType: change.entityType,
+      entityId: change.id,
       data: change.data,
     }
   }

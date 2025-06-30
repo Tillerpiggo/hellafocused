@@ -121,8 +121,6 @@ export const useAppStore = create<AppState>()(
   toggleShowCompleted: () => set((state) => ({ showCompleted: !state.showCompleted })),
 
   addSubtaskToParent: (parentPath, subtaskName) => {
-    
-
     set(
       produce((draft: AppState) => {
         if (parentPath.length === 0) return // Can't add to empty path

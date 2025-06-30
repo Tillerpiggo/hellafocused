@@ -1,11 +1,19 @@
+import type { TaskItemData, ProjectData } from './types'
+
 // Clear type definitions
 export type SyncActionType = 'create' | 'update' | 'delete'
+
+// Simple sync data - can be project, task, or null for deletions
+export type SyncData = ProjectData | TaskItemData | null
 
 export interface SyncAction {
   id: string
   type: SyncActionType
+  entityType: 'project' | 'task'
+  projectId?: string // For tasks, which project they belong to
+  parentId?: string // For tasks, which parent task (if any)
   timestamp: number
-  data: any
+  data: SyncData
   synced: boolean
   retryCount: number
   lastError?: string

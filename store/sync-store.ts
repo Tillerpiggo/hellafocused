@@ -2,11 +2,18 @@ import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import { produce } from "immer"
 import { v4 as uuidv4 } from "uuid"
-import type { SyncActionType, SyncMetadata } from "@/lib/sync-types"
+import type { SyncActionType, SyncMetadata, SyncData } from "@/lib/sync-types"
 
 interface SyncStore extends SyncMetadata {
   // Actions
-  addPendingChange: (id: string, type: SyncActionType, data: any) => void
+  addPendingChange: (
+    id: string, 
+    type: SyncActionType, 
+    entityType: 'project' | 'task',
+    data: SyncData,
+    projectId?: string,
+    parentId?: string
+  ) => void
   markSynced: (id: string) => void
   markFailed: (id: string, error: string) => void
   removeSynced: () => void
@@ -34,12 +41,15 @@ export const useSyncStore = create<SyncStore>()(
       deviceId: DEVICE_ID,
 
       // Actions
-      addPendingChange: (id, type, data) =>
+      addPendingChange: (id, type, entityType, data, projectId, parentId) =>
         set(
           produce((draft: SyncStore) => {
             draft.pendingChanges[id] = {
               id,
               type,
+              entityType,
+              projectId,
+              parentId,
               timestamp: Date.now(),
               data,
               synced: false,
