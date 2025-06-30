@@ -19,7 +19,7 @@ export function TopBar() {
       <div className="flex h-14 items-center justify-between px-6">
         {/* Left side - Logo and Sync Status */}
         <div className="flex items-center space-x-4">
-          <div className="font-bold text-foreground">hellafocused.com</div>
+          <div className="text-sm text-muted-foreground">hellafocused v1.0</div>
           <SyncStatus />
         </div>
 
