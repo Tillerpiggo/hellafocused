@@ -1,8 +1,7 @@
 "use client"
-import { useState } from "react"
+import { useState, useRef, useEffect } from "react"
 import type React from "react"
 
-import { Input } from "@/components/ui/input"
 import { Plus } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -17,6 +16,16 @@ interface AddFormProps {
 export function AddForm({ placeholder, onSubmit, inputId }: AddFormProps) {
   const [value, setValue] = useState("")
   const [isFocused, setIsFocused] = useState(false)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+
+  // Auto-resize textarea based on content
+  useEffect(() => {
+    const textarea = textareaRef.current
+    if (textarea) {
+      textarea.style.height = 'auto'
+      textarea.style.height = `${Math.max(20, textarea.scrollHeight)}px` // minimum 20px height
+    }
+  }, [value])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -43,15 +52,15 @@ export function AddForm({ placeholder, onSubmit, inputId }: AddFormProps) {
     <form onSubmit={handleSubmit}>
       <div
         className={cn(
-          "flex items-center justify-between p-3 my-1 rounded-md border-2 border-dashed border-muted-foreground/30 transition-all duration-150 h-[46px]", // Dotted border
+          "flex items-center justify-between p-3 my-1 rounded-md border-2 border-dashed border-muted-foreground/30 transition-all duration-150 min-h-[46px]", // Keep items-center for proper plus button centering
           isFocused || value
             ? "bg-background border-muted-foreground/50" // White background when focused
             : "hover:bg-accent hover:border-muted-foreground/50",
         )}
         onClick={() => {
-          const inputElement = document.getElementById(inputId)
-          if (inputElement) {
-            inputElement.focus()
+          const textareaElement = textareaRef.current
+          if (textareaElement) {
+            textareaElement.focus()
             setIsFocused(true)
           }
         }}
@@ -62,16 +71,16 @@ export function AddForm({ placeholder, onSubmit, inputId }: AddFormProps) {
             size="icon"
             type="button"
             tabIndex={-1}
-            className="h-7 w-7 flex-shrink-0 cursor-default"
+            className="h-7 w-7 flex-shrink-0 cursor-default" // Removed mt-0.5, let it center naturally
           >
             <Plus className="h-5 w-5 text-muted-foreground" />
           </Button>
-          <Input
+          <textarea
+            ref={textareaRef}
             id={inputId}
-            type="text"
             placeholder={placeholder}
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
             onFocus={() => setIsFocused(true)}
             onBlur={() => {
@@ -79,7 +88,13 @@ export function AddForm({ placeholder, onSubmit, inputId }: AddFormProps) {
                 setIsFocused(false)
               }
             }}
-            className="border-none bg-transparent p-0 text-sm focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground"
+            className="w-full resize-none border-none bg-transparent py-1 px-0 text-sm outline-none ring-0 shadow-none placeholder:text-muted-foreground"
+            style={{ 
+              minHeight: '20px',
+              lineHeight: '1.4',
+              overflow: 'hidden'
+            }}
+            rows={1}
           />
         </div>
       </div>
