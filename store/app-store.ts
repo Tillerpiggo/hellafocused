@@ -1,4 +1,5 @@
 import { create } from "zustand"
+import { persist } from "zustand/middleware"
 import type { ProjectData, TaskItemData } from "@/lib/types"
 import { initialProjectsData } from "@/lib/mock-data"
 import { produce } from "immer"
@@ -14,6 +15,14 @@ import {
   isProject,
   isProjectList,
 } from "@/lib/task-utils"
+import { 
+  trackProjectCreated, 
+  trackProjectUpdated, 
+  trackProjectDeleted,
+  trackTaskCreated,
+  trackTaskUpdated,
+  trackTaskDeleted
+} from "@/lib/sync-bridge"
 
 interface AppState {
   projects: ProjectData[]
@@ -37,10 +46,12 @@ interface AppState {
 
 
 
-export const useAppStore = create<AppState>((set, get) => ({
-  projects: initialProjectsData,
-  currentPath: [], // Start at project list
-  showCompleted: false,
+export const useAppStore = create<AppState>()(
+  persist(
+    (set, get) => ({
+      projects: initialProjectsData,
+      currentPath: [], // Start at project list
+      showCompleted: false,
 
   selectProject: (projectId) => set({ currentPath: projectId ? [projectId] : [] }),
 
@@ -81,9 +92,29 @@ export const useAppStore = create<AppState>((set, get) => ({
         })
       }),
     )
+
+    // Track the change for sync
+    const updatedTask = findTaskAtPath(get().projects, taskPath)
+    if (updatedTask && taskPath.length > 0) {
+      const projectId = taskPath[0]
+      const parentId = taskPath.length > 2 ? taskPath[taskPath.length - 2] : undefined
+      trackTaskUpdated(updatedTask, projectId, parentId)
+    }
   },
 
   deleteAtPath: (itemPath) => {
+    // Track deletion before actually deleting
+    if (itemPath.length === 1) {
+      // Deleting a project
+      trackProjectDeleted(itemPath[0])
+    } else {
+      // Deleting a task
+      const taskId = itemPath[itemPath.length - 1]
+      const projectId = itemPath[0]
+      const parentId = itemPath.length > 2 ? itemPath[itemPath.length - 2] : undefined
+      trackTaskDeleted(taskId, projectId, parentId)
+    }
+
     set(
       produce((draft: AppState) => {
         deleteAtPath(draft.projects, itemPath)
@@ -119,6 +150,11 @@ export const useAppStore = create<AppState>((set, get) => ({
         } else {
           addTaskToParent(draft.projects, parentPath, newTask)
         }
+
+        // Track the new task
+        const projectId = parentPath[0]
+        const parentId = parentPath.length > 1 ? parentPath[parentPath.length - 1] : undefined
+        trackTaskCreated(newTask, projectId, parentId)
       }),
     ),
 
@@ -128,6 +164,9 @@ export const useAppStore = create<AppState>((set, get) => ({
         const project = draft.projects.find((p) => p.id === projectId)
         if (project) {
           project.name = newName
+          
+          // Track the update
+          trackProjectUpdated(project)
         }
       }),
     ),
@@ -138,6 +177,14 @@ export const useAppStore = create<AppState>((set, get) => ({
         updateTaskAtPath(draft.projects, taskPath, (task) => {
           task.name = newName
         })
+
+        // Track the update
+        const updatedTask = findTaskAtPath(draft.projects, taskPath)
+        if (updatedTask && taskPath.length > 0) {
+          const projectId = taskPath[0]
+          const parentId = taskPath.length > 2 ? taskPath[taskPath.length - 2] : undefined
+          trackTaskUpdated(updatedTask, projectId, parentId)
+        }
       }),
     ),
 
@@ -150,9 +197,22 @@ export const useAppStore = create<AppState>((set, get) => ({
           tasks: [],
         }
         draft.projects.push(newProject)
+        
+        // Track the new project
+        trackProjectCreated(newProject)
       }),
     ),
-}))
+    }),
+    {
+      name: 'app-storage',
+      partialize: (state) => ({
+        projects: state.projects,
+        currentPath: state.currentPath,
+        showCompleted: state.showCompleted,
+      }),
+    }
+  )
+)
 
 // Helper to get current tasks to display based on path
 export const getCurrentTasksForView = (store: AppState): TaskItemData[] => {

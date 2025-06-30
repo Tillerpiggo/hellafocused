@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Check, X } from "lucide-react"
 import { EditableTitle, type EditableTitleRef } from "@/components/editable-title"
 import { TaskOptionsMenu } from "@/components/task/task-options-menu"
+import { SyncStatus } from "@/components/sync-status"
 import { forwardRef } from "react"
 
 interface PageHeaderProps {
@@ -31,15 +32,20 @@ export const PageHeader = forwardRef<EditableTitleRef, PageHeaderProps>(({
 }, ref) => {
   return (
     <div className="flex items-start justify-between gap-4">
-      <h1 className="text-3xl font-light tracking-wide text-foreground flex-1">
-        <EditableTitle
-          ref={ref}
-          value={title}
-          onChange={onTitleChange}
-          className="text-3xl font-light tracking-wide text-foreground"
-          isCompleted={isCompleted}
-        />
-      </h1>
+      <div className="flex-1">
+        <h1 className="text-3xl font-light tracking-wide text-foreground">
+          <EditableTitle
+            ref={ref}
+            value={title}
+            onChange={onTitleChange}
+            className="text-3xl font-light tracking-wide text-foreground"
+            isCompleted={isCompleted}
+          />
+        </h1>
+        <div className="mt-1">
+          <SyncStatus />
+        </div>
+      </div>
       <div className="flex items-center gap-3 flex-shrink-0">
         <TaskOptionsMenu
           onRename={onRename}
