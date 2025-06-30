@@ -1,7 +1,8 @@
 import { ChevronRight } from "lucide-react"
+import type { ProjectData } from "@/lib/types"
 
 interface ProjectsViewProps {
-  projects: any[]
+  projects: ProjectData[]
   onNavigateToProject: (projectId: string) => void
 }
 

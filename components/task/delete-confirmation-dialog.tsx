@@ -32,7 +32,7 @@ export function DeleteConfirmationDialog({
         <DialogHeader>
           <DialogTitle>Delete {itemType === "project" ? "Project" : "Task"} with Subtasks?</DialogTitle>
           <DialogDescription>
-            "{itemName}" has {subtaskCount} {subtaskCount === 1 ? "subtask" : "subtasks"}. Deleting this{" "}
+            &ldquo;{itemName}&rdquo; has {subtaskCount} {subtaskCount === 1 ? "subtask" : "subtasks"}. Deleting this{" "}
             {itemType === "project" ? "project" : "task"} will also delete all its subtasks.
           </DialogDescription>
         </DialogHeader>

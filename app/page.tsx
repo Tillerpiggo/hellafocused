@@ -61,7 +61,7 @@ export default function HomePage() {
     ? findTaskAtPath(projects, pendingTaskCompletion)
     : null
 
-  const pendingTaskSubtaskCount = pendingTask ? pendingTask.subtasks.filter((st: any) => !st.completed).length : 0
+  const pendingTaskSubtaskCount = pendingTask ? pendingTask.subtasks.filter((st) => !st.completed).length : 0
 
   // Get pending deletion info
   const pendingDeletionItem = pendingDeletion

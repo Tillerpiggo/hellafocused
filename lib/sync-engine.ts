@@ -125,7 +125,7 @@ class SyncEngine {
   async syncPendingChanges() {
     const { pendingChanges } = useSyncStore.getState()
     const pending = Object.entries(pendingChanges)
-      .filter(([_, change]) => !change.synced)
+      .filter(([, change]) => !change.synced)
       .sort((a, b) => a[1].timestamp - b[1].timestamp) // Sync in order
 
     console.log(`📤 Syncing ${pending.length} pending changes`)

@@ -30,7 +30,7 @@ export function TaskCompletionDialog({
         <DialogHeader>
           <DialogTitle>Complete Task with Subtasks?</DialogTitle>
           <DialogDescription>
-            "{taskName}" has {subtaskCount} incomplete subtask{subtaskCount !== 1 ? "s" : ""}. Completing this task will
+            &ldquo;{taskName}&rdquo; has {subtaskCount} incomplete subtask{subtaskCount !== 1 ? "s" : ""}. Completing this task will
             also mark all its subtasks as complete.
           </DialogDescription>
         </DialogHeader>
