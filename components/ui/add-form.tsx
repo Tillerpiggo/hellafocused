@@ -37,15 +37,24 @@ export function AddForm({ placeholder, onSubmit, inputId }: AddFormProps) {
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
+    if (e.key === "Enter" && !e.shiftKey) {
+      // Enter without Shift submits the task
+      e.preventDefault()
+      if (value.trim() !== "") {
+        onSubmit(value.trim())
+        setValue("")
+        setIsFocused(false)
+      }
+    } else if (e.key === "Escape") {
       setValue("")
       setIsFocused(false)
-      // Blur the input to deselect it
-      const inputElement = document.getElementById(inputId)
-      if (inputElement) {
-        inputElement.blur()
+      // Blur the textarea to deselect it
+      const textareaElement = textareaRef.current
+      if (textareaElement) {
+        textareaElement.blur()
       }
     }
+    // Shift+Enter allows new line (default behavior)
   }
 
   return (
