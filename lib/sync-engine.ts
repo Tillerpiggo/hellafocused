@@ -1,4 +1,4 @@
-import { supabase } from './supabase'
+import { supabase, type DatabaseProject, type DatabaseTask } from './supabase'
 import { useSyncStore } from '@/store/sync-store'
 import { useAppStore } from '@/store/app-store'
 import type { ProjectData, TaskItemData } from './types'
@@ -63,6 +63,7 @@ class SyncEngine {
       useSyncStore.getState().markSynced(id)
       return true
     } catch (error) {
+      console.error('Sync error for change', id, ':', error)
       // Track error for debugging
       useSyncStore.getState().markFailed(id, error instanceof Error ? error.message : 'Unknown error')
       return false
@@ -75,6 +76,8 @@ class SyncEngine {
       .filter(([_, change]) => !change.synced)
       .sort((a, b) => a[1].timestamp - b[1].timestamp) // Sync in order
 
+    console.log(`📤 Syncing ${pending.length} pending changes`)
+
     for (const [id] of pending) {
       await this.syncSingleChange(id)
     }
@@ -86,17 +89,38 @@ class SyncEngine {
 
   async mergeWithCloud() {
     try {
-      // TODO: Implement simple merge strategy
-      // For now, just fetch from cloud if no local data
-      const localProjects = useAppStore.getState().projects
+      console.log('🔄 Merging with cloud data...')
       
-      if (localProjects.length === 0) {
-        // No local data, fetch from cloud
-        const { data: cloudProjects } = await supabase.from('projects').select('*')
-        const { data: cloudTasks } = await supabase.from('tasks').select('*')
+      // Fetch projects and tasks from Supabase
+      const { data: cloudProjects, error: projectsError } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', 'anonymous-user') // TODO: Use real user ID
+        .eq('is_deleted', false)
+
+      if (projectsError) {
+        console.error('Error fetching projects:', projectsError)
+        return
+      }
+
+      const { data: cloudTasks, error: tasksError } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', 'anonymous-user') // TODO: Use real user ID
+        .eq('is_deleted', false)
+
+      if (tasksError) {
+        console.error('Error fetching tasks:', tasksError)
+        return
+      }
+
+      if (cloudProjects && cloudTasks) {
+        const convertedProjects = this.convertCloudToLocal(cloudProjects, cloudTasks)
         
-        if (cloudProjects && cloudTasks) {
-          const convertedProjects = this.convertCloudToLocal(cloudProjects, cloudTasks)
+        // Simple merge strategy: if we have no local data, use cloud data
+        const localProjects = useAppStore.getState().projects
+        if (localProjects.length === 0 && convertedProjects.length > 0) {
+          console.log(`📥 Loading ${convertedProjects.length} projects from cloud`)
           useAppStore.setState({ projects: convertedProjects })
         }
       }
@@ -117,23 +141,28 @@ class SyncEngine {
 
   private setupRealtimeSync() {
     // TODO: Implement real-time updates from other devices
-    // For now, just log that we would set this up
     console.log('📡 Real-time sync would be set up here')
   }
 
   // Database operations
   private async createProject(project: ProjectData) {
-    await supabase.from('projects').insert({
+    const { error } = await supabase.from('projects').insert({
       id: project.id,
       name: project.name,
       user_id: 'anonymous-user', // TODO: Get real user ID
       device_id: useSyncStore.getState().deviceId,
       is_deleted: false,
     })
+
+    if (error) {
+      throw new Error(`Failed to create project: ${error.message}`)
+    }
+
+    console.log(`✅ Created project: ${project.name}`)
   }
 
   private async updateProject(projectId: string, project: ProjectData) {
-    await supabase
+    const { error } = await supabase
       .from('projects')
       .update({
         name: project.name,
@@ -143,32 +172,45 @@ class SyncEngine {
   }
 
   private async deleteProject(projectId: string) {
-    await supabase
+    const { error } = await supabase
       .from('projects')
       .update({
         is_deleted: true,
         updated_at: new Date().toISOString(),
       })
       .eq('id', projectId)
+      .eq('user_id', 'anonymous-user') // TODO: Use real user ID
+
+    if (error) {
+      throw new Error(`Failed to delete project: ${error.message}`)
+    }
+
+    console.log(`✅ Deleted project: ${projectId}`)
   }
 
   private async createTask(task: TaskItemData, projectId: string, parentId?: string) {
-    await supabase.from('tasks').insert({
+    const { error } = await supabase.from('tasks').insert({
       id: task.id,
       name: task.name,
       project_id: projectId,
       parent_id: parentId || null,
       completed: task.completed,
       completion_date: task.completionDate?.toISOString() || null,
-      position: 0,
+      position: 0, // TODO: Calculate proper position
       user_id: 'anonymous-user', // TODO: Get real user ID
       device_id: useSyncStore.getState().deviceId,
       is_deleted: false,
     })
+
+    if (error) {
+      throw new Error(`Failed to create task: ${error.message}`)
+    }
+
+    console.log(`✅ Created task: ${task.name}`)
   }
 
   private async updateTask(taskId: string, task: TaskItemData) {
-    await supabase
+    const { error } = await supabase
       .from('tasks')
       .update({
         name: task.name,
@@ -177,21 +219,61 @@ class SyncEngine {
         updated_at: new Date().toISOString(),
       })
       .eq('id', taskId)
+      .eq('user_id', 'anonymous-user') // TODO: Use real user ID
+
+    if (error) {
+      throw new Error(`Failed to update task: ${error.message}`)
+    }
+
+    console.log(`✅ Updated task: ${task.name}`)
   }
 
   private async deleteTask(taskId: string) {
-    await supabase
+    const { error } = await supabase
       .from('tasks')
       .update({
         is_deleted: true,
         updated_at: new Date().toISOString(),
       })
       .eq('id', taskId)
+      .eq('user_id', 'anonymous-user') // TODO: Use real user ID
+
+    if (error) {
+      throw new Error(`Failed to delete task: ${error.message}`)
+    }
+
+    console.log(`✅ Deleted task: ${taskId}`)
   }
 
-  private convertCloudToLocal(cloudProjects: any[], cloudTasks: any[]): ProjectData[] {
-    // TODO: Convert cloud format to local format
-    return []
+  private convertCloudToLocal(cloudProjects: DatabaseProject[], cloudTasks: DatabaseTask[]): ProjectData[] {
+    // Convert Supabase format to local app format
+    return cloudProjects.map(cloudProject => {
+      // Find all tasks that belong to this project (at root level)
+      const projectTasks = cloudTasks
+        .filter(task => task.project_id === cloudProject.id && !task.parent_id)
+        .map(task => this.convertTaskToLocal(task, cloudTasks))
+
+      return {
+        id: cloudProject.id,
+        name: cloudProject.name,
+        tasks: projectTasks,
+      }
+    })
+  }
+
+  private convertTaskToLocal(cloudTask: DatabaseTask, allTasks: DatabaseTask[]): TaskItemData {
+    // Find all subtasks of this task
+    const subtasks = allTasks
+      .filter(task => task.parent_id === cloudTask.id)
+      .map(task => this.convertTaskToLocal(task, allTasks))
+
+    return {
+      id: cloudTask.id,
+      name: cloudTask.name,
+      completed: cloudTask.completed,
+      completionDate: cloudTask.completion_date ? new Date(cloudTask.completion_date) : undefined,
+      subtasks,
+    }
   }
 
   cleanup() {
