@@ -82,7 +82,7 @@ export const useAppStore = create<AppState>()(
 
           // If completing a task, mark all subtasks as completed too and set completion date
           if (task.completed) {
-            task.completionDate = new Date()
+            task.completionDate = new Date().toISOString()
             markAllSubtasksCompleted(task)
             // DO NOT automatically change showCompleted state here
           } else {
@@ -226,9 +226,10 @@ export const getCurrentTasksForView = (store: AppState): TaskItemData[] => {
     const completedTasks = tasksToShow
       .filter((task) => task.completed)
       .sort((a, b) => {
-        const aTime = a.completionDate ? a.completionDate.getTime() : 0
-        const bTime = b.completionDate ? b.completionDate.getTime() : 0
-        return aTime - bTime // Earlier completed tasks first, recent ones at bottom
+        // Compare ISO date strings - they sort naturally in chronological order
+        const aTime = a.completionDate || ''
+        const bTime = b.completionDate || ''
+        return aTime.localeCompare(bTime) // Earlier completed tasks first, recent ones at bottom
       })
 
     return [...completedTasks, ...incompleteTasks]

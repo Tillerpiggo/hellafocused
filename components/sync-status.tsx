@@ -5,6 +5,7 @@ import { syncEngine } from '@/lib/sync-engine'
 import { useEffect, useState } from 'react'
 
 export function SyncStatus() {
+  console.log(`🎨 SyncStatus component rendered`)
   const { getPendingCount, getFailedCount, lastSyncedAt } = useSyncStore()
   const [isInitialized, setIsInitialized] = useState(false)
   
@@ -12,13 +13,20 @@ export function SyncStatus() {
   const failedCount = getFailedCount()
   
   useEffect(() => {
+    console.log(`🎨 SyncStatus useEffect called, isInitialized: ${isInitialized}`)
     // Initialize sync engine when component mounts
     if (!isInitialized) {
+      console.log(`🎨 Starting sync engine initialization...`)
       syncEngine.init().then(() => {
+        console.log(`🎨 Sync engine initialization completed`)
         setIsInitialized(true)
-      }).catch(console.error)
+      }).catch((error) => {
+        console.error(`🎨 Sync engine initialization failed:`, error)
+      })
     }
   }, [isInitialized])
+
+  console.log(`🎨 SyncStatus render state:`, { isInitialized, pendingCount, failedCount, lastSyncedAt })
 
   if (!isInitialized) {
     return (

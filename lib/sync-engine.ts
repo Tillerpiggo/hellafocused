@@ -3,23 +3,32 @@ import { useSyncStore } from '@/store/sync-store'
 import { useAppStore } from '@/store/app-store'
 import type { ProjectData, TaskItemData } from './types'
 
+// Fake UUID for anonymous user (consistent across the app)
+const ANONYMOUS_USER_ID = '00000000-0000-0000-0000-000000000000'
+
 class SyncEngine {
   private syncInterval: NodeJS.Timeout | null = null
 
   async init() {
+    console.log(`🚀 SyncEngine.init() called`)
     try {
       // 1. Load persisted local data (happens automatically via zustand persist)
+      console.log(`🚀 Step 1: Local data loaded automatically`)
       
       // 2. Sync any pending changes from last session
+      console.log(`🚀 Step 2: Syncing pending changes...`)
       await this.syncPendingChanges()
       
       // 3. Fetch latest data from Supabase and merge
+      console.log(`🚀 Step 3: Merging with cloud...`)
       await this.mergeWithCloud()
       
       // 4. Start periodic sync
+      console.log(`🚀 Step 4: Starting periodic sync...`)
       this.startPeriodicSync()
       
       // 5. Setup real-time sync
+      console.log(`🚀 Step 5: Setting up real-time sync...`)
       this.setupRealtimeSync()
       
       console.log('✅ Sync initialized successfully')
@@ -29,14 +38,26 @@ class SyncEngine {
   }
 
   async syncSingleChange(id: string): Promise<boolean> {
-    if (!navigator.onLine) return false
+    console.log(`🔧 SyncEngine.syncSingleChange called for ID: ${id}`)
+    
+    if (!navigator.onLine) {
+      console.log(`🔧 Browser is offline, skipping sync for ${id}`)
+      return false
+    }
 
+    console.log(`🔧 Getting pending change for ID: ${id}`)
     const change = useSyncStore.getState().pendingChanges[id]
-    if (!change || change.synced) return true
+    if (!change || change.synced) {
+      console.log(`🔧 Change ${id} not found or already synced`)
+      return true
+    }
+
+    console.log(`🔧 Processing change:`, change)
 
     try {
       switch (change.type) {
         case 'create':
+          console.log(`🔧 Processing CREATE for ${change.entityType}`)
           if (change.entityType === 'project') {
             await this.createProject(change.data as ProjectData)
           } else if (change.entityType === 'task') {
@@ -44,6 +65,7 @@ class SyncEngine {
           }
           break
         case 'update':
+          console.log(`🔧 Processing UPDATE for ${change.entityType}`)
           if (change.entityType === 'project') {
             await this.updateProject(change.entityId, change.data as ProjectData)
           } else if (change.entityType === 'task') {
@@ -51,6 +73,7 @@ class SyncEngine {
           }
           break
         case 'delete':
+          console.log(`🔧 Processing DELETE for ${change.entityType}`)
           if (change.entityType === 'project') {
             await this.deleteProject(change.entityId)
           } else if (change.entityType === 'task') {
@@ -59,6 +82,7 @@ class SyncEngine {
           break
       }
 
+      console.log(`🔧 Successfully processed change ${id}, marking as synced`)
       // Mark as synced
       useSyncStore.getState().markSynced(id)
       return true
@@ -95,7 +119,7 @@ class SyncEngine {
       const { data: cloudProjects, error: projectsError } = await supabase
         .from('projects')
         .select('*')
-        .eq('user_id', 'anonymous-user') // TODO: Use real user ID
+        .eq('user_id', ANONYMOUS_USER_ID)
         .eq('is_deleted', false)
 
       if (projectsError) {
@@ -106,7 +130,7 @@ class SyncEngine {
       const { data: cloudTasks, error: tasksError } = await supabase
         .from('tasks')
         .select('*')
-        .eq('user_id', 'anonymous-user') // TODO: Use real user ID
+        .eq('user_id', ANONYMOUS_USER_ID)
         .eq('is_deleted', false)
 
       if (tasksError) {
@@ -149,7 +173,7 @@ class SyncEngine {
     const { error } = await supabase.from('projects').insert({
       id: project.id,
       name: project.name,
-      user_id: 'anonymous-user', // TODO: Get real user ID
+      user_id: ANONYMOUS_USER_ID,
       device_id: useSyncStore.getState().deviceId,
       is_deleted: false,
     })
@@ -169,6 +193,13 @@ class SyncEngine {
         updated_at: new Date().toISOString(),
       })
       .eq('id', projectId)
+      .eq('user_id', ANONYMOUS_USER_ID)
+
+    if (error) {
+      throw new Error(`Failed to update project: ${error.message}`)
+    }
+
+    console.log(`✅ Updated project: ${project.name}`)
   }
 
   private async deleteProject(projectId: string) {
@@ -179,7 +210,7 @@ class SyncEngine {
         updated_at: new Date().toISOString(),
       })
       .eq('id', projectId)
-      .eq('user_id', 'anonymous-user') // TODO: Use real user ID
+      .eq('user_id', ANONYMOUS_USER_ID)
 
     if (error) {
       throw new Error(`Failed to delete project: ${error.message}`)
@@ -195,9 +226,9 @@ class SyncEngine {
       project_id: projectId,
       parent_id: parentId || null,
       completed: task.completed,
-      completion_date: task.completionDate?.toISOString() || null,
+      completion_date: task.completionDate || null,
       position: 0, // TODO: Calculate proper position
-      user_id: 'anonymous-user', // TODO: Get real user ID
+      user_id: ANONYMOUS_USER_ID,
       device_id: useSyncStore.getState().deviceId,
       is_deleted: false,
     })
@@ -215,11 +246,11 @@ class SyncEngine {
       .update({
         name: task.name,
         completed: task.completed,
-        completion_date: task.completionDate?.toISOString() || null,
+        completion_date: task.completionDate || null,
         updated_at: new Date().toISOString(),
       })
       .eq('id', taskId)
-      .eq('user_id', 'anonymous-user') // TODO: Use real user ID
+      .eq('user_id', ANONYMOUS_USER_ID)
 
     if (error) {
       throw new Error(`Failed to update task: ${error.message}`)
@@ -236,7 +267,7 @@ class SyncEngine {
         updated_at: new Date().toISOString(),
       })
       .eq('id', taskId)
-      .eq('user_id', 'anonymous-user') // TODO: Use real user ID
+      .eq('user_id', ANONYMOUS_USER_ID)
 
     if (error) {
       throw new Error(`Failed to delete task: ${error.message}`)
@@ -271,7 +302,7 @@ class SyncEngine {
       id: cloudTask.id,
       name: cloudTask.name,
       completed: cloudTask.completed,
-      completionDate: cloudTask.completion_date ? new Date(cloudTask.completion_date) : undefined,
+      completionDate: cloudTask.completion_date || undefined,
       subtasks,
     }
   }
