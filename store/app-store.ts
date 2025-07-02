@@ -66,126 +66,196 @@ export const useAppStore = create<AppState>()(
     }),
 
   toggleTaskCompletion: (taskPath) => {
+    console.log(`📱 AppStore.toggleTaskCompletion called with taskPath:`, taskPath)
     const task = findTaskAtPath(get().projects, taskPath)
-    if (!task) return
+    if (!task) {
+      console.log(`📱 Task not found at path:`, taskPath)
+      return
+    }
+
+    console.log(`📱 Found task "${task.name}", current completed state: ${task.completed}`)
 
     // Trigger confetti for task completion (only when completing, not uncompleting)
     if (!task.completed) {
+      console.log(`📱 Triggering confetti for task completion`)
       triggerConfetti()
     }
 
     // Proceed with completion
+    console.log(`📱 Updating task completion state...`)
     set(
       produce((draft: AppState) => {
         updateTaskAtPath(draft.projects, taskPath, (task) => {
           task.completed = !task.completed
+          console.log(`📱 Task "${task.name}" completed state changed to: ${task.completed}`)
 
           // If completing a task, mark all subtasks as completed too and set completion date
           if (task.completed) {
             task.completionDate = new Date().toISOString()
+            console.log(`📱 Set completion date: ${task.completionDate}`)
             markAllSubtasksCompleted(task)
+            console.log(`📱 Marked all subtasks as completed`)
             // DO NOT automatically change showCompleted state here
           } else {
             // If uncompleting, remove completion date
             delete task.completionDate
+            console.log(`📱 Removed completion date`)
           }
         })
       }),
     )
 
+    console.log(`📱 Calling trackTaskUpdated for taskPath:`, taskPath)
     trackTaskUpdated(taskPath)
+    console.log(`📱 toggleTaskCompletion completed`)
   },
 
   deleteAtPath: (itemPath) => {
+    console.log(`📱 AppStore.deleteAtPath called with itemPath:`, itemPath)
+    
     // Track deletion before actually deleting
     if (itemPath.length === 1) {
       // Deleting a project
+      console.log(`📱 Tracking project deletion for projectId: ${itemPath[0]}`)
       trackProjectDeleted(itemPath[0])
     } else {
       // Deleting a task
+      console.log(`📱 Tracking task deletion for taskPath:`, itemPath)
       trackTaskDeleted(itemPath)
     }
 
+    console.log(`📱 Proceeding with actual deletion...`)
     set(
       produce((draft: AppState) => {
         deleteAtPath(draft.projects, itemPath)
+        console.log(`📱 Item deleted from store`)
 
         // If the current path is no longer valid, navigate up appropriately
         if (!findTaskAtPath(draft.projects, draft.currentPath) && !findProjectAtPath(draft.projects, draft.currentPath)) {
+          console.log(`📱 Current path is invalid, navigating up from:`, draft.currentPath)
           draft.currentPath = draft.currentPath.slice(0, -1)
+          console.log(`📱 New current path:`, draft.currentPath)
         }
       }),
     )
+    console.log(`📱 deleteAtPath completed`)
   },
 
   toggleShowCompleted: () => set((state) => ({ showCompleted: !state.showCompleted })),
 
   addSubtaskToParent: (parentPath, subtaskName) => {
+    console.log(`📱 AppStore.addSubtaskToParent called with:`)
+    console.log(`📱   parentPath:`, parentPath)
+    console.log(`📱   subtaskName: "${subtaskName}"`)
+
     set(
       produce((draft: AppState) => {
-        if (parentPath.length === 0) return // Can't add to empty path
+        if (parentPath.length === 0) {
+          console.log(`📱 Cannot add to empty path, returning`)
+          return // Can't add to empty path
+        }
 
         const project = draft.projects.find((p) => p.id === parentPath[0])
-        if (!project) return
+        if (!project) {
+          console.log(`📱 Project not found for ID: ${parentPath[0]}`)
+          return
+        }
 
+        console.log(`📱 Found project: "${project.name}"`)
+
+        const newTaskId = uuidv4()
         const newTask: TaskItemData = {
-          id: uuidv4(),
+          id: newTaskId,
           name: subtaskName,
           completed: false,
           subtasks: [],
         }
 
+        console.log(`📱 Created new task with ID: ${newTaskId}`)
+
         // If parentPath is project level, add to project root
         if (parentPath.length === 1) {
+          console.log(`📱 Adding task to project root`)
           project.tasks.push(newTask)
+          console.log(`📱 Project now has ${project.tasks.length} tasks`)
         } else {
+          console.log(`📱 Adding task to parent task via addTaskToParent`)
           addTaskToParent(draft.projects, parentPath, newTask)
+          console.log(`📱 Task added to parent`)
         }
       }),
     )
 
+    console.log(`📱 Calling trackTaskCreated for parentPath:`, parentPath)
     trackTaskCreated(parentPath)
+    console.log(`📱 addSubtaskToParent completed`)
   },
 
   updateProjectName: (projectId, newName) => {
+    console.log(`📱 AppStore.updateProjectName called:`)
+    console.log(`📱   projectId: ${projectId}`)
+    console.log(`📱   newName: "${newName}"`)
+
     set(
       produce((draft: AppState) => {
         const project = draft.projects.find((p) => p.id === projectId)
         if (project) {
+          const oldName = project.name
           project.name = newName
+          console.log(`📱 Project name updated from "${oldName}" to "${newName}"`)
+        } else {
+          console.log(`📱 Project not found for ID: ${projectId}`)
         }
       }),
     )
 
+    console.log(`📱 Calling trackProjectUpdated for projectId: ${projectId}`)
     trackProjectUpdated(projectId)
+    console.log(`📱 updateProjectName completed`)
   },
 
   updateTaskName: (taskPath, newName) => {
+    console.log(`📱 AppStore.updateTaskName called:`)
+    console.log(`📱   taskPath:`, taskPath)
+    console.log(`📱   newName: "${newName}"`)
+
     set(
       produce((draft: AppState) => {
         updateTaskAtPath(draft.projects, taskPath, (task) => {
+          const oldName = task.name
           task.name = newName
+          console.log(`📱 Task name updated from "${oldName}" to "${newName}"`)
         })
       }),
     )
 
+    console.log(`📱 Calling trackTaskUpdated for taskPath:`, taskPath)
     trackTaskUpdated(taskPath)
+    console.log(`📱 updateTaskName completed`)
   },
 
   addProject: (projectName) => {
+    console.log(`📱 AppStore.addProject called with projectName: "${projectName}"`)
+    
+    const newProjectId = uuidv4()
     const newProject: ProjectData = {
-      id: uuidv4(),
+      id: newProjectId,
       name: projectName,
       tasks: [],
     }
 
+    console.log(`📱 Created new project with ID: ${newProjectId}`)
+
     set(
       produce((draft: AppState) => {
         draft.projects.push(newProject)
+        console.log(`📱 Project added to store. Total projects: ${draft.projects.length}`)
       }),
     )
 
+    console.log(`📱 Calling trackProjectCreated for projectId: ${newProjectId}`)
     trackProjectCreated(newProject.id)
+    console.log(`📱 addProject completed`)
   },
     }),
     {

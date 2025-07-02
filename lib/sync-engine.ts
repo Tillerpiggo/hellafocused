@@ -1,6 +1,6 @@
 import { supabase, type DatabaseProject, type DatabaseTask } from './supabase'
 import { useSyncStore } from '@/store/sync-store'
-import { useAppStore } from '@/store/app-store'
+import { mergeManager } from './merge-manager'
 import type { ProjectData, TaskItemData } from './types'
 
 class SyncEngine {
@@ -141,7 +141,7 @@ class SyncEngine {
 
   async mergeWithCloud() {
     try {
-      console.log('🔄 Merging with cloud data...')
+      console.log('🔄 Merging with cloud data using sophisticated strategy...')
       
       const userId = await this.getCurrentUserId()
       
@@ -169,20 +169,17 @@ class SyncEngine {
       }
 
       if (cloudProjects && cloudTasks) {
-        const convertedProjects = this.convertCloudToLocal(cloudProjects, cloudTasks)
-        
-        // Simple merge strategy: if we have no local data, use cloud data
-        const localProjects = useAppStore.getState().projects
-        if (localProjects.length === 0 && convertedProjects.length > 0) {
-          console.log(`📥 Loading ${convertedProjects.length} projects from cloud`)
-          useAppStore.setState({ projects: convertedProjects })
-        }
+        await mergeManager.mergeCloudWithLocal(cloudProjects, cloudTasks)
       }
     } catch (error) {
       // Continue with local data if cloud fetch fails
       console.error('Cloud merge failed:', error)
     }
   }
+
+
+
+
 
   private startPeriodicSync() {
     // Sync every 30 seconds
