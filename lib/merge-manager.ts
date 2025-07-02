@@ -72,7 +72,7 @@ export class MergeManager {
     return {
       id: cloudProject.id,
       name: cloudProject.name,
-      updateDate: cloudProject.updated_at || cloudProject.created_at,
+      updateDate: cloudProject.updated_at,
       tasks: projectTasks,
     }
   }
@@ -88,7 +88,7 @@ export class MergeManager {
       name: cloudTask.name,
       completed: cloudTask.completed,
       completionDate: cloudTask.completion_date || undefined,
-      updateDate: cloudTask.updated_at || cloudTask.created_at,
+      updateDate: cloudTask.updated_at,
       subtasks,
     }
   }
@@ -100,8 +100,8 @@ export class MergeManager {
     pendingChanges: any
   ): ProjectData {
     // Field-level merge with remote as source of truth, using updateDate for last-write wins
-    const cloudUpdateDate = cloudProject.updated_at || cloudProject.created_at
-    const useCloudProject = !localProject.updateDate || cloudUpdateDate > localProject.updateDate
+    const cloudUpdateDate = cloudProject.updated_at
+    const useCloudProject = cloudUpdateDate > localProject.updateDate
     
     const merged: ProjectData = {
       id: cloudProject.id,
@@ -166,8 +166,8 @@ export class MergeManager {
     }
     
     // Field-level merge with remote as source of truth, using updateDate for last-write wins
-    const cloudUpdateDate = cloudTask.updated_at || cloudTask.created_at
-    const useCloudTask = !localTask.updateDate || cloudUpdateDate > localTask.updateDate
+    const cloudUpdateDate = cloudTask.updated_at
+    const useCloudTask = cloudUpdateDate > localTask.updateDate
     
     return {
       id: cloudTask.id,

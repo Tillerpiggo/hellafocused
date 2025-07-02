@@ -198,6 +198,7 @@ class SyncEngine {
   // Database operations
   private async createProject(project: ProjectData) {
     const userId = await this.getCurrentUserId()
+    const now = new Date().toISOString()
     
     const { error } = await supabase.from('projects').insert({
       id: project.id,
@@ -205,6 +206,8 @@ class SyncEngine {
       user_id: userId,
       device_id: useSyncStore.getState().deviceId,
       is_deleted: false,
+      created_at: now,
+      updated_at: now,
     })
 
     if (error) {
@@ -221,7 +224,7 @@ class SyncEngine {
       .from('projects')
       .update({
         name: project.name,
-        updated_at: project.updateDate || new Date().toISOString(),
+        updated_at: project.updateDate,
       })
       .eq('id', projectId)
       .eq('user_id', userId)
@@ -254,6 +257,7 @@ class SyncEngine {
 
   private async createTask(task: TaskData, projectId: string, parentId?: string) {
     const userId = await this.getCurrentUserId()
+    const now = new Date().toISOString()
     
     const { error } = await supabase.from('tasks').insert({
       id: task.id,
@@ -266,6 +270,8 @@ class SyncEngine {
       user_id: userId,
       device_id: useSyncStore.getState().deviceId,
       is_deleted: false,
+      created_at: now,
+      updated_at: now,
     })
 
     if (error) {
@@ -284,7 +290,7 @@ class SyncEngine {
         name: task.name,
         completed: task.completed,
         completion_date: task.completionDate || null,
-        updated_at: task.updateDate || new Date().toISOString(),
+        updated_at: task.updateDate,
       })
       .eq('id', taskId)
       .eq('user_id', userId)
@@ -315,38 +321,7 @@ class SyncEngine {
     console.log(`✅ Deleted task: ${taskId}`)
   }
 
-  private convertCloudToLocal(cloudProjects: DatabaseProject[], cloudTasks: DatabaseTask[]): ProjectData[] {
-    // Convert Supabase format to local app format
-    return cloudProjects.map(cloudProject => {
-      // Find all tasks that belong to this project (at root level)
-      const projectTasks = cloudTasks
-        .filter(task => task.project_id === cloudProject.id && !task.parent_id)
-        .map(task => this.convertTaskToLocal(task, cloudTasks))
 
-      return {
-        id: cloudProject.id,
-        name: cloudProject.name,
-        updateDate: cloudProject.updated_at || cloudProject.created_at,
-        tasks: projectTasks,
-      }
-    })
-  }
-
-  private convertTaskToLocal(cloudTask: DatabaseTask, allTasks: DatabaseTask[]): TaskData {
-    // Find all subtasks of this task
-    const subtasks = allTasks
-      .filter(task => task.parent_id === cloudTask.id)
-      .map(task => this.convertTaskToLocal(task, allTasks))
-
-    return {
-      id: cloudTask.id,
-      name: cloudTask.name,
-      completed: cloudTask.completed,
-      completionDate: cloudTask.completion_date || undefined,
-      updateDate: cloudTask.updated_at || cloudTask.created_at,
-      subtasks,
-    }
-  }
 
   cleanup() {
     if (this.syncInterval) {
