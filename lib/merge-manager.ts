@@ -53,10 +53,15 @@ export class MergeManager {
       mergedProjects.push(mergedProject)
     }
     
-    // 2. Add local-only projects (they will be synced up later)
+    // 2. Add local-only projects only if they have pending changes
     for (const localProject of localProjects) {
       if (!cloudProjectMap.has(localProject.id)) {
-        mergedProjects.push({ ...localProject })
+        const hasPendingChanges = Object.values(pendingChanges).some(
+          (change: any) => change.entityId === localProject.id && change.entityType === 'project' && !change.synced
+        )
+        if (hasPendingChanges) {
+          mergedProjects.push({ ...localProject })
+        }
       }
     }
     
@@ -132,10 +137,15 @@ export class MergeManager {
       mergedTasks.push(mergedTask)
     }
     
-    // Add local-only tasks
+    // Add local-only tasks only if they have pending changes
     for (const localTask of localProject.tasks) {
       if (!cloudTaskMap.has(localTask.id)) {
-        mergedTasks.push({ ...localTask })
+        const hasPendingChanges = Object.values(pendingChanges).some(
+          (change: any) => change.entityId === localTask.id && change.entityType === 'task' && !change.synced
+        )
+        if (hasPendingChanges) {
+          mergedTasks.push({ ...localTask })
+        }
       }
     }
     
@@ -198,10 +208,15 @@ export class MergeManager {
       mergedSubtasks.push(mergedSubtask)
     }
     
-    // Add local-only subtasks
+    // Add local-only subtasks only if they have pending changes
     for (const localSubtask of (localTask.subtasks || [])) {
       if (!cloudSubtaskMap.has(localSubtask.id)) {
-        mergedSubtasks.push({ ...localSubtask })
+        const hasPendingChanges = Object.values(pendingChanges).some(
+          (change: any) => change.entityId === localSubtask.id && change.entityType === 'task' && !change.synced
+        )
+        if (hasPendingChanges) {
+          mergedSubtasks.push({ ...localSubtask })
+        }
       }
     }
     
