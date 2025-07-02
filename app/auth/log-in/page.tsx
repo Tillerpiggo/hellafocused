@@ -83,7 +83,7 @@ export default function LogInPage() {
               Don't have an account?{" "}
               <Link
                 href="/auth/sign-up"
-                className="text-primary hover:underline"
+                className="text-primary hover:underline font-"
               >
                 Sign up
               </Link>
@@ -105,10 +105,12 @@ export default function LogInPage() {
               </label>
               <Input
                 id="email"
+                name="email"
                 type="email"
                 placeholder="benjamin.lasky@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
                 required
                 disabled={loading}
               />
@@ -128,10 +130,12 @@ export default function LogInPage() {
               </div>
               <Input
                 id="password"
+                name="password"
                 type="password"
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
                 required
                 disabled={loading}
               />
@@ -139,9 +143,9 @@ export default function LogInPage() {
 
             <Button 
               type="submit" 
-              className={`w-full ${!hasInput ? 'bg-primary/30 hover:bg-primary/40' : ''}`}
-              disabled={loading}
-              variant={hasInput ? "default" : "secondary"}
+              className={`w-full ${!hasInput ? 'bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 cursor-not-allowed' : ''}`}
+              disabled={loading || !hasInput}
+              variant={hasInput ? "default" : "ghost"}
             >
               {loading ? "Logging in..." : "Log In"}
             </Button>
@@ -161,7 +165,7 @@ export default function LogInPage() {
 
           {/* Google Log In */}
           <Button
-            variant="outline"
+            variant="default"
             className="w-full"
             onClick={handleGoogleSignIn}
             disabled={loading}

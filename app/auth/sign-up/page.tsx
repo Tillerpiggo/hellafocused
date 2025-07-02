@@ -129,13 +129,13 @@ export default function SignUpPage() {
             {/* Sign In Link */}
             <div className="text-center">
               <div className="text-sm text-muted-foreground">
-                                 Already have an account?{" "}
+                                                  Already have an account?{" "}
                  <Link
-                   href="/auth/sign-in"
-                   className="text-primary hover:underline"
+                   href="/auth/log-in"
+                   className="text-primary hover:underline font-semibold"
                  >
                    Log in
-                </Link>
+                 </Link>
               </div>
             </div>
           </div>
@@ -155,10 +155,12 @@ export default function SignUpPage() {
               </label>
               <Input
                 id="signup-email"
+                name="email"
                 type="email"
                 placeholder="benjamin.lasky@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
                 required
                 disabled={loading}
               />
@@ -170,10 +172,12 @@ export default function SignUpPage() {
               </label>
               <Input
                 id="signup-password"
+                name="password"
                 type="password"
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
                 required
                 disabled={loading}
                 minLength={6}
@@ -182,9 +186,9 @@ export default function SignUpPage() {
 
             <Button 
               type="submit" 
-              className={`w-full ${!hasInput ? 'bg-primary/30 hover:bg-primary/40' : ''}`}
-              disabled={loading}
-              variant={hasInput ? "default" : "secondary"}
+              className={`w-full ${!hasInput ? 'bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 cursor-not-allowed' : ''}`}
+              disabled={loading || !hasInput}
+              variant={hasInput ? "default" : "ghost"}
             >
               {loading ? "Creating account..." : "Create Account"}
             </Button>
@@ -204,8 +208,8 @@ export default function SignUpPage() {
 
           {/* Google Sign Up */}
           <Button
-            variant="outline"
-            className="w-full"
+            variant="default"
+            className="w-full bg-primary/90 hover:bg-primary text-primary-foreground"
             onClick={handleGoogleSignUp}
             disabled={loading}
           >

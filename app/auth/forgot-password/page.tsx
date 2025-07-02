@@ -69,9 +69,6 @@ export default function ForgotPasswordPage() {
               <Button variant="outline" onClick={() => router.push("/")} className="flex-1">
                 Close
               </Button>
-              <Button onClick={() => router.push("/auth/sign-in")} className="flex-1">
-                Back to Log In
-              </Button>
             </div>
           </div>
         </div>
@@ -86,7 +83,7 @@ export default function ForgotPasswordPage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.push("/auth/sign-in")}
+          onClick={() => router.push("/auth/log-in")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -131,9 +128,9 @@ export default function ForgotPasswordPage() {
 
             <Button 
               type="submit" 
-              className={`w-full ${!hasInput ? 'bg-primary/30 hover:bg-primary/40' : ''}`}
-              disabled={loading}
-              variant={hasInput ? "default" : "secondary"}
+              className={`w-full ${!hasInput ? 'bg-muted/80 text-foreground/60 hover:bg-muted/80 cursor-not-allowed border border-border' : ''}`}
+              disabled={loading || !hasInput}
+              variant={hasInput ? "default" : "ghost"}
             >
               {loading ? "Sending..." : "Send Reset Link"}
             </Button>
@@ -142,7 +139,7 @@ export default function ForgotPasswordPage() {
           {/* Back to Sign In */}
           <div className="text-center">
                           <Link
-                href="/auth/sign-in"
+                href="/auth/log-in"
                 className="text-sm text-muted-foreground hover:text-foreground underline"
               >
                 Back to Log In
