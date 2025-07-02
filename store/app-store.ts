@@ -87,7 +87,7 @@ export const useAppStore = create<AppState>()(
       produce((draft: AppState) => {
         updateTaskAtPath(draft.projects, taskPath, (task) => {
           task.completed = !task.completed
-          task.updateDate = new Date().toISOString()
+          task.lastModificationDate = new Date().toISOString()
           console.log(`📱 Task "${task.name}" completed state changed to: ${task.completed}`)
 
           // If completing a task, mark all subtasks as completed too and set completion date
@@ -169,7 +169,7 @@ export const useAppStore = create<AppState>()(
           id: newTaskId,
           name: subtaskName,
           completed: false,
-          updateDate: new Date().toISOString(),
+          lastModificationDate: new Date().toISOString(),
           subtasks: [],
         }
 
@@ -204,7 +204,7 @@ export const useAppStore = create<AppState>()(
         if (project) {
           const oldName = project.name
           project.name = newName
-          project.updateDate = new Date().toISOString()
+          project.lastModificationDate = new Date().toISOString()
           console.log(`📱 Project name updated from "${oldName}" to "${newName}"`)
         } else {
           console.log(`📱 Project not found for ID: ${projectId}`)
@@ -227,7 +227,7 @@ export const useAppStore = create<AppState>()(
         updateTaskAtPath(draft.projects, taskPath, (task) => {
           const oldName = task.name
           task.name = newName
-          task.updateDate = new Date().toISOString()
+          task.lastModificationDate = new Date().toISOString()
           console.log(`📱 Task name updated from "${oldName}" to "${newName}"`)
         })
       }),
@@ -245,7 +245,7 @@ export const useAppStore = create<AppState>()(
     const newProject: ProjectData = {
       id: newProjectId,
       name: projectName,
-      updateDate: new Date().toISOString(),
+      lastModificationDate: new Date().toISOString(),
       tasks: [],
     }
 

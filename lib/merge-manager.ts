@@ -72,7 +72,7 @@ export class MergeManager {
     return {
       id: cloudProject.id,
       name: cloudProject.name,
-      updateDate: cloudProject.updated_at,
+      lastModificationDate: cloudProject.updated_at,
       tasks: projectTasks,
     }
   }
@@ -88,7 +88,7 @@ export class MergeManager {
       name: cloudTask.name,
       completed: cloudTask.completed,
       completionDate: cloudTask.completion_date || undefined,
-      updateDate: cloudTask.updated_at,
+      lastModificationDate: cloudTask.updated_at,
       subtasks,
     }
   }
@@ -99,14 +99,14 @@ export class MergeManager {
     cloudTasks: DatabaseTask[], 
     pendingChanges: any
   ): ProjectData {
-    // Field-level merge with remote as source of truth, using updateDate for last-write wins
+    // Field-level merge with remote as source of truth, using lastModificationDate for last-write wins
     const cloudUpdateDate = cloudProject.updated_at
-    const useCloudProject = cloudUpdateDate > localProject.updateDate
+    const useCloudProject = cloudUpdateDate > localProject.lastModificationDate
     
     const merged: ProjectData = {
       id: cloudProject.id,
       name: useCloudProject ? cloudProject.name : localProject.name,
-      updateDate: useCloudProject ? cloudUpdateDate : localProject.updateDate,
+      lastModificationDate: useCloudProject ? cloudUpdateDate : localProject.lastModificationDate,
       tasks: this.mergeProjectTasks(localProject, cloudProject, cloudTasks, pendingChanges)
     }
     
@@ -165,16 +165,16 @@ export class MergeManager {
       }
     }
     
-    // Field-level merge with remote as source of truth, using updateDate for last-write wins
+    // Field-level merge with remote as source of truth, using lastModificationDate for last-write wins
     const cloudUpdateDate = cloudTask.updated_at
-    const useCloudTask = cloudUpdateDate > localTask.updateDate
+    const useCloudTask = cloudUpdateDate > localTask.lastModificationDate
     
     return {
       id: cloudTask.id,
       name: useCloudTask ? cloudTask.name : localTask.name,
       completed: useCloudTask ? cloudTask.completed : localTask.completed,
       completionDate: useCloudTask ? (cloudTask.completion_date || undefined) : localTask.completionDate,
-      updateDate: useCloudTask ? cloudUpdateDate : localTask.updateDate,
+      lastModificationDate: useCloudTask ? cloudUpdateDate : localTask.lastModificationDate,
       subtasks: this.mergeTaskSubtasks(localTask, cloudTask, allCloudTasks, pendingChanges)
     }
   }

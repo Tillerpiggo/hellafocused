@@ -65,7 +65,7 @@ export const markAllSubtasksCompleted = (task: TaskData) => {
   task.subtasks.forEach((subtask) => {
     subtask.completed = true
     subtask.completionDate = new Date().toISOString()
-    subtask.updateDate = new Date().toISOString()
+    subtask.lastModificationDate = new Date().toISOString()
     markAllSubtasksCompleted(subtask)
   })
 }

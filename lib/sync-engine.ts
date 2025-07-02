@@ -224,7 +224,7 @@ class SyncEngine {
       .from('projects')
       .update({
         name: project.name,
-        updated_at: project.updateDate,
+        updated_at: project.lastModificationDate,
       })
       .eq('id', projectId)
       .eq('user_id', userId)
@@ -290,7 +290,7 @@ class SyncEngine {
         name: task.name,
         completed: task.completed,
         completion_date: task.completionDate || null,
-        updated_at: task.updateDate,
+        updated_at: task.lastModificationDate,
       })
       .eq('id', taskId)
       .eq('user_id', userId)
