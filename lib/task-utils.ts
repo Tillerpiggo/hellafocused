@@ -1,9 +1,9 @@
-import type { TaskItemData, ProjectData } from "./types"
+import type { TaskData, ProjectData } from "./types"
 
 /**
  * Find and update a task with a task path with a certain update function
  */
-export const findAndUpdateTask = (tasks: TaskItemData[], path: string[], updateFn: (task: TaskItemData) => void): boolean => {
+export const findAndUpdateTask = (tasks: TaskData[], path: string[], updateFn: (task: TaskData) => void): boolean => {
   if (!path.length) return false
   const currentId = path[0]
   const task = tasks.find((t) => t.id === currentId)
@@ -19,7 +19,7 @@ export const findAndUpdateTask = (tasks: TaskItemData[], path: string[], updateF
 /**
  * Find a task with a task path
  */
-export const findTaskRecursive = (tasks: TaskItemData[], path: string[]): TaskItemData | null => {
+export const findTaskRecursive = (tasks: TaskData[], path: string[]): TaskData | null => {
   if (!path.length) return null
   const currentId = path[0]
   const task = tasks.find((t) => t.id === currentId)
@@ -31,7 +31,7 @@ export const findTaskRecursive = (tasks: TaskItemData[], path: string[]): TaskIt
 /**
  * Delete a task from an array at a task path
  */
-export const deleteTaskFromArray = (tasks: TaskItemData[], path: string[]): boolean => {
+export const deleteTaskFromArray = (tasks: TaskData[], path: string[]): boolean => {
   if (!path.length) return false
 
   if (path.length === 1) {
@@ -53,7 +53,7 @@ export const deleteTaskFromArray = (tasks: TaskItemData[], path: string[]): bool
 /**
  * Count all total subtasks for a given task
  */
-export const countSubtasksRecursively = (task: TaskItemData): number => {
+export const countSubtasksRecursively = (task: TaskData): number => {
   if (!task.subtasks || task.subtasks.length === 0) return 0
   return task.subtasks.length + task.subtasks.reduce((acc, subtask) => acc + countSubtasksRecursively(subtask), 0)
 }
@@ -61,10 +61,11 @@ export const countSubtasksRecursively = (task: TaskItemData): number => {
 /**
  * Mark all subtasks as completed (recursively)
  */
-export const markAllSubtasksCompleted = (task: TaskItemData) => {
+export const markAllSubtasksCompleted = (task: TaskData) => {
   task.subtasks.forEach((subtask) => {
     subtask.completed = true
     subtask.completionDate = new Date().toISOString()
+    subtask.updateDate = new Date().toISOString()
     markAllSubtasksCompleted(subtask)
   })
 }
@@ -72,7 +73,7 @@ export const markAllSubtasksCompleted = (task: TaskItemData) => {
 /**
  * Find the path to a specific task by task id
  */
-export const findTaskPath = (tasks: TaskItemData[], targetId: string, currentPath: string[] = []): string[] | null => {
+export const findTaskPath = (tasks: TaskData[], targetId: string, currentPath: string[] = []): string[] | null => {
   for (const task of tasks) {
     const newPath = [...currentPath, task.id]
     if (task.id === targetId) return newPath
@@ -87,7 +88,7 @@ export const findTaskPath = (tasks: TaskItemData[], targetId: string, currentPat
 /**
  * Get ALL leaf nodes of a task at a certain unified path (includes project ID)
  */
-export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: string[]): TaskItemData[] => {
+export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: string[]): TaskData[] => {
   if (isProjectList(fullPath)) return []
   
   // Make sure the project exists
@@ -95,8 +96,8 @@ export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: stri
   if (!project) return [] // Project not found
   
   // Get all leaf nodes from the tasks at this level (recursively)
-  const getLeafNodesAtLevel = (tasksAtLevel: TaskItemData[]): TaskItemData[] => {
-    let leaves: TaskItemData[] = []
+  const getLeafNodesAtLevel = (tasksAtLevel: TaskData[]): TaskData[] => {
+    let leaves: TaskData[] = []
     for (const task of tasksAtLevel) {
       if (!task.completed) {
         if (!task.subtasks || task.subtasks.length === 0 || task.subtasks.every((st) => st.completed)) {
@@ -114,7 +115,7 @@ export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: stri
   const taskPath = fullPath.slice(1)
   let currentPath = [...taskPath]
   while (true) {
-    let currentTasks: TaskItemData[]
+    let currentTasks: TaskData[]
     if (currentPath.length === 0) {
       currentTasks = project.tasks
     } else {
@@ -150,7 +151,7 @@ export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: stri
 /**
  * Find a task by unified path (includes projectId)
  */
-export const findTaskAtPath = (projects: ProjectData[], taskPath: string[]): TaskItemData | null => {
+export const findTaskAtPath = (projects: ProjectData[], taskPath: string[]): TaskData | null => {
   if (taskPath.length <= 1) return null // Project level or invalid
   
   const project = projects.find(p => p.id === taskPath[0])
@@ -170,7 +171,7 @@ export const findProjectAtPath = (projects: ProjectData[], taskPath: string[]): 
 /**
  * Update a task by unified path
  */
-export const updateTaskAtPath = (projects: ProjectData[], taskPath: string[], updateFn: (task: TaskItemData) => void): boolean => {
+export const updateTaskAtPath = (projects: ProjectData[], taskPath: string[], updateFn: (task: TaskData) => void): boolean => {
   if (taskPath.length <= 1) return false
   
   const project = projects.find(p => p.id === taskPath[0])
@@ -205,7 +206,7 @@ export const deleteAtPath = (projects: ProjectData[], taskPath: string[]): boole
 /**
  * Add a task to parent by unified path
  */
-export const addTaskToParent = (projects: ProjectData[], parentPath: string[], taskData: TaskItemData): TaskItemData | null => {
+export const addTaskToParent = (projects: ProjectData[], parentPath: string[], taskData: TaskData): TaskData | null => {
   if (parentPath.length === 0) return null
   
   const project = projects.find(p => p.id === parentPath[0])

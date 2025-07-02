@@ -1,9 +1,9 @@
 "use client"
-import type { TaskItemData } from "@/lib/types"
+import type { TaskData } from "@/lib/types"
 import { TaskItem } from "./task-item"
 
 interface TaskListViewProps {
-  tasks: TaskItemData[]
+  tasks: TaskData[]
   currentPath: string[] // Unified path including project and task hierarchy
 }
 

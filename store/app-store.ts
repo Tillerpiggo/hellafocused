@@ -1,6 +1,6 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
-import type { ProjectData, TaskItemData } from "@/lib/types"
+import type { ProjectData, TaskData } from "@/lib/types"
 import { initialProjectsData } from "@/lib/mock-data"
 import { produce } from "immer"
 import { triggerConfetti } from "@/lib/confetti"
@@ -87,6 +87,7 @@ export const useAppStore = create<AppState>()(
       produce((draft: AppState) => {
         updateTaskAtPath(draft.projects, taskPath, (task) => {
           task.completed = !task.completed
+          task.updateDate = new Date().toISOString()
           console.log(`📱 Task "${task.name}" completed state changed to: ${task.completed}`)
 
           // If completing a task, mark all subtasks as completed too and set completion date
@@ -164,10 +165,11 @@ export const useAppStore = create<AppState>()(
         console.log(`📱 Found project: "${project.name}"`)
 
         const newTaskId = uuidv4()
-        const newTask: TaskItemData = {
+        const newTask: TaskData = {
           id: newTaskId,
           name: subtaskName,
           completed: false,
+          updateDate: new Date().toISOString(),
           subtasks: [],
         }
 
@@ -202,6 +204,7 @@ export const useAppStore = create<AppState>()(
         if (project) {
           const oldName = project.name
           project.name = newName
+          project.updateDate = new Date().toISOString()
           console.log(`📱 Project name updated from "${oldName}" to "${newName}"`)
         } else {
           console.log(`📱 Project not found for ID: ${projectId}`)
@@ -224,6 +227,7 @@ export const useAppStore = create<AppState>()(
         updateTaskAtPath(draft.projects, taskPath, (task) => {
           const oldName = task.name
           task.name = newName
+          task.updateDate = new Date().toISOString()
           console.log(`📱 Task name updated from "${oldName}" to "${newName}"`)
         })
       }),
@@ -241,6 +245,7 @@ export const useAppStore = create<AppState>()(
     const newProject: ProjectData = {
       id: newProjectId,
       name: projectName,
+      updateDate: new Date().toISOString(),
       tasks: [],
     }
 
@@ -270,14 +275,14 @@ export const useAppStore = create<AppState>()(
 )
 
 // Helper to get current tasks to display based on path
-export const getCurrentTasksForView = (store: AppState): TaskItemData[] => {
+export const getCurrentTasksForView = (store: AppState): TaskData[] => {
   if (isProjectList(store.currentPath)) return []
   
   const project = findProjectAtPath(store.projects, store.currentPath)
   if (!project) return []
 
   // Get tasks at the current path level
-  let tasksToShow: TaskItemData[]
+  let tasksToShow: TaskData[]
   if (isProject(store.currentPath)) {
     tasksToShow = project.tasks
   } else {
@@ -309,13 +314,13 @@ export const getCurrentTasksForView = (store: AppState): TaskItemData[] => {
   }
 }
 
-export const getCurrentTaskChain = (store: AppState): TaskItemData[] => {
+export const getCurrentTaskChain = (store: AppState): TaskData[] => {
   if (isProjectList(store.currentPath) || isProject(store.currentPath)) return []
   
   const project = findProjectAtPath(store.projects, store.currentPath)
   if (!project) return []
 
-  const chain: TaskItemData[] = []
+  const chain: TaskData[] = []
   let currentTasks = project.tasks
   const taskPath = store.currentPath.slice(1) // Remove project ID
   for (const taskId of taskPath) {

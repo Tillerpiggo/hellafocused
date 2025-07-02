@@ -1,10 +1,10 @@
-import type { TaskItemData, ProjectData } from './types'
+import type { TaskData, ProjectData } from './types'
 
 // Clear type definitions
 export type SyncActionType = 'create' | 'update' | 'delete'
 
 // Simple sync data - can be project, task, or null for deletions
-export type SyncData = ProjectData | TaskItemData | null
+export type SyncData = ProjectData | TaskData | null
 
 export interface SyncAction {
   type: SyncActionType

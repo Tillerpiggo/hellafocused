@@ -1,7 +1,7 @@
 import { supabase, type DatabaseProject, type DatabaseTask } from './supabase'
 import { useSyncStore } from '@/store/sync-store'
 import { mergeManager } from './merge-manager'
-import type { ProjectData, TaskItemData } from './types'
+import type { ProjectData, TaskData } from './types'
 
 class SyncEngine {
   private syncInterval: NodeJS.Timeout | null = null
@@ -89,7 +89,7 @@ class SyncEngine {
           if (change.entityType === 'project') {
             await this.createProject(change.data as ProjectData)
           } else if (change.entityType === 'task') {
-            await this.createTask(change.data as TaskItemData, change.projectId!, change.parentId)
+            await this.createTask(change.data as TaskData, change.projectId!, change.parentId)
           }
           break
         case 'update':
@@ -97,7 +97,7 @@ class SyncEngine {
           if (change.entityType === 'project') {
             await this.updateProject(change.entityId, change.data as ProjectData)
           } else if (change.entityType === 'task') {
-            await this.updateTask(change.entityId, change.data as TaskItemData)
+            await this.updateTask(change.entityId, change.data as TaskData)
           }
           break
         case 'delete':
@@ -221,7 +221,7 @@ class SyncEngine {
       .from('projects')
       .update({
         name: project.name,
-        updated_at: new Date().toISOString(),
+        updated_at: project.updateDate || new Date().toISOString(),
       })
       .eq('id', projectId)
       .eq('user_id', userId)
@@ -252,7 +252,7 @@ class SyncEngine {
     console.log(`✅ Deleted project: ${projectId}`)
   }
 
-  private async createTask(task: TaskItemData, projectId: string, parentId?: string) {
+  private async createTask(task: TaskData, projectId: string, parentId?: string) {
     const userId = await this.getCurrentUserId()
     
     const { error } = await supabase.from('tasks').insert({
@@ -275,7 +275,7 @@ class SyncEngine {
     console.log(`✅ Created task: ${task.name}`)
   }
 
-  private async updateTask(taskId: string, task: TaskItemData) {
+  private async updateTask(taskId: string, task: TaskData) {
     const userId = await this.getCurrentUserId()
     
     const { error } = await supabase
@@ -284,7 +284,7 @@ class SyncEngine {
         name: task.name,
         completed: task.completed,
         completion_date: task.completionDate || null,
-        updated_at: new Date().toISOString(),
+        updated_at: task.updateDate || new Date().toISOString(),
       })
       .eq('id', taskId)
       .eq('user_id', userId)
@@ -326,12 +326,13 @@ class SyncEngine {
       return {
         id: cloudProject.id,
         name: cloudProject.name,
+        updateDate: cloudProject.updated_at || cloudProject.created_at,
         tasks: projectTasks,
       }
     })
   }
 
-  private convertTaskToLocal(cloudTask: DatabaseTask, allTasks: DatabaseTask[]): TaskItemData {
+  private convertTaskToLocal(cloudTask: DatabaseTask, allTasks: DatabaseTask[]): TaskData {
     // Find all subtasks of this task
     const subtasks = allTasks
       .filter(task => task.parent_id === cloudTask.id)
@@ -342,6 +343,7 @@ class SyncEngine {
       name: cloudTask.name,
       completed: cloudTask.completed,
       completionDate: cloudTask.completion_date || undefined,
+      updateDate: cloudTask.updated_at || cloudTask.created_at,
       subtasks,
     }
   }

@@ -1,7 +1,7 @@
 import { type DatabaseProject, type DatabaseTask } from './supabase'
 import { useAppStore } from '@/store/app-store'
 import { useSyncStore } from '@/store/sync-store'
-import type { ProjectData, TaskItemData } from './types'
+import type { ProjectData, TaskData } from './types'
 
 export class MergeManager {
   async mergeCloudWithLocal(cloudProjects: DatabaseProject[], cloudTasks: DatabaseTask[]) {
@@ -15,8 +15,8 @@ export class MergeManager {
     const cloudProjectMap = new Map(cloudProjects.map(p => [p.id, p]))
     
     // Build a flat map of all local tasks for efficient lookup
-    const localTaskMap = new Map<string, TaskItemData>()
-    const buildLocalTaskMap = (tasks: TaskItemData[]) => {
+    const localTaskMap = new Map<string, TaskData>()
+    const buildLocalTaskMap = (tasks: TaskData[]) => {
       tasks.forEach(task => {
         localTaskMap.set(task.id, task)
         if (task.subtasks) {
@@ -72,11 +72,12 @@ export class MergeManager {
     return {
       id: cloudProject.id,
       name: cloudProject.name,
+      updateDate: cloudProject.updated_at || cloudProject.created_at,
       tasks: projectTasks,
     }
   }
 
-  private convertTaskToLocal(cloudTask: DatabaseTask, allTasks: DatabaseTask[]): TaskItemData {
+  private convertTaskToLocal(cloudTask: DatabaseTask, allTasks: DatabaseTask[]): TaskData {
     // Find all subtasks of this task
     const subtasks = allTasks
       .filter(task => task.parent_id === cloudTask.id)
@@ -87,6 +88,7 @@ export class MergeManager {
       name: cloudTask.name,
       completed: cloudTask.completed,
       completionDate: cloudTask.completion_date || undefined,
+      updateDate: cloudTask.updated_at || cloudTask.created_at,
       subtasks,
     }
   }
@@ -97,10 +99,14 @@ export class MergeManager {
     cloudTasks: DatabaseTask[], 
     pendingChanges: any
   ): ProjectData {
-    // Field-level merge with remote as source of truth
+    // Field-level merge with remote as source of truth, using updateDate for last-write wins
+    const cloudUpdateDate = cloudProject.updated_at || cloudProject.created_at
+    const useCloudProject = !localProject.updateDate || cloudUpdateDate > localProject.updateDate
+    
     const merged: ProjectData = {
       id: cloudProject.id,
-      name: cloudProject.name,
+      name: useCloudProject ? cloudProject.name : localProject.name,
+      updateDate: useCloudProject ? cloudUpdateDate : localProject.updateDate,
       tasks: this.mergeProjectTasks(localProject, cloudProject, cloudTasks, pendingChanges)
     }
     
@@ -112,12 +118,12 @@ export class MergeManager {
     cloudProject: DatabaseProject,
     allCloudTasks: DatabaseTask[],
     pendingChanges: any
-  ): TaskItemData[] {
+  ): TaskData[] {
     const cloudTasks = allCloudTasks.filter(t => t.project_id === cloudProject.id && !t.parent_id)
     const localTaskMap = new Map(localProject.tasks.map(t => [t.id, t]))
     const cloudTaskMap = new Map(cloudTasks.map(t => [t.id, t]))
     
-    const mergedTasks: TaskItemData[] = []
+    const mergedTasks: TaskData[] = []
     
     // Process cloud tasks (source of truth)
     for (const cloudTask of cloudTasks) {
@@ -137,11 +143,11 @@ export class MergeManager {
   }
 
   private mergeTask(
-    localTask: TaskItemData | undefined,
+    localTask: TaskData | undefined,
     cloudTask: DatabaseTask,
     allCloudTasks: DatabaseTask[],
     pendingChanges: any
-  ): TaskItemData {
+  ): TaskData {
     const hasPendingChanges = Object.values(pendingChanges).some(
       (change: any) => change.entityId === cloudTask.id && change.entityType === 'task' && !change.synced
     )
@@ -159,27 +165,31 @@ export class MergeManager {
       }
     }
     
-    // Field-level merge with remote as source of truth
+    // Field-level merge with remote as source of truth, using updateDate for last-write wins
+    const cloudUpdateDate = cloudTask.updated_at || cloudTask.created_at
+    const useCloudTask = !localTask.updateDate || cloudUpdateDate > localTask.updateDate
+    
     return {
       id: cloudTask.id,
-      name: cloudTask.name,
-      completed: cloudTask.completed,
-      completionDate: cloudTask.completion_date || undefined,
+      name: useCloudTask ? cloudTask.name : localTask.name,
+      completed: useCloudTask ? cloudTask.completed : localTask.completed,
+      completionDate: useCloudTask ? (cloudTask.completion_date || undefined) : localTask.completionDate,
+      updateDate: useCloudTask ? cloudUpdateDate : localTask.updateDate,
       subtasks: this.mergeTaskSubtasks(localTask, cloudTask, allCloudTasks, pendingChanges)
     }
   }
 
   private mergeTaskSubtasks(
-    localTask: TaskItemData,
+    localTask: TaskData,
     cloudTask: DatabaseTask,
     allCloudTasks: DatabaseTask[],
     pendingChanges: any
-  ): TaskItemData[] {
+  ): TaskData[] {
     const cloudSubtasks = allCloudTasks.filter(t => t.parent_id === cloudTask.id)
     const localSubtaskMap = new Map((localTask.subtasks || []).map(t => [t.id, t]))
     const cloudSubtaskMap = new Map(cloudSubtasks.map(t => [t.id, t]))
     
-    const mergedSubtasks: TaskItemData[] = []
+    const mergedSubtasks: TaskData[] = []
     
     // Process cloud subtasks
     for (const cloudSubtask of cloudSubtasks) {

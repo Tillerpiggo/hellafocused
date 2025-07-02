@@ -1,5 +1,5 @@
 "use client"
-import type { TaskItemData } from "@/lib/types"
+import type { TaskData } from "@/lib/types"
 import type React from "react"
 
 import { useAppStore } from "@/store/app-store"
@@ -12,7 +12,7 @@ import { EditableTitle, type EditableTitleRef } from "@/components/editable-titl
 import { useState, useRef } from "react"
 
 interface TaskItemProps {
-  task: TaskItemData
+  task: TaskData
   currentPath: string[] // Unified path to the parent of this task
 }
 

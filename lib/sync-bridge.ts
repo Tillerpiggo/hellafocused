@@ -3,7 +3,7 @@ import { syncEngine } from './sync-engine'
 import { useAppStore } from '@/store/app-store'
 import { findTaskAtPath, findProjectAtPath } from '@/lib/task-utils'
 import type { SyncActionType, SyncData, SyncAction } from './sync-types'
-import { TaskItemData } from './types'
+import { TaskData } from './types'
 
 // Bridge function that intercepts mutations
 export const trackChange = (
@@ -80,7 +80,7 @@ export const trackTaskCreated = (parentPath: string[]) => {
   const { projects } = useAppStore.getState()
   
   // Find the newly created task (last one in the parent's task list)
-  let newTask: TaskItemData | undefined
+  let newTask: TaskData | undefined
   
   if (parentPath.length === 1) {
     // Task added to project root

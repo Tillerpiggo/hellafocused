@@ -1,8 +1,8 @@
 import { CheckSquare, Square, ChevronRight } from "lucide-react"
-import type { TaskItemData } from "@/lib/types"
+import type { TaskData } from "@/lib/types"
 
 interface TasksViewProps {
-  tasks: TaskItemData[]
+  tasks: TaskData[]
   onNavigateToTask: (taskId: string) => void
 }
 

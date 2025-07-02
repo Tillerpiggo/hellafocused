@@ -1,8 +1,8 @@
-import { TaskItemData } from "@/lib/types"
+import { TaskData } from "@/lib/types"
 
 interface BreadcrumbPathProps {
   projectName: string
-  taskChain: TaskItemData[]
+  taskChain: TaskData[]
 }
 
 export function BreadcrumbPath({ projectName, taskChain }: BreadcrumbPathProps) {

@@ -1,5 +1,5 @@
 import { create } from "zustand"
-import type { ProjectData, TaskItemData } from "@/lib/types"
+import type { ProjectData, TaskData } from "@/lib/types"
 import { produce } from "immer"
 import { triggerConfetti } from "@/lib/confetti"
 import { randomFrom } from "@/lib/utils"
@@ -13,8 +13,8 @@ import { useAppStore } from "./app-store"
 
 interface FocusState {
   // Focus-specific state
-  focusModeProjectLeaves: TaskItemData[]
-  currentFocusTask: TaskItemData | null
+  focusModeProjectLeaves: TaskData[]
+  currentFocusTask: TaskData | null
   focusStartPath: string[]
   showAddTasksView: boolean
   

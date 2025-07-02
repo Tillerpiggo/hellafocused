@@ -6,7 +6,7 @@ import { AddForm } from "@/components/ui/add-form"
 import { useAppStore } from "@/store/app-store"
 import { useFocusStore } from "@/store/focus-store"
 import { ArrowDown, ArrowLeft } from "lucide-react"
-import type { TaskItemData } from "@/lib/types"
+import type { TaskData } from "@/lib/types"
 import { ProjectsView } from "./projects-view"
 import { TasksView } from "./tasks-view"
 import { 
@@ -100,13 +100,13 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
   }, [isVisible])
 
   // Get tasks at the current path
-  const getTasksAtPath = (): TaskItemData[] => {
+  const getTasksAtPath = (): TaskData[] => {
     if (isProjectList(currentPath)) return []
 
     const currentProject = findProjectAtPath(projects, currentPath)
     if (!currentProject) return []
 
-    let tasks: TaskItemData[]
+    let tasks: TaskData[]
     if (isProject(currentPath)) {
       tasks = currentProject.tasks
     } else {
