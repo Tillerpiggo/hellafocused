@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { SyncStatus } from '@/components/sync-status'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
+import { syncEngine } from '@/lib/sync-engine'
 import type { User } from '@supabase/supabase-js'
 
 export function TopBar() {
@@ -14,16 +15,19 @@ export function TopBar() {
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
-      setUser(session?.user ?? null)
+      const { data: { user } } = await supabase.auth.getUser()
+      setUser(user)
+      syncEngine.setCurrentUser(user?.id || null)
     }
 
     getInitialSession()
 
-    // Listen for auth changes
+    // Listen for auth changes - this provides session data, so we keep using session here
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setUser(session?.user ?? null)
+        const user = session?.user ?? null
+        setUser(user)
+        syncEngine.setCurrentUser(user?.id || null)
       }
     )
 
@@ -32,17 +36,18 @@ export function TopBar() {
 
   const handleSignOut = async () => {
     try {
+      // Clear local state before signing out
+      syncEngine.clearAllLocalState()
+      
       await supabase.auth.signOut()
     } catch (error) {
       console.error('Error signing out:', error)
     }
   }
 
-
-
   const isAnonymousUser = user && user.is_anonymous
 
-    return (
+  return (
     <div className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-14 items-center justify-between px-6">
         {/* Left side - Logo and Sync Status */}
@@ -71,13 +76,13 @@ export function TopBar() {
           ) : (
             // Not authenticated or anonymous user
             <>
-                               <Button
-                   variant="ghost"
-                   size="sm"
-                   onClick={() => router.push('/auth/log-in')}
-                   className="text-muted-foreground hover:text-foreground"
-                 >
-                   Log in
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.push('/auth/log-in')}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                Log in
               </Button>
               <Button
                 size="sm"

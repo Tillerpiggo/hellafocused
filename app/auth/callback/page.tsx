@@ -10,7 +10,8 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        const { data, error } = await supabase.auth.getSession()
+        // Get the current user to see if authentication was successful
+        const { data: { user }, error } = await supabase.auth.getUser()
         
         if (error) {
           console.error('Auth callback error:', error)
@@ -18,16 +19,59 @@ export default function AuthCallback() {
           return
         }
 
-        if (data.session) {
+        if (user) {
+          // Check if this is a new authenticated user upgrading from anonymous
+          await handleAnonymousUpgrade(user.id)
+          
           // Successfully authenticated, redirect to home
           router.push('/')
         } else {
-          // No session, redirect to home
+          // No user, redirect to home
           router.push('/')
         }
       } catch (error) {
         console.error('Unexpected error during auth callback:', error)
         router.push('/')
+      }
+    }
+
+    const handleAnonymousUpgrade = async (newUserId: string) => {
+      try {
+        // Only attempt migration for sign-up flows, not login flows
+        const authFlowType = sessionStorage.getItem('auth-flow-type')
+        
+        if (authFlowType !== 'signup') {
+          // This is a login flow, clear any flags and skip migration
+          sessionStorage.removeItem('auth-flow-type')
+          sessionStorage.removeItem('previous-anonymous-user-id')
+          return
+        }
+        
+        // Check if there was a previous anonymous session stored (only happens during account creation)
+        const previousAnonymousUserId = sessionStorage.getItem('previous-anonymous-user-id')
+        
+        if (previousAnonymousUserId && previousAnonymousUserId !== newUserId) {
+          // Call the database function to migrate data
+          const { error } = await supabase.rpc('migrate_anonymous_data_to_user', {
+            authenticated_user_id: newUserId,
+            anonymous_user_id: previousAnonymousUserId
+          })
+          
+          if (error) {
+            console.error('Failed to migrate anonymous data:', error)
+          } else {
+            console.log('✅ Successfully migrated anonymous data to new account')
+          }
+        }
+        
+        // Clean up all session flags after processing
+        sessionStorage.removeItem('auth-flow-type')
+        sessionStorage.removeItem('previous-anonymous-user-id')
+      } catch (error) {
+        console.error('Error during anonymous data migration:', error)
+        // Clean up flags even on error
+        sessionStorage.removeItem('auth-flow-type')
+        sessionStorage.removeItem('previous-anonymous-user-id')
       }
     }
 

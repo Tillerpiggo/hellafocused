@@ -136,15 +136,6 @@ export default function ForgotPasswordPage() {
             </Button>
           </form>
 
-          {/* Back to Sign In */}
-          <div className="text-center">
-                          <Link
-                href="/auth/log-in"
-                className="text-sm text-muted-foreground hover:text-foreground underline"
-              >
-                Back to Log In
-            </Link>
-          </div>
         </div>
       </div>
 

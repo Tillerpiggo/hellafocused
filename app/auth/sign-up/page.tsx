@@ -31,6 +31,15 @@ export default function SignUpPage() {
     }
 
     try {
+      // Mark this as a sign-up flow for potential anonymous migration
+      sessionStorage.setItem('auth-flow-type', 'signup')
+      
+      // Store current anonymous user ID if one exists (for potential migration)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.is_anonymous) {
+        sessionStorage.setItem('previous-anonymous-user-id', user.id)
+      }
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -54,10 +63,22 @@ export default function SignUpPage() {
     setError("")
 
     try {
+      // Mark this as a sign-up flow for potential anonymous migration
+      sessionStorage.setItem('auth-flow-type', 'signup')
+      
+      // Store current anonymous user ID if one exists (for potential migration)
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.is_anonymous) {
+        sessionStorage.setItem('previous-anonymous-user-id', user.id)
+      }
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            prompt: 'select_account'
+          }
         },
       })
 

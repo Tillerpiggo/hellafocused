@@ -42,6 +42,7 @@ interface AppState {
   updateProjectName: (projectId: string, newName: string) => void
   updateTaskName: (taskPath: string[], newName: string) => void
   addProject: (projectName: string) => void
+  clearLocalState: () => void
 }
 
 
@@ -211,6 +212,12 @@ export const useAppStore = create<AppState>()(
   
     trackProjectCreated(newProject.id)
   },
+
+  clearLocalState: () => set({
+    projects: initialProjectsData,
+    currentPath: [],
+    showCompleted: false,
+  }),
     }),
     {
       name: 'app-storage',

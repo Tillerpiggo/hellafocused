@@ -10,6 +10,7 @@ export interface SyncAction {
   type: SyncActionType
   entityType: 'project' | 'task'
   entityId: string // The ID of the entity being synced (project ID or task ID)
+  userId: string // The user ID who created this change
   projectId?: string // For tasks, which project they belong to
   parentId?: string // For tasks, which parent task (if any)
   timestamp: number

@@ -17,9 +17,9 @@ export default function ResetPassword() {
   useEffect(() => {
     // Check if we have a valid reset session
     const checkResetSession = async () => {
-      const { data, error } = await supabase.auth.getSession()
+      const { data: { user }, error } = await supabase.auth.getUser()
       
-      if (error || !data.session) {
+      if (error || !user) {
         router.push('/')
         return
       }

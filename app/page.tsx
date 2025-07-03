@@ -10,9 +10,10 @@ import { PageNavigation } from "@/components/page/page-navigation"
 import { BreadcrumbPath } from "@/components/page/breadcrumb-path"
 import { TopBar } from "@/components/top-bar"
 import { useAppStore, getCurrentTasksForView, getCurrentTaskChain } from "@/store/app-store"
+import { useSyncStore } from "@/store/sync-store"
 import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
-import { Target } from "lucide-react"
+import { Target, Loader2 } from "lucide-react"
 import { AddTaskForm } from "@/components/task/add-task-form"
 import { type EditableTitleRef } from "@/components/editable-title"
 import { useRef } from "react"
@@ -32,6 +33,8 @@ export default function HomePage() {
     showCompleted,
   } = store
 
+  const { syncLoading, lastSyncedAt } = useSyncStore()
+
   const uiStore = useUIStore()
   const {
     showTaskCompletionDialog,
@@ -49,6 +52,9 @@ export default function HomePage() {
   } = uiStore
 
   const titleRef = useRef<EditableTitleRef>(null)
+
+  // Show loading until sync has been initialized at least once
+  const shouldShowLoading = syncLoading || lastSyncedAt === 0
 
   const tasksToDisplay = getCurrentTasksForView(store)
   const currentProject = findProjectAtPath(projects, currentPath)
@@ -235,7 +241,19 @@ export default function HomePage() {
     <div className="flex flex-col min-h-screen bg-background">
       {/* Top Bar */}
       <TopBar />
-      <main className="flex-1 container max-w-4xl mx-auto py-12 px-6">{pageContent()}</main>
+      
+      {/* Loading state */}
+      {shouldShowLoading ? (
+        <main className="flex-1 flex items-center justify-center">
+          <div className="flex flex-col items-center space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div className="text-sm text-muted-foreground">Loading...</div>
+          </div>
+        </main>
+      ) : (
+        <main className="flex-1 container max-w-4xl mx-auto py-12 px-6">{pageContent()}</main>
+      )}
+      
       <TaskCompletionDialog
         isOpen={showTaskCompletionDialog}
         onClose={cancelTaskCompletion}

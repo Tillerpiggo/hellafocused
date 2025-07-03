@@ -24,6 +24,9 @@ export default function LogInPage() {
     setError("")
 
     try {
+      // Mark this as a login flow (not account creation)
+      sessionStorage.setItem('auth-flow-type', 'login')
+      
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -44,10 +47,16 @@ export default function LogInPage() {
     setError("")
 
     try {
+      // Mark this as a login flow (not account creation)
+      sessionStorage.setItem('auth-flow-type', 'login')
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            prompt: 'select_account'
+          }
         },
       })
 

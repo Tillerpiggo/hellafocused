@@ -5,8 +5,6 @@ import type { ProjectData, TaskData } from './types'
 
 export class MergeManager {
   async mergeCloudWithLocal(cloudProjects: DatabaseProject[], cloudTasks: DatabaseTask[]) {
-    console.log('🔧 Performing sophisticated merge with last-write wins strategy...')
-    
     const localProjects = useAppStore.getState().projects
     const { pendingChanges } = useSyncStore.getState()
     

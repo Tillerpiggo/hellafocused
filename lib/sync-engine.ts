@@ -1,4 +1,5 @@
 import { supabase, type DatabaseProject, type DatabaseTask } from './supabase'
+import { useAppStore } from '@/store/app-store'
 import { useSyncStore } from '@/store/sync-store'
 import { mergeManager } from './merge-manager'
 import type { ProjectData, TaskData } from './types'
@@ -7,85 +8,87 @@ class SyncEngine {
   private syncInterval: NodeJS.Timeout | null = null
 
   async init() {
-    console.log(`🚀 SyncEngine.init() called`)
+    // Check if already initialized to prevent double initialization
+    if (useSyncStore.getState().isInitialized) {
+      return
+    }
+
     try {
-      // 0. Ensure we have an authenticated user (anonymous or real)
-      console.log(`🚀 Step 0: Ensuring authentication...`)
+      useSyncStore.getState().setSyncLoading(true)
+    
       await this.ensureAuthenticated()
       
-      // 1. Load persisted local data (happens automatically via zustand persist)
-      console.log(`🚀 Step 1: Local data loaded automatically`)
+      // Set current user in sync store
+      const { data: { user } } = await supabase.auth.getUser()
+      useSyncStore.getState().setCurrentUserId(user?.id || null)
       
-      // 2. Sync any pending changes from last session
-      console.log(`🚀 Step 2: Syncing pending changes...`)
       await this.syncPendingChanges()
-      
-      // 3. Fetch latest data from Supabase and merge
-      console.log(`🚀 Step 3: Merging with cloud...`)
       await this.mergeWithCloud()
-      
-      // 4. Start periodic sync
-      console.log(`🚀 Step 4: Starting periodic sync...`)
+
       this.startPeriodicSync()
-      
-      // 5. Setup real-time sync
-      console.log(`🚀 Step 5: Setting up real-time sync...`)
       this.setupRealtimeSync()
       
-      console.log('✅ Sync initialized successfully')
+      // Mark as initialized
+      useSyncStore.getState().setInitialized(true)
+      
     } catch (error) {
       console.error('❌ Sync initialization error:', error)
+    } finally {
+      // Clear loading state when done
+      useSyncStore.getState().setSyncLoading(false)
     }
   }
 
   private async ensureAuthenticated() {
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { user } } = await supabase.auth.getUser()
     
-    if (!session) {
-      console.log('🔐 No session found, signing in anonymously...')
+    if (!user) {
       const { data, error } = await supabase.auth.signInAnonymously()
       
       if (error) {
         throw new Error(`Failed to sign in anonymously: ${error.message}`)
       }
       
-      console.log(`🔐 Anonymous auth successful, user ID: ${data.user?.id}`)
+      if (data.user?.id) {
+        // Store the anonymous user ID for potential future migration
+        sessionStorage.setItem('previous-anonymous-user-id', data.user.id)
+      }
     } else {
-      console.log(`🔐 Existing session found, user ID: ${session.user.id}`)
+      // If this is a real (non-anonymous) user, we can clear any stored anonymous ID
+      // since they're already authenticated and any migration would have happened
+      if (!user.is_anonymous) {
+        const storedAnonymousId = sessionStorage.getItem('previous-anonymous-user-id')
+        if (storedAnonymousId && storedAnonymousId !== user.id) {
+          sessionStorage.removeItem('previous-anonymous-user-id')
+        }
+      }
     }
   }
 
   private async getCurrentUserId(): Promise<string> {
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { user } } = await supabase.auth.getUser()
     
-    if (!session?.user?.id) {
+    if (!user?.id) {
       throw new Error('No authenticated user found')
     }
     
-    return session.user.id
+    return user.id
   }
 
   async syncSingleChange(id: string): Promise<boolean> {
-    console.log(`🔧 SyncEngine.syncSingleChange called for ID: ${id}`)
     
     if (!navigator.onLine) {
-      console.log(`🔧 Browser is offline, skipping sync for ${id}`)
       return false
     }
 
-    console.log(`🔧 Getting pending change for ID: ${id}`)
     const change = useSyncStore.getState().pendingChanges[id]
     if (!change || change.synced) {
-      console.log(`🔧 Change ${id} not found or already synced`)
       return true
     }
-
-    console.log(`🔧 Processing change:`, change)
 
     try {
       switch (change.type) {
         case 'create':
-          console.log(`🔧 Processing CREATE for ${change.entityType}`)
           if (change.entityType === 'project') {
             await this.createProject(change.data as ProjectData)
           } else if (change.entityType === 'task') {
@@ -93,7 +96,6 @@ class SyncEngine {
           }
           break
         case 'update':
-          console.log(`🔧 Processing UPDATE for ${change.entityType}`)
           if (change.entityType === 'project') {
             await this.updateProject(change.entityId, change.data as ProjectData)
           } else if (change.entityType === 'task') {
@@ -101,7 +103,6 @@ class SyncEngine {
           }
           break
         case 'delete':
-          console.log(`🔧 Processing DELETE for ${change.entityType}`)
           if (change.entityType === 'project') {
             await this.deleteProject(change.entityId)
           } else if (change.entityType === 'task') {
@@ -110,7 +111,6 @@ class SyncEngine {
           break
       }
 
-      console.log(`🔧 Successfully processed change ${id}, marking as synced`)
       // Mark as synced
       useSyncStore.getState().markSynced(id)
       return true
@@ -123,12 +123,17 @@ class SyncEngine {
   }
 
   async syncPendingChanges() {
-    const { pendingChanges } = useSyncStore.getState()
+    const { pendingChanges, currentUserId } = useSyncStore.getState()
+    
+    // No user logged in, don't sync anything
+    if (!currentUserId) {
+      return
+    }
+    
+    // Filter for current user's unsynced changes
     const pending = Object.entries(pendingChanges)
-      .filter(([, change]) => !change.synced)
+      .filter(([, change]) => !change.synced && change.userId === currentUserId)
       .sort((a, b) => a[1].timestamp - b[1].timestamp) // Sync in order
-
-    console.log(`📤 Syncing ${pending.length} pending changes`)
 
     for (const [id] of pending) {
       await this.syncSingleChange(id)
@@ -141,8 +146,6 @@ class SyncEngine {
 
   async mergeWithCloud() {
     try {
-      console.log('🔄 Merging with cloud data using sophisticated strategy...')
-      
       const userId = await this.getCurrentUserId()
       
       // Fetch projects and tasks from Supabase
@@ -177,10 +180,6 @@ class SyncEngine {
     }
   }
 
-
-
-
-
   private startPeriodicSync() {
     // Sync every 30 seconds
     this.syncInterval = setInterval(async () => {
@@ -192,7 +191,6 @@ class SyncEngine {
 
   private setupRealtimeSync() {
     // TODO: Implement real-time updates from other devices
-    console.log('📡 Real-time sync would be set up here')
   }
 
   // Database operations
@@ -213,8 +211,6 @@ class SyncEngine {
     if (error) {
       throw new Error(`Failed to create project: ${error.message}`)
     }
-
-    console.log(`✅ Created project: ${project.name}`)
   }
 
   private async updateProject(projectId: string, project: ProjectData) {
@@ -232,8 +228,6 @@ class SyncEngine {
     if (error) {
       throw new Error(`Failed to update project: ${error.message}`)
     }
-
-    console.log(`✅ Updated project: ${project.name}`)
   }
 
   private async deleteProject(projectId: string) {
@@ -251,8 +245,6 @@ class SyncEngine {
     if (error) {
       throw new Error(`Failed to delete project: ${error.message}`)
     }
-
-    console.log(`✅ Deleted project: ${projectId}`)
   }
 
   private async createTask(task: TaskData, projectId: string, parentId?: string) {
@@ -277,8 +269,6 @@ class SyncEngine {
     if (error) {
       throw new Error(`Failed to create task: ${error.message}`)
     }
-
-    console.log(`✅ Created task: ${task.name}`)
   }
 
   private async updateTask(taskId: string, task: TaskData) {
@@ -298,8 +288,6 @@ class SyncEngine {
     if (error) {
       throw new Error(`Failed to update task: ${error.message}`)
     }
-
-    console.log(`✅ Updated task: ${task.name}`)
   }
 
   private async deleteTask(taskId: string) {
@@ -317,16 +305,39 @@ class SyncEngine {
     if (error) {
       throw new Error(`Failed to delete task: ${error.message}`)
     }
-
-    console.log(`✅ Deleted task: ${taskId}`)
   }
-
-
 
   cleanup() {
     if (this.syncInterval) {
       clearInterval(this.syncInterval)
       this.syncInterval = null
+    }
+  }
+
+  /**
+   * Sets current user ID and handles auth state changes
+   */
+  setCurrentUser(userId: string | null) {
+    useSyncStore.getState().setCurrentUserId(userId)
+  }
+
+  /**
+   * Clears all local state including app data but preserves pending changes.
+   * Should be called when logging out to ensure clean state for next user.
+   */
+  clearAllLocalState() {
+    try {
+      // Clear app store data
+      const { useAppStore } = require('@/store/app-store')
+      useAppStore.getState().clearLocalState()
+      
+      // Clear sync store data but preserve pending changes
+      useSyncStore.getState().clearSyncState()
+      
+      // Stop any ongoing sync operations
+      this.cleanup()
+    } catch (error) {
+      console.error('❌ Error clearing local state:', error)
     }
   }
 }
