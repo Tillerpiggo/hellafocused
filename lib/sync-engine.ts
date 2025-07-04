@@ -3,9 +3,12 @@ import { useAppStore } from '@/store/app-store'
 import { useSyncStore } from '@/store/sync-store'
 import { mergeManager } from './merge-manager'
 import type { ProjectData, TaskData } from './types'
+import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
 
 class SyncEngine {
   private syncInterval: NodeJS.Timeout | null = null
+  private realtimeSubscriptions: any[] = []
+  private instanceId: string = `instance-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
   async init() {
     // Check if already initialized to prevent double initialization
@@ -113,6 +116,12 @@ class SyncEngine {
 
       // Mark as synced
       useSyncStore.getState().markSynced(id)
+      
+      // Merge with cloud after successful sync to get any other changes
+      this.mergeWithCloud().catch(error => {
+        console.error('❌ Failed to merge after sync:', error)
+      })
+      
       return true
     } catch (error) {
       console.error('Sync error for change', id, ':', error)
@@ -183,14 +192,79 @@ class SyncEngine {
   private startPeriodicSync() {
     // Sync every 30 seconds
     this.syncInterval = setInterval(async () => {
+      console.log('🔄 Periodic sync')
       if (navigator.onLine) {
         await this.syncPendingChanges()
+        
+        await this.mergeWithCloud()
+        console.log('🔄 Periodic sync done')
       }
     }, 30000)
   }
 
   private setupRealtimeSync() {
-    // TODO: Implement real-time updates from other devices
+    this.getCurrentUserId().then(userId => {
+      // Subscribe to project changes
+      const projectsSubscription = supabase
+        .channel('projects-changes')
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'projects',
+            filter: `user_id=eq.${userId}`
+          }, 
+          (payload: RealtimePostgresChangesPayload<DatabaseProject>) => {
+            // Skip changes from the same tab instance to avoid echo
+            const newInstanceId = payload.new && 'device_id' in payload.new ? payload.new.device_id : null
+            const oldInstanceId = payload.old && 'device_id' in payload.old ? payload.old.device_id : null
+            
+            if (newInstanceId === this.instanceId || oldInstanceId === this.instanceId) {
+              return
+            }
+            
+            console.log('📥 Received project change from another tab/device:', payload.eventType, payload.new || payload.old)
+            this.mergeWithCloud().catch(error => {
+              console.error('❌ Failed to merge project changes:', error)
+            })
+          }
+        )
+        .subscribe()
+
+      // Subscribe to task changes
+      const tasksSubscription = supabase
+        .channel('tasks-changes')
+        .on('postgres_changes', 
+          { 
+            event: '*', 
+            schema: 'public', 
+            table: 'tasks',
+            filter: `user_id=eq.${userId}`
+          }, 
+          (payload: RealtimePostgresChangesPayload<DatabaseTask>) => {
+            // Skip changes from the same tab instance to avoid echo
+            const newInstanceId = payload.new && 'device_id' in payload.new ? payload.new.device_id : null
+            const oldInstanceId = payload.old && 'device_id' in payload.old ? payload.old.device_id : null
+            
+            if (newInstanceId === this.instanceId || oldInstanceId === this.instanceId) {
+              return
+            }
+            
+            console.log('📥 Received task change from another tab/device:', payload.eventType, payload.new || payload.old)
+            this.mergeWithCloud().catch(error => {
+              console.error('❌ Failed to merge task changes:', error)
+            })
+          }
+        )
+        .subscribe()
+
+      // Store subscriptions for cleanup
+      this.realtimeSubscriptions = [projectsSubscription, tasksSubscription]
+      
+      console.log('🔄 Real-time sync subscriptions established for instance:', this.instanceId)
+    }).catch(error => {
+      console.error('❌ Failed to setup real-time sync:', error)
+    })
   }
 
   // Database operations
@@ -202,7 +276,7 @@ class SyncEngine {
       id: project.id,
       name: project.name,
       user_id: userId,
-      device_id: useSyncStore.getState().deviceId,
+      device_id: this.instanceId,
       is_deleted: false,
       created_at: now,
       updated_at: now,
@@ -260,7 +334,7 @@ class SyncEngine {
       completion_date: task.completionDate || null,
       position: 0, // TODO: Calculate proper position
       user_id: userId,
-      device_id: useSyncStore.getState().deviceId,
+      device_id: this.instanceId,
       is_deleted: false,
       created_at: now,
       updated_at: now,
@@ -307,18 +381,48 @@ class SyncEngine {
     }
   }
 
+
+
   cleanup() {
     if (this.syncInterval) {
       clearInterval(this.syncInterval)
       this.syncInterval = null
     }
+
+    console.log('cleanup real-time subscriptions', this.realtimeSubscriptions)
+    
+    // Clean up real-time subscriptions
+    this.realtimeSubscriptions.forEach(subscription => {
+      if (subscription && subscription.unsubscribe) {
+        subscription.unsubscribe()
+      }
+    })
+    this.realtimeSubscriptions = []
   }
 
   /**
    * Sets current user ID and handles auth state changes
    */
   setCurrentUser(userId: string | null) {
-    useSyncStore.getState().setCurrentUserId(userId)
+    const currentUserId = useSyncStore.getState().currentUserId
+    
+    // If user changed, cleanup old subscriptions and setup new ones
+    if (currentUserId !== userId) {
+      useSyncStore.getState().setCurrentUserId(userId)
+      
+      // Clean up existing subscriptions
+      this.realtimeSubscriptions.forEach(subscription => {
+        if (subscription && subscription.unsubscribe) {
+          subscription.unsubscribe()
+        }
+      })
+      this.realtimeSubscriptions = []
+      
+      // Setup new subscriptions if user is logged in
+      if (userId) {
+        this.setupRealtimeSync()
+      }
+    }
   }
 
   /**
