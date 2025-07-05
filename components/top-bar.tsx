@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { SyncStatus } from '@/components/sync-status'
+import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
 import { syncEngine } from '@/lib/sync-engine'
@@ -17,7 +18,10 @@ export function TopBar() {
     const getInitialSession = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       setUser(user)
-      syncEngine.setCurrentUser(user?.id || null)
+      // Dispatch sync engine update outside of callback
+      setTimeout(() => {
+        syncEngine.setCurrentUser(user?.id || null)
+      }, 0)
     }
 
     getInitialSession()
@@ -27,7 +31,11 @@ export function TopBar() {
       (event, session) => {
         const user = session?.user ?? null
         setUser(user)
-        syncEngine.setCurrentUser(user?.id || null)
+        
+        // Dispatch sync engine update outside of callback to avoid deadlocks
+        setTimeout(() => {
+          syncEngine.setCurrentUser(user?.id || null)
+        }, 0)
       }
     )
 
@@ -56,8 +64,9 @@ export function TopBar() {
           <SyncStatus />
         </div>
 
-        {/* Right side - Authentication Buttons */}
+        {/* Right side - Theme Toggle and Authentication Buttons */}
         <div className="flex items-center space-x-3">
+          {/* <ThemeToggle /> */}
           {user && !isAnonymousUser ? (
             // Authenticated user
             <div className="flex items-center space-x-3">

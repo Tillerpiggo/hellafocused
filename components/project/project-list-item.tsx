@@ -13,7 +13,7 @@ export function ProjectListItem({ project }: ProjectListItemProps) {
 
   return (
     <Card
-      className="cursor-pointer hover:shadow-md transition-all duration-300 hover:border-primary/30 border-border/50 rounded-2xl group bg-card"
+      className="cursor-pointer shadow-none hover:shadow-md transition-all duration-300 hover:border-primary/30 border-border/50 rounded-2xl group bg-card"
       onClick={() => selectProject(project.id)}
     >
       <CardHeader className="p-6">

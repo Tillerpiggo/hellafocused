@@ -5,7 +5,7 @@ import type React from "react"
 import { useAppStore } from "@/store/app-store"
 import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
-import { CheckSquare, Square, ChevronRight } from "lucide-react"
+import { CheckCircle, Circle, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TaskContextMenu } from "./task-context-menu"
 import { EditableTitle, type EditableTitleRef } from "@/components/editable-title"
@@ -63,9 +63,9 @@ export function TaskItem({ task, currentPath }: TaskItemProps) {
           className="h-8 w-8 flex-shrink-0 rounded-full"
         >
           {task.completed ? (
-            <CheckSquare className="h-5 w-5 text-primary" />
+            <CheckCircle className="h-5 w-5 text-primary" />
           ) : (
-            <Square className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            <Circle className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
           )}
         </Button>
         {isEditing ? (

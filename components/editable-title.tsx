@@ -102,7 +102,7 @@ export const EditableTitle = forwardRef<EditableTitleRef, EditableTitleProps>(
         onFocus={handleFocus}
         onBlur={handleSubmit}
         className={cn(
-          "border-none bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none cursor-pointer resize-none min-h-0 overflow-hidden",
+          "border-none bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none cursor-pointer resize-none min-h-0 overflow-hidden rounded-none",
           !isEditing && "cursor-pointer",
           isCompleted && "line-through text-muted-foreground opacity-70",
           className,

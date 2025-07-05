@@ -97,7 +97,7 @@ export function AddForm({ placeholder, onSubmit, inputId }: AddFormProps) {
                 setIsFocused(false)
               }
             }}
-            className="w-full resize-none border-none bg-transparent py-1 px-0 text-sm outline-none ring-0 shadow-none placeholder:text-muted-foreground"
+            className="w-full resize-none border-none bg-transparent py-1 px-0 text-sm outline-none ring-0 shadow-none placeholder:text-muted-foreground rounded-none"
             style={{ 
               minHeight: '20px',
               lineHeight: '1.4',

@@ -18,6 +18,7 @@ class SyncEngine {
     }
 
     try {
+      console.log("setting sync loading")
       useSyncStore.getState().setSyncLoading(true)
     
       await this.ensureAuthenticated()
@@ -26,11 +27,13 @@ class SyncEngine {
       const { data: { user } } = await supabase.auth.getUser()
       useSyncStore.getState().setCurrentUserId(user?.id || null)
       
+      console.log("syncing pending changes")
       await this.syncPendingChanges()
       await this.mergeWithCloud()
 
       this.startPeriodicSync()
       this.setupRealtimeSync()
+      console.log("sync engine initialized")
       
       // Mark as initialized
       useSyncStore.getState().setInitialized(true)
@@ -44,8 +47,8 @@ class SyncEngine {
   }
 
   private async ensureAuthenticated() {
+    console.log("ensuring authenticated")
     const { data: { user } } = await supabase.auth.getUser()
-    
     if (!user) {
       // Don't auto-sign in anonymously on auth pages
       if (typeof window !== 'undefined' && window.location.pathname.startsWith('/auth/')) {
@@ -53,7 +56,9 @@ class SyncEngine {
         return
       }
       
+      console.log("signing in anonymously")
       const { data, error } = await supabase.auth.signInAnonymously()
+      console.log("signed in anonymously", data, error)
       
       if (error) {
         throw new Error(`Failed to sign in anonymously: ${error.message}`)
