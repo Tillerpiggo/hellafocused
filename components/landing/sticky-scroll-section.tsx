@@ -505,15 +505,15 @@ export function StickyScrollSection() {
       {/* How It Works Section - Desktop Sticky, Mobile Traditional */}
       <section id="how-it-works-section" className="py-20 bg-muted/20">
         <div className="container max-w-screen-xl mx-auto px-8 sm:px-12 lg:px-16">
-          {/* Section Header - Only visible on mobile */}
-          <div className="lg:hidden text-center mb-16">
+                     {/* Section Header - Only visible on mobile */}
+           <div className="text-center mb-16">
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light text-foreground mb-4">
-              3 steps to start doing things
+              How it works
             </h2>
           </div>
 
-          {/* Desktop Version - Sticky */}
-          <div className="hidden lg:block" style={{ minHeight: "200vh" }}>
+                     {/* Desktop Version - Sticky */}
+           <div className="hidden" style={{ minHeight: "200vh" }}>
             <div className="sticky top-20">
               {/* Section Header - now part of the sticky element */}
               <div className="text-center mb-16">
@@ -544,7 +544,7 @@ export function StickyScrollSection() {
                           activeStep === 1 ? "text-2xl" : "text-xl"
                         }`}
                       >
-                        Write down your goals
+                        Add a task
                       </h3>
                     </div>
                   </button>
@@ -569,7 +569,7 @@ export function StickyScrollSection() {
                           activeStep === 2 ? "text-2xl" : "text-xl"
                         }`}
                       >
-                        Break them into a bunch of subtasks
+                        Break it down
                       </h3>
                     </div>
                   </button>
@@ -594,7 +594,7 @@ export function StickyScrollSection() {
                           activeStep === 3 ? "text-2xl" : "text-xl"
                         }`}
                       >
-                        Click 'focus' and do the task that pops up
+                        Click 'focus' and get it done
                       </h3>
                     </div>
                   </button>
@@ -608,8 +608,8 @@ export function StickyScrollSection() {
             </div>
           </div>
 
-          {/* Mobile Version - Traditional with animations */}
-          <div className="lg:hidden space-y-16">
+                     {/* Mobile Version - Traditional with animations */}
+           <div className="space-y-16">
             {/* Step 1 */}
             <div className="space-y-6">
               <div className="flex items-center gap-6">
@@ -617,7 +617,7 @@ export function StickyScrollSection() {
                   1
                 </div>
                 <div className="flex items-center">
-                  <h3 className="text-2xl font-medium text-foreground">Write down your goals</h3>
+                  <h3 className="text-2xl font-medium text-foreground">Add a task</h3>
                 </div>
               </div>
               <div className="bg-background rounded-2xl p-6 border border-border/50" style={{ minHeight: "400px" }}>
@@ -659,7 +659,7 @@ export function StickyScrollSection() {
                   2
                 </div>
                 <div className="flex items-center">
-                  <h3 className="text-2xl font-medium text-foreground">Break them into a bunch of subtasks</h3>
+                  <h3 className="text-2xl font-medium text-foreground">Break it down</h3>
                 </div>
               </div>
               <div className="bg-background rounded-2xl p-6 border border-border/50" style={{ minHeight: "400px" }}>
@@ -914,7 +914,7 @@ export function StickyScrollSection() {
                   3
                 </div>
                 <div className="flex items-center">
-                  <h3 className="text-2xl font-medium text-foreground">Click 'focus' and do the task that pops up</h3>
+                  <h3 className="text-2xl font-medium text-foreground">Click 'focus' and get it done</h3>
                 </div>
               </div>
               <div
