@@ -60,12 +60,7 @@ export function TopBar() {
       <div className="flex h-14 items-center justify-between px-6">
         {/* Left side - Logo and Sync Status */}
         <div className="flex items-center space-x-4">
-          <button 
-            onClick={() => router.push('/?from=app')}
-            className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-          >
-            hellafocused
-          </button>
+          <div className="text-sm text-muted-foreground">hellafocused</div>
           <SyncStatus />
         </div>
 
