@@ -80,7 +80,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <LandingNavigation hasSession={hasSession} />
+      <LandingNavigation hasSession={hasSession} user={user} />
       <HeroSection hasSession={hasSession} />
       <VideoDemoSection />
       <StickyScrollSection />

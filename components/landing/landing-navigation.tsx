@@ -1,11 +1,14 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { ProfileDropdown } from "@/components/ui/profile-dropdown"
+import type { User } from "@supabase/supabase-js"
 
 interface LandingNavigationProps {
   hasSession?: boolean | null
+  user?: User | null
 }
 
-export function LandingNavigation({ hasSession }: LandingNavigationProps) {
+export function LandingNavigation({ hasSession, user }: LandingNavigationProps) {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background">
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-6 sm:px-8">
@@ -19,18 +22,20 @@ export function LandingNavigation({ hasSession }: LandingNavigationProps) {
           <Link href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Discord
           </Link>
-          <Link href="/app">
-            <Button
-              variant={hasSession ? "default" : "outline"}
-              size="sm"
-              className={hasSession 
-                ? "rounded-lg" 
-                : "rounded-lg bg-transparent border border-border hover:bg-muted/20 transition-colors"
-              }
-            >
-              {hasSession ? "Back to app" : "Try now"}
-            </Button>
-          </Link>
+          
+          {hasSession && user ? (
+            <ProfileDropdown user={user} showBackToApp={true} />
+          ) : (
+            <Link href="/app">
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-lg bg-transparent border border-border hover:bg-muted/20 transition-colors"
+              >
+                Try now
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
     </nav>

@@ -4,25 +4,32 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { SyncStatus } from '@/components/sync-status'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
+import { ProfileDropdown } from '@/components/ui/profile-dropdown'
 import { supabase } from '@/lib/supabase'
 import { syncEngine } from '@/lib/sync-engine'
 import type { User } from '@supabase/supabase-js'
 
 export function TopBar() {
   const [user, setUser] = useState<User | null>(null)
+  const [isAuthLoading, setIsAuthLoading] = useState(true)
   const router = useRouter()
 
   useEffect(() => {
     // Get initial session
     const getInitialSession = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      setUser(user)
-      // Dispatch sync engine update outside of callback
-      setTimeout(() => {
-        syncEngine.setCurrentUser(user?.id || null)
-      }, 0)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        setUser(user)
+        // Dispatch sync engine update outside of callback
+        setTimeout(() => {
+          syncEngine.setCurrentUser(user?.id || null)
+        }, 0)
+      } catch (error) {
+        console.error('Error getting initial session:', error)
+      } finally {
+        setIsAuthLoading(false)
+      }
     }
 
     getInitialSession()
@@ -32,6 +39,7 @@ export function TopBar() {
       (event, session) => {
         const user = session?.user ?? null
         setUser(user)
+        setIsAuthLoading(false)
         
         // Dispatch sync engine update outside of callback to avoid deadlocks
         setTimeout(() => {
@@ -42,17 +50,6 @@ export function TopBar() {
 
     return () => subscription.unsubscribe()
   }, [])
-
-  const handleSignOut = async () => {
-    try {
-      // Clear local state before signing out
-      syncEngine.clearAllLocalState()
-      
-      await supabase.auth.signOut()
-    } catch (error) {
-      console.error('Error signing out:', error)
-    }
-  }
 
   const isAnonymousUser = user && user.is_anonymous
 
@@ -67,26 +64,17 @@ export function TopBar() {
           <SyncStatus />
         </div>
 
-        {/* Right side - Theme Toggle and Authentication Buttons */}
+        {/* Right side - Authentication */}
         <div className="flex items-center space-x-3">
           {/* <ThemeToggle /> */}
-          {user && !isAnonymousUser ? (
-            // Authenticated user
-            <div className="flex items-center space-x-3">
-              <span className="text-sm text-muted-foreground">
-                {user.email || 'Signed in'}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleSignOut}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                Sign out
-              </Button>
-            </div>
+          {isAuthLoading ? (
+            // Show nothing while auth is loading to prevent flash
+            <div className="w-24 h-8" />
+          ) : user && !isAnonymousUser ? (
+            // Authenticated user - show profile dropdown
+            <ProfileDropdown user={user} showFocusButton={true} />
           ) : (
-            // Not authenticated or anonymous user
+            // Not authenticated or anonymous user - show auth buttons
             <>
               <Button
                 variant="ghost"
