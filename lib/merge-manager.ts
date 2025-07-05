@@ -2,6 +2,7 @@ import { type DatabaseProject, type DatabaseTask } from './supabase'
 import { useAppStore } from '@/store/app-store'
 import { useSyncStore } from '@/store/sync-store'
 import type { ProjectData, TaskData } from './types'
+import type { SyncAction } from './sync-types'
 
 export class MergeManager {
   async mergeCloudWithLocal(cloudProjects: DatabaseProject[], cloudTasks: DatabaseTask[]) {
@@ -30,7 +31,7 @@ export class MergeManager {
     for (const cloudProject of cloudProjects) {
       const localProject = localProjectMap.get(cloudProject.id)
       const hasPendingProjectChanges = Object.values(pendingChanges).some(
-        change => change.entityId === cloudProject.id && change.entityType === 'project' && !change.synced
+        (change: SyncAction) => change.entityId === cloudProject.id && change.entityType === 'project' && !change.synced
       )
       
       let mergedProject: ProjectData
@@ -55,7 +56,7 @@ export class MergeManager {
     for (const localProject of localProjects) {
       if (!cloudProjectMap.has(localProject.id)) {
         const hasPendingChanges = Object.values(pendingChanges).some(
-          (change: any) => change.entityId === localProject.id && change.entityType === 'project' && !change.synced
+          (change: SyncAction) => change.entityId === localProject.id && change.entityType === 'project' && !change.synced
         )
         if (hasPendingChanges) {
           mergedProjects.push({ ...localProject })
@@ -100,7 +101,7 @@ export class MergeManager {
     localProject: ProjectData, 
     cloudProject: DatabaseProject, 
     cloudTasks: DatabaseTask[], 
-    pendingChanges: any
+    pendingChanges: Record<string, SyncAction>
   ): ProjectData {
     // Field-level merge with remote as source of truth, using lastModificationDate for last-write wins
     const cloudUpdateDate = cloudProject.updated_at
@@ -120,7 +121,7 @@ export class MergeManager {
     localProject: ProjectData,
     cloudProject: DatabaseProject,
     allCloudTasks: DatabaseTask[],
-    pendingChanges: any
+    pendingChanges: Record<string, SyncAction>
   ): TaskData[] {
     const cloudTasks = allCloudTasks.filter(t => t.project_id === cloudProject.id && !t.parent_id)
     const localTaskMap = new Map(localProject.tasks.map(t => [t.id, t]))
@@ -139,7 +140,7 @@ export class MergeManager {
     for (const localTask of localProject.tasks) {
       if (!cloudTaskMap.has(localTask.id)) {
         const hasPendingChanges = Object.values(pendingChanges).some(
-          (change: any) => change.entityId === localTask.id && change.entityType === 'task' && !change.synced
+          (change: SyncAction) => change.entityId === localTask.id && change.entityType === 'task' && !change.synced
         )
         if (hasPendingChanges) {
           mergedTasks.push({ ...localTask })
@@ -154,10 +155,10 @@ export class MergeManager {
     localTask: TaskData | undefined,
     cloudTask: DatabaseTask,
     allCloudTasks: DatabaseTask[],
-    pendingChanges: any
+    pendingChanges: Record<string, SyncAction>
   ): TaskData {
     const hasPendingChanges = Object.values(pendingChanges).some(
-      (change: any) => change.entityId === cloudTask.id && change.entityType === 'task' && !change.synced
+      (change: SyncAction) => change.entityId === cloudTask.id && change.entityType === 'task' && !change.synced
     )
     
     if (!localTask) {
@@ -191,7 +192,7 @@ export class MergeManager {
     localTask: TaskData,
     cloudTask: DatabaseTask,
     allCloudTasks: DatabaseTask[],
-    pendingChanges: any
+    pendingChanges: Record<string, SyncAction>
   ): TaskData[] {
     const cloudSubtasks = allCloudTasks.filter(t => t.parent_id === cloudTask.id)
     const localSubtaskMap = new Map((localTask.subtasks || []).map(t => [t.id, t]))
@@ -210,7 +211,7 @@ export class MergeManager {
     for (const localSubtask of (localTask.subtasks || [])) {
       if (!cloudSubtaskMap.has(localSubtask.id)) {
         const hasPendingChanges = Object.values(pendingChanges).some(
-          (change: any) => change.entityId === localSubtask.id && change.entityType === 'task' && !change.synced
+          (change: SyncAction) => change.entityId === localSubtask.id && change.entityType === 'task' && !change.synced
         )
         if (hasPendingChanges) {
           mergedSubtasks.push({ ...localSubtask })

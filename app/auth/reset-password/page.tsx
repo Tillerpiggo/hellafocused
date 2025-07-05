@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
+
 import { PasswordInput } from '@/components/ui/password-input'
 
 export default function ResetPassword() {
@@ -57,8 +57,8 @@ export default function ResetPassword() {
       setTimeout(() => {
         router.push('/')
       }, 2000)
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
@@ -71,7 +71,7 @@ export default function ResetPassword() {
           <div className="text-center space-y-4">
             <div className="text-lg font-medium text-green-600">Password Reset Successful!</div>
             <div className="text-muted-foreground">
-              Your password has been updated. You'll be redirected to the home page shortly.
+              Your password has been updated. You&apos;ll be redirected to the home page shortly.
             </div>
           </div>
         </div>

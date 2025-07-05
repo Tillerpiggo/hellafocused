@@ -53,9 +53,9 @@ export default function SignUpPage() {
       if (error) throw error
 
       setSuccess(true)
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ Error signing up:', error)
-      setError(error.message)
+      setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
@@ -88,8 +88,8 @@ export default function SignUpPage() {
       if (error) throw error
 
       syncEngine.syncPendingChanges()
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred')
       setLoading(false)
     }
   }
@@ -116,9 +116,9 @@ export default function SignUpPage() {
             <div className="space-y-2">
               <h1 className="text-2xl font-bold">Check Your Email</h1>
               <p className="text-muted-foreground">
-                We've sent you a confirmation link. Please check your email and click the link to verify your account.
+                We&apos;ve sent you a confirmation link. Please check your email and click the link to verify your account.
                 <br />
-                If you don't see an email, check your spam folder.
+                If you don&apos;t see an email, check your spam folder.
               </p>
             </div>
             <div className="text-sm text-muted-foreground bg-green-50 dark:bg-green-900/20 p-3 rounded-md">

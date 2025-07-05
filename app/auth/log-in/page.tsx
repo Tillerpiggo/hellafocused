@@ -39,8 +39,8 @@ export default function LogInPage() {
       syncEngine.syncPendingChanges()
 
       router.push("/")
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
@@ -67,8 +67,8 @@ export default function LogInPage() {
       if (error) throw error
 
       syncEngine.syncPendingChanges()
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred')
       setLoading(false)
     }
   }
@@ -95,7 +95,7 @@ export default function LogInPage() {
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold">Log in to hellafocused</h1>
             <div className="text-sm text-muted-foreground">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <Link
                 href="/auth/sign-up"
                 className="text-primary hover:underline font-"

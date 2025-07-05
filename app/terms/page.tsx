@@ -34,7 +34,7 @@ export default function TermsPage() {
             <section className="space-y-4">
               <h2 className="text-xl font-semibold">1. Acceptance of Terms</h2>
               <p className="text-muted-foreground leading-relaxed">
-                By accessing and using hellafocused ("Service"), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
+                By accessing and using hellafocused (&quot;Service&quot;), you accept and agree to be bound by the terms and provision of this agreement. If you do not agree to abide by the above, please do not use this service.
               </p>
             </section>
 
@@ -76,7 +76,7 @@ export default function TermsPage() {
             <section className="space-y-4">
               <h2 className="text-xl font-semibold">7. Limitation of Liability</h2>
               <p className="text-muted-foreground leading-relaxed">
-                The Service is provided "as is" without warranties of any kind. We shall not be liable for any direct, indirect, incidental, special, or consequential damages resulting from the use or inability to use the Service, even if we have been advised of the possibility of such damages.
+                The Service is provided &quot;as is&quot; without warranties of any kind. We shall not be liable for any direct, indirect, incidental, special, or consequential damages resulting from the use or inability to use the Service, even if we have been advised of the possibility of such damages.
               </p>
             </section>
 

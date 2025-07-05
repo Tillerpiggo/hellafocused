@@ -27,7 +27,7 @@ export function SyncStatus() {
   }
 
   // Helper function to render status with icon and text
-  const renderStatus = (IconComponent: any, text: string, animated = false) => (
+  const renderStatus = (IconComponent: React.ComponentType<{ className?: string }>, text: string, animated = false) => (
     <div className="flex items-center space-x-2 text-muted-foreground">
       <IconComponent className={`h-3 w-3 ${animated ? 'animate-pulse' : ''}`} />
       <span className="text-xs">{text}</span>

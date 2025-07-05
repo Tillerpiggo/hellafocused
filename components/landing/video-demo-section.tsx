@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button"
 import { Play } from "lucide-react"
+import Image from "next/image"
 
 export function VideoDemoSection() {
   return (
@@ -20,10 +21,12 @@ export function VideoDemoSection() {
         <div className="relative">
           <div className="aspect-video bg-muted/20 rounded-2xl border border-border/50 overflow-hidden relative group cursor-pointer hover:shadow-2xl transition-all duration-300">
             {/* Video Thumbnail */}
-            <img
+            <Image
               src="https://sjc.microlink.io/9YBdX_sY5-EUFAj8ybxXG5JS5i1_vdRzIpfwNj5tkjD8-aeMnW6fjWNAKuKI7p9FL2gzifeYVrtChfuV0oNsQw.jpeg"
               alt="Hellafocused demo video thumbnail"
               className="w-full h-full object-cover"
+              width={800}
+              height={450}
             />
 
             {/* Play Button Overlay */}

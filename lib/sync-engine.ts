@@ -8,7 +8,7 @@ import { findTaskAtPath, findProjectAtPath, isProjectList, isProject } from './t
 
 class SyncEngine {
   private syncInterval: NodeJS.Timeout | null = null
-  private realtimeSubscriptions: any[] = []
+  private realtimeSubscriptions: ReturnType<typeof supabase.channel>[] = []
   private instanceId: string = `instance-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
 
   async init() {
@@ -500,7 +500,6 @@ class SyncEngine {
   clearAllLocalState() {
     try {
       // Clear app store data
-      const { useAppStore } = require('@/store/app-store')
       useAppStore.getState().clearLocalState()
       
       // Clear sync store data but preserve pending changes

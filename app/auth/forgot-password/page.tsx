@@ -30,8 +30,8 @@ export default function ForgotPasswordPage() {
       if (error) throw error
 
       setSuccess(true)
-    } catch (error: any) {
-      setError(error.message)
+    } catch (error) {
+      setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
@@ -59,11 +59,11 @@ export default function ForgotPasswordPage() {
             <div className="space-y-2">
               <h1 className="text-2xl font-bold">Check Your Email</h1>
               <p className="text-muted-foreground">
-                We've sent you a password reset link. Please check your email and follow the instructions to reset your password.
+                We&apos;ve sent you a password reset link. Please check your email and follow the instructions to reset your password.
               </p>
             </div>
             <div className="text-sm text-muted-foreground bg-green-50 dark:bg-green-900/20 p-3 rounded-md">
-              If an account with that email exists, you'll receive a password reset link shortly.
+              If an account with that email exists, you&apos;ll receive a password reset link shortly.
             </div>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => router.push("/")} className="flex-1">
@@ -98,7 +98,7 @@ export default function ForgotPasswordPage() {
           <div className="text-center space-y-2">
             <h1 className="text-2xl font-bold">Reset Password</h1>
             <p className="text-muted-foreground">
-              Enter your email address and we'll send you a link to reset your password.
+              Enter your email address and we&apos;ll send you a link to reset your password.
             </p>
           </div>
 

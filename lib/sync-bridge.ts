@@ -1,9 +1,8 @@
 import { useSyncStore } from '@/store/sync-store'
 import { syncEngine } from './sync-engine'
 import { useAppStore } from '@/store/app-store'
-import { findTaskAtPath, findProjectAtPath } from '@/lib/task-utils'
+import { findTaskAtPath } from '@/lib/task-utils'
 import type { SyncActionType, SyncData, SyncAction } from './sync-types'
-import { TaskData } from './types'
 
 // Bridge function that intercepts mutations
 export const trackChange = (
