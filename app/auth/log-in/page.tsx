@@ -8,6 +8,7 @@ import { GoogleLogo } from "@/components/ui/google-logo"
 import { supabase } from "@/lib/supabase"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
+import { syncEngine } from "@/lib/sync-engine"
 
 export default function LogInPage() {
   const [email, setEmail] = useState("")
@@ -33,6 +34,8 @@ export default function LogInPage() {
       })
 
       if (error) throw error
+
+      syncEngine.syncPendingChanges()
 
       router.push("/")
     } catch (error: any) {
@@ -61,6 +64,8 @@ export default function LogInPage() {
       })
 
       if (error) throw error
+
+      syncEngine.syncPendingChanges()
     } catch (error: any) {
       setError(error.message)
       setLoading(false)

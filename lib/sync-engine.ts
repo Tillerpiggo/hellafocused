@@ -62,6 +62,10 @@ class SyncEngine {
       if (data.user?.id) {
         // Store the anonymous user ID for potential future migration
         sessionStorage.setItem('previous-anonymous-user-id', data.user.id)
+        
+        // Sync pending changes and merge with cloud after successful sign-in
+        await this.syncPendingChanges()
+        await this.mergeWithCloud()
       }
     } else {
       // If this is a real (non-anonymous) user, we can clear any stored anonymous ID
