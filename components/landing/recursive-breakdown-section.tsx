@@ -24,7 +24,7 @@ export function RecursiveBreakdownSection() {
               Each to-do becomes effortless.
             </h2>
             <p className="text-xl text-muted-foreground leading-relaxed mt-6">
-              With nested subtasks, you can keep subdividing subtasks until they're embarassingly easy.
+              With nested subtasks, you can keep subdividing subtasks until they&apos;re embarrassingly easy.
             </p>
           </div>
         </div>

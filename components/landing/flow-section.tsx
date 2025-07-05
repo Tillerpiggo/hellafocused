@@ -51,7 +51,7 @@ export function FlowSection() {
               Get in the flow.
             </h2>
             <p className="text-xl text-muted-foreground leading-relaxed mt-6">
-              It's easy to get in the zone when you only have to focus on the task at hand.
+              It&apos;s easy to get in the zone when you only have to focus on the task at hand.
             </p>
           </div>
         </div>

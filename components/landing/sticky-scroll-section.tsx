@@ -594,7 +594,7 @@ export function StickyScrollSection() {
                           activeStep === 3 ? "text-2xl" : "text-xl"
                         }`}
                       >
-                        Click 'focus' and get it done
+                        Click &apos;focus&apos; and get it done
                       </h3>
                     </div>
                   </button>
@@ -914,7 +914,7 @@ export function StickyScrollSection() {
                   3
                 </div>
                 <div className="flex items-center">
-                  <h3 className="text-2xl font-medium text-foreground">Click 'focus' and get it done</h3>
+                  <h3 className="text-2xl font-medium text-foreground">Click &apos;focus&apos; and get it done</h3>
                 </div>
               </div>
               <div

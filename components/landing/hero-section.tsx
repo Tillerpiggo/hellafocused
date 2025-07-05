@@ -51,7 +51,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
                   key={`goal-${currentExample}`}
                   className="text-primary font-medium animate-in fade-in duration-500"
                 >
-                  "{examples[currentExample].goal}"
+                  &quot;{examples[currentExample].goal}&quot;
                 </span>
               </span>{" "}
               into{" "}
@@ -60,7 +60,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
                   key={`task-${currentExample}`}
                   className="text-primary font-medium animate-in fade-in duration-500"
                 >
-                  "{examples[currentExample].task}"
+                  &quot;{examples[currentExample].task}&quot;
                 </span>
               </span>
             </h1>
