@@ -15,13 +15,15 @@ export function LandingNavigation() {
           <Link href="#" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
             Discord
           </Link>
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-lg bg-transparent border border-border hover:bg-muted/20 transition-colors"
-          >
-            Try now
-          </Button>
+          <Link href="/app">
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-lg bg-transparent border border-border hover:bg-muted/20 transition-colors"
+            >
+              Try now
+            </Button>
+          </Link>
         </div>
       </div>
     </nav>

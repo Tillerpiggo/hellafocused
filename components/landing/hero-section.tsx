@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import Link from "next/link"
 import { X, Plus, Check, Shuffle } from "lucide-react"
 
 const examples = [
@@ -67,9 +68,11 @@ export function HeroSection() {
               Focusing becomes easy when your to-do app tells you what to do.
             </p>
             <div className="flex justify-center">
-              <Button size="lg" className="text-lg px-8 py-6">
-                Start focusing now
-              </Button>
+              <Link href="/app">
+                <Button size="lg" className="text-lg px-8 py-6">
+                  Start focusing now
+                </Button>
+              </Link>
             </div>
           </div>
 
