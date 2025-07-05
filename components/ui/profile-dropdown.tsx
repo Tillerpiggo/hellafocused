@@ -67,7 +67,7 @@ export function ProfileDropdown({ user, showBackToApp = false, showFocusButton =
           <div className="h-8 w-8 rounded-full bg-muted border flex items-center justify-center text-sm font-medium flex-shrink-0">
             {user.email ? getInitial(user.email) : <User className="h-4 w-4" />}
           </div>
-          <span className="text-sm text-muted-foreground hidden sm:inline-block">
+          <span className="text-sm text-muted-foreground hidden sm:inline-block animate-email-swipe-in">
             {user.email ? getTruncatedEmail(user.email) : 'Signed in'}
           </span>
         </Button>

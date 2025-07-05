@@ -13,6 +13,7 @@ import type { User } from '@supabase/supabase-js'
 export function TopBar() {
   const [user, setUser] = useState<User | null>(null)
   const [isAuthLoading, setIsAuthLoading] = useState(true)
+  const [shouldAnimate, setShouldAnimate] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -29,6 +30,8 @@ export function TopBar() {
         console.error('Error getting initial session:', error)
       } finally {
         setIsAuthLoading(false)
+        // Trigger animation after loading completes
+        setTimeout(() => setShouldAnimate(true), 50)
       }
     }
 
@@ -40,6 +43,9 @@ export function TopBar() {
         const user = session?.user ?? null
         setUser(user)
         setIsAuthLoading(false)
+        
+        // Trigger animation for auth changes
+        setTimeout(() => setShouldAnimate(true), 50)
         
         // Dispatch sync engine update outside of callback to avoid deadlocks
         setTimeout(() => {
@@ -71,11 +77,13 @@ export function TopBar() {
             // Show nothing while auth is loading to prevent flash
             <div className="w-24 h-8" />
           ) : user && !isAnonymousUser ? (
-            // Authenticated user - show profile dropdown
-            <ProfileDropdown user={user} showFocusButton={true} />
+            // Authenticated user - show profile dropdown with animation
+            <div className={`${shouldAnimate ? 'animate-profile-fade-in' : 'opacity-0'}`}>
+              <ProfileDropdown user={user} showFocusButton={true} />
+            </div>
           ) : (
-            // Not authenticated or anonymous user - show auth buttons
-            <>
+            // Not authenticated or anonymous user - show auth buttons with animation
+            <div className={`flex items-center space-x-3 ${shouldAnimate ? 'animate-profile-fade-in' : 'opacity-0'}`}>
               <Button
                 variant="ghost"
                 size="sm"
@@ -91,7 +99,7 @@ export function TopBar() {
               >
                 Sign up
               </Button>
-            </>
+            </div>
           )}
         </div>
       </div>
