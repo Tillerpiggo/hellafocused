@@ -1,13 +1,17 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
-export function LandingNavigation() {
+interface LandingNavigationProps {
+  hasSession?: boolean | null
+}
+
+export function LandingNavigation({ hasSession }: LandingNavigationProps) {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background">
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-6 sm:px-8">
         {/* Left side - Logo */}
         <Link href="/" className="text-lg font-medium text-primary tracking-wide">
-          hellafocused v1.0
+          hellafocused
         </Link>
 
         {/* Right side - Navigation links */}
@@ -17,11 +21,14 @@ export function LandingNavigation() {
           </Link>
           <Link href="/app">
             <Button
-              variant="outline"
+              variant={hasSession ? "default" : "outline"}
               size="sm"
-              className="rounded-lg bg-transparent border border-border hover:bg-muted/20 transition-colors"
+              className={hasSession 
+                ? "rounded-lg" 
+                : "rounded-lg bg-transparent border border-border hover:bg-muted/20 transition-colors"
+              }
             >
-              Try now
+              {hasSession ? "Back to app" : "Try now"}
             </Button>
           </Link>
         </div>

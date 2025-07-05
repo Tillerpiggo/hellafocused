@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { SyncStatus } from '@/components/sync-status'
 import { ThemeToggle } from '@/components/theme-toggle'
 import { Button } from '@/components/ui/button'
@@ -60,7 +61,9 @@ export function TopBar() {
       <div className="flex h-14 items-center justify-between px-6">
         {/* Left side - Logo and Sync Status */}
         <div className="flex items-center space-x-4">
-          <div className="text-sm text-muted-foreground">hellafocused</div>
+          <Link href="/?from=app" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+            hellafocused
+          </Link>
           <SyncStatus />
         </div>
 

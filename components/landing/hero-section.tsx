@@ -23,7 +23,11 @@ const examples = [
   { goal: "network", task: "update LinkedIn headline" },
 ]
 
-export function HeroSection() {
+interface HeroSectionProps {
+  hasSession?: boolean | null
+}
+
+export function HeroSection({ hasSession }: HeroSectionProps) {
   const [currentExample, setCurrentExample] = useState(0)
 
   useEffect(() => {
@@ -70,7 +74,7 @@ export function HeroSection() {
             <div className="flex justify-center">
               <Link href="/app">
                 <Button size="lg" className="text-lg px-8 py-6">
-                  Start focusing now
+                  {hasSession ? "Back to app" : "Start focusing now"}
                 </Button>
               </Link>
             </div>
