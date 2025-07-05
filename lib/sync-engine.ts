@@ -4,6 +4,7 @@ import { useSyncStore } from '@/store/sync-store'
 import { mergeManager } from './merge-manager'
 import type { ProjectData, TaskData } from './types'
 import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+import { findTaskAtPath, findProjectAtPath, isProjectList, isProject } from './task-utils'
 
 class SyncEngine {
   private syncInterval: NodeJS.Timeout | null = null
@@ -46,6 +47,12 @@ class SyncEngine {
     const { data: { user } } = await supabase.auth.getUser()
     
     if (!user) {
+      // Don't auto-sign in anonymously on auth pages
+      if (typeof window !== 'undefined' && window.location.pathname.startsWith('/auth/')) {
+        console.log('🔄 Skipping anonymous sign-in on auth page:', window.location.pathname)
+        return
+      }
+      
       const { data, error } = await supabase.auth.signInAnonymously()
       
       if (error) {
@@ -146,6 +153,7 @@ class SyncEngine {
 
     for (const [id] of pending) {
       await this.syncSingleChange(id)
+      console.log('🔄 Syncing change', id)
     }
 
     // Clean up synced changes
@@ -182,6 +190,9 @@ class SyncEngine {
 
       if (cloudProjects && cloudTasks) {
         await mergeManager.mergeCloudWithLocal(cloudProjects, cloudTasks)
+        
+        // Validate and fix current path after merge
+        this.validateAndFixCurrentPath()
       }
     } catch (error) {
       // Continue with local data if cloud fetch fails
@@ -189,15 +200,50 @@ class SyncEngine {
     }
   }
 
+  private validateAndFixCurrentPath() {
+    const { projects, currentPath } = useAppStore.getState()
+    
+    // Project list is always valid
+    if (isProjectList(currentPath)) {
+      return
+    }
+    
+    // Check if current path is valid
+    let validPath = [...currentPath]
+    
+    while (validPath.length > 0) {
+      if (isProject(validPath)) {
+        // Check if project exists
+        const project = findProjectAtPath(projects, validPath)
+        if (project) {
+          break // Valid project path
+        }
+      } else {
+        // Check if task exists
+        const task = findTaskAtPath(projects, validPath)
+        if (task) {
+          break // Valid task path
+        }
+      }
+      
+      // Path is invalid, go one level up
+      validPath = validPath.slice(0, -1)
+    }
+    
+    // If the path changed, update the app store
+    if (validPath.length !== currentPath.length || 
+        !validPath.every((id, index) => id === currentPath[index])) {
+      console.log('🔄 Fixing invalid path:', currentPath, '→', validPath)
+      useAppStore.setState({ currentPath: validPath })
+    }
+  }
+
   private startPeriodicSync() {
     // Sync every 30 seconds
     this.syncInterval = setInterval(async () => {
-      console.log('🔄 Periodic sync')
+      console.log('🔄 Periodic sync timer')
       if (navigator.onLine) {
         await this.syncPendingChanges()
-        
-        await this.mergeWithCloud()
-        console.log('🔄 Periodic sync done')
       }
     }, 30000)
   }
@@ -418,8 +464,21 @@ class SyncEngine {
       })
       this.realtimeSubscriptions = []
       
-      // Setup new subscriptions if user is logged in
-      if (userId) {
+      // If user signed out (became null), sign in anonymously
+      if (!userId && currentUserId) {
+        console.log('🔄 User signed out, signing in anonymously...')
+        this.ensureAuthenticated().then(async () => {
+          const { data: { user } } = await supabase.auth.getUser()
+          useSyncStore.getState().setCurrentUserId(user?.id || null)
+          
+          if (user?.id) {
+            this.setupRealtimeSync()
+          }
+        }).catch(error => {
+          console.error('❌ Failed to sign in anonymously after sign out:', error)
+        })
+      } else if (userId) {
+        // Setup new subscriptions if user is logged in
         this.setupRealtimeSync()
       }
     }

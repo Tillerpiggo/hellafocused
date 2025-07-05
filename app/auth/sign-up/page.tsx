@@ -52,6 +52,7 @@ export default function SignUpPage() {
 
       setSuccess(true)
     } catch (error: any) {
+      console.error('❌ Error signing up:', error)
       setError(error.message)
     } finally {
       setLoading(false)
@@ -112,6 +113,8 @@ export default function SignUpPage() {
               <h1 className="text-2xl font-bold">Check Your Email</h1>
               <p className="text-muted-foreground">
                 We've sent you a confirmation link. Please check your email and click the link to verify your account.
+                <br />
+                If you don't see an email, check your spam folder.
               </p>
             </div>
             <div className="text-sm text-muted-foreground bg-green-50 dark:bg-green-900/20 p-3 rounded-md">
