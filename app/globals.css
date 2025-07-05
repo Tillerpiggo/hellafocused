@@ -69,6 +69,22 @@
 }
 
 @layer utilities {
+  .menu-icon {
+    @apply w-4 h-4 mr-2 flex-shrink-0;
+  }
+
+  .menu-item-destructive {
+    @apply text-destructive !important;
+  }
+  
+  .menu-item-destructive:hover {
+    @apply text-destructive bg-destructive/10 !important;
+  }
+  
+  .menu-item-destructive:focus {
+    @apply text-destructive bg-destructive/10 !important;
+  }
+
   .animate-slide-up-in {
     animation: slideUpIn 0.6s ease-out forwards;
   }

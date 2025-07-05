@@ -7,7 +7,7 @@ import { TaskCompletionDialog } from "@/components/task/task-completion-dialog"
 import { DeleteConfirmationDialog } from "@/components/task/delete-confirmation-dialog"
 import { PageHeader } from "@/components/page/page-header"
 import { PageNavigation } from "@/components/page/page-navigation"
-import { BreadcrumbPath } from "@/components/page/breadcrumb-path"
+
 import { TopBar } from "@/components/top-bar"
 import { useAppStore, getCurrentTasksForView, getCurrentTaskChain } from "@/store/app-store"
 import { useSyncStore } from "@/store/sync-store"
@@ -221,11 +221,7 @@ export default function HomePage() {
           onUncomplete={() => toggleTaskCompletion(currentPath)}
         />
 
-        {/* Breadcrumb path (if deeper than one level) */}
-        <BreadcrumbPath
-          projectName={currentProject?.name || ""}
-          taskChain={taskChain}
-        />
+
 
         <div className="space-y-2">
           <TaskListView tasks={tasksToDisplay} currentPath={currentPath} />

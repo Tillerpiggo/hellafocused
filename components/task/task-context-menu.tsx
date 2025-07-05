@@ -15,12 +15,12 @@ export function TaskContextMenu({ children, onEdit, onToggleComplete, onDelete, 
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
-      <ContextMenuContent>
-        <ContextMenuItem onClick={onEdit}>
+      <ContextMenuContent className="w-48">
+        <ContextMenuItem onClick={onEdit} className="gap-2 transition-colors">
           <Edit className="menu-icon" />
           Rename Task
         </ContextMenuItem>
-        <ContextMenuItem onClick={onToggleComplete}>
+        <ContextMenuItem onClick={onToggleComplete} className="gap-2 transition-colors">
           {isCompleted ? (
             <>
               <X className="menu-icon" />
@@ -33,7 +33,7 @@ export function TaskContextMenu({ children, onEdit, onToggleComplete, onDelete, 
             </>
           )}
         </ContextMenuItem>
-        <ContextMenuItem onClick={onDelete} className="menu-item-destructive">
+        <ContextMenuItem onClick={onDelete} className="gap-2 transition-colors menu-item-destructive">
           <Trash2 className="menu-icon" />
           Delete Task
         </ContextMenuItem>
