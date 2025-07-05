@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { PasswordInput } from '@/components/ui/password-input'
 
 export default function ResetPassword() {
   const [password, setPassword] = useState('')
@@ -99,9 +100,8 @@ export default function ResetPassword() {
             <label htmlFor="new-password" className="text-sm font-medium">
               New Password
             </label>
-            <Input
+            <PasswordInput
               id="new-password"
-              type="password"
               placeholder="Enter your new password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -115,9 +115,8 @@ export default function ResetPassword() {
             <label htmlFor="confirm-new-password" className="text-sm font-medium">
               Confirm New Password
             </label>
-            <Input
+            <PasswordInput
               id="confirm-new-password"
-              type="password"
               placeholder="Confirm your new password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}

@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { PasswordInput } from "@/components/ui/password-input"
 import { GoogleLogo } from "@/components/ui/google-logo"
 import { supabase } from "@/lib/supabase"
 import { ArrowLeft } from "lucide-react"
@@ -142,10 +143,9 @@ export default function LogInPage() {
                   Forgot your password?
                 </Link>
               </div>
-              <Input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
                 placeholder="••••••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
