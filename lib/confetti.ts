@@ -3,7 +3,7 @@ import { randomFrom } from "./utils"
 export const triggerConfetti = () => {
   if (typeof window === "undefined") return
   
-  const colors = ["#10b981", "#6ee7b7", "#a7f3d0", "#34d399", "#059669", "#065f46"]
+  const colors = ["#3b82f6", "#60a5fa", "#93c5fd", "#dbeafe", "#1d4ed8", "#1e40af"]
   const confettiContainer = document.createElement("div")
   confettiContainer.style.position = "fixed"
   confettiContainer.style.top = "0"
@@ -20,7 +20,7 @@ export const triggerConfetti = () => {
     confetti.style.position = "absolute"
     confetti.style.width = "8px"
     confetti.style.height = "8px"
-    confetti.style.backgroundColor = randomFrom(colors) || "#10b981"
+    confetti.style.backgroundColor = randomFrom(colors) || "#3b82f6"
     confetti.style.left = Math.random() * 100 + "%"
     confetti.style.top = "-10px"
     confetti.style.borderRadius = "50%"
