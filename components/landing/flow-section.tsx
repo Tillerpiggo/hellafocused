@@ -48,7 +48,7 @@ export function FlowSection() {
         <div className="mb-16">
           <div className="text-center lg:text-right lg:ml-auto lg:max-w-2xl">
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light leading-tight text-foreground">
-              Get in the flow.
+              A to-do app that tells you what to do.
             </h2>
             <p className="text-xl text-muted-foreground leading-relaxed mt-6">
               It&apos;s easy to get in the zone when you only have to focus on the task at hand.

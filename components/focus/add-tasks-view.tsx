@@ -198,33 +198,30 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
           <div className="space-y-6">
             {isProjectList(currentPath) ? (
               <div className="space-y-2">
-                {projects
-                  .slice()
-                  .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-                  .map((project) => (
-                    <div
-                      key={project.id}
-                      className={cn(
-                        "flex items-start justify-between p-4 my-2 rounded-2xl border transition-all duration-300 group cursor-pointer",
-                        "hover:bg-accent/50 hover:border-primary/30 border-border/50"
-                      )}
-                      onClick={() => handleNavigateToProject(project.id)}
-                    >
-                      <div className="flex items-start gap-4 flex-grow min-w-0">
-                        <div className="flex items-center min-h-[2rem] pt-0">
-                          <div className="h-8 w-8 flex-shrink-0" />
-                        </div>
-                        <div className="flex items-center min-h-[2rem] flex-grow min-w-0">
-                          <span className="text-base font-medium break-words">
-                            {project.name}
-                          </span>
-                        </div>
+                {projects.map((project) => (
+                  <div
+                    key={project.id}
+                    className={cn(
+                      "flex items-start justify-between p-4 my-2 rounded-2xl border transition-all duration-300 group cursor-pointer",
+                      "hover:bg-accent/50 hover:border-primary/30 border-border/50"
+                    )}
+                    onClick={() => handleNavigateToProject(project.id)}
+                  >
+                    <div className="flex items-start gap-4 flex-grow min-w-0">
+                      <div className="flex items-center min-h-[2rem] pt-0">
+                        <div className="h-8 w-8 flex-shrink-0" />
                       </div>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2 min-h-[2rem]">
-                        <ChevronRight className="h-4 w-4 group-hover:text-primary transition-colors" />
+                      <div className="flex items-center min-h-[2rem] flex-grow min-w-0">
+                        <span className="text-base font-medium break-words">
+                          {project.name}
+                        </span>
                       </div>
                     </div>
-                  ))}
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2 min-h-[2rem]">
+                      <ChevronRight className="h-4 w-4 group-hover:text-primary transition-colors" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : (
               <>

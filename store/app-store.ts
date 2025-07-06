@@ -140,13 +140,11 @@ export const useAppStore = create<AppState>()(
 
 
         const newTaskId = uuidv4()
-        const now = new Date().toISOString()
         const newTask: TaskData = {
           id: newTaskId,
           name: subtaskName,
           completed: false,
-          createdAt: now,
-          lastModificationDate: now,
+          lastModificationDate: new Date().toISOString(),
           subtasks: [],
         }
 
@@ -198,12 +196,10 @@ export const useAppStore = create<AppState>()(
   addProject: (projectName) => {
     
     const newProjectId = uuidv4()
-    const now = new Date().toISOString()
     const newProject: ProjectData = {
       id: newProjectId,
       name: projectName,
-      createdAt: now,
-      lastModificationDate: now,
+      lastModificationDate: new Date().toISOString(),
       tasks: [],
     }
 
@@ -257,9 +253,7 @@ export const getCurrentTasksForView = (store: AppState): TaskData[] => {
   // Filter and sort tasks based on showCompleted setting
   if (store.showCompleted) {
     // Show all tasks, with completed tasks sorted by completion date (most recent at bottom)
-    const incompleteTasks = tasksToShow
-      .filter((task) => !task.completed)
-      .sort((a, b) => a.createdAt.localeCompare(b.createdAt)) // Sort by creation date
+    const incompleteTasks = tasksToShow.filter((task) => !task.completed)
     const completedTasks = tasksToShow
       .filter((task) => task.completed)
       .sort((a, b) => {
@@ -271,10 +265,8 @@ export const getCurrentTasksForView = (store: AppState): TaskData[] => {
 
     return [...completedTasks, ...incompleteTasks]
   } else {
-    // Show only incomplete tasks, sorted by creation date
-    return tasksToShow
-      .filter((task) => !task.completed)
-      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    // Show only incomplete tasks
+    return tasksToShow.filter((task) => !task.completed)
   }
 }
 

@@ -181,12 +181,9 @@ export default function HomePage() {
             </Button>
           </div>
           <div className="space-y-3">
-            {projects
-              .slice()
-              .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
-              .map((project) => (
-                <ProjectListItem key={project.id} project={project} />
-              ))}
+            {projects.map((project) => (
+              <ProjectListItem key={project.id} project={project} />
+            ))}
           </div>
 
           <AddProjectForm onAddProject={addProject} />
