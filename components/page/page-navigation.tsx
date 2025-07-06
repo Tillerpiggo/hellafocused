@@ -19,15 +19,15 @@ export function PageNavigation({
       <Button
         variant="ghost"
         onClick={onBackClick}
-        className="text-muted-foreground hover:text-foreground px-0 py-3 h-auto font-normal -ml-2 pl-2 pr-4 rounded-lg"
+        className="text-muted-foreground hover:text-foreground px-0 py-3 h-auto font-normal -ml-2 pl-2 pr-4 rounded-lg max-w-[calc(100%-120px)] min-w-0"
       >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        {backButtonText}
+        <ArrowLeft className="h-4 w-4 mr-2 flex-shrink-0" />
+        <span className="truncate">{backButtonText}</span>
       </Button>
       <Button
         variant={isFocusMode ? "secondary" : "outline"}
         size="sm"
-        className="transition-all duration-200 hover:scale-105"
+        className="transition-all duration-200 hover:scale-105 flex-shrink-0"
         onClick={onFocusClick}
       >
         <Target className="h-4 w-4 mr-2" />
