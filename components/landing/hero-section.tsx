@@ -81,9 +81,9 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
           </div>
 
           {/* Focus Mode Visual - Matching actual focus view with taller container */}
-          <div className="mt-16">
+          <div className="mt-16 -mx-4 sm:-mx-6 lg:-mx-8">
             <div
-              className="bg-background rounded-3xl border border-border/50 overflow-hidden shadow-2xl max-w-4xl mx-auto relative"
+              className="bg-background rounded-3xl border border-border/50 overflow-hidden shadow-2xl w-full mx-auto relative"
               style={{ height: "500px" }}
             >
               {/* Focus view layout matching actual app */}

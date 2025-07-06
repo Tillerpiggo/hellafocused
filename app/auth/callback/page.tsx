@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { supabase, getBaseUrl } from '@/lib/supabase'
 
 export default function AuthCallback() {
   const router = useRouter()
@@ -15,7 +15,7 @@ export default function AuthCallback() {
         
         if (error) {
           console.error('Auth callback error:', error)
-          router.push('/')
+          window.location.href = getBaseUrl()
           return
         }
 
@@ -23,15 +23,15 @@ export default function AuthCallback() {
           // Check if this is a new authenticated user upgrading from anonymous
           await handleAnonymousUpgrade(user.id)
           
-          // Successfully authenticated, redirect to home
-          router.push('/')
+          // Successfully authenticated, redirect to app
+          window.location.href = `${getBaseUrl()}/app`
         } else {
-          // No user, redirect to home
-          router.push('/')
+          // No user, redirect to landing
+          window.location.href = getBaseUrl()
         }
       } catch (error) {
         console.error('Unexpected error during auth callback:', error)
-        router.push('/')
+        window.location.href = getBaseUrl()
       }
     }
 

@@ -18,12 +18,13 @@ import type { User } from "@supabase/supabase-js"
 interface LandingContentProps {
   user: User | null
   hasSession: boolean
+  loading: boolean
 }
 
-function LandingContent({ user, hasSession }: LandingContentProps) {
+function LandingContent({ user, hasSession, loading }: LandingContentProps) {
   return (
     <div className="min-h-screen bg-background">
-      <LandingNavigation hasSession={hasSession} user={user} />
+      <LandingNavigation hasSession={hasSession} user={user} loading={loading} />
       <HeroSection hasSession={hasSession} />
       <VideoDemoSection />
       <StickyScrollSection />
@@ -86,21 +87,11 @@ function AuthHandler() {
     return () => subscription.unsubscribe()
   }, [router, searchParams])
 
-  // Show loading state while checking auth
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-lg font-medium">Loading...</div>
-          <div className="text-muted-foreground mt-2">Checking authentication...</div>
-        </div>
-      </div>
-    )
-  }
+  // Don't show loading screen on landing page - just load directly
 
   const hasSession = Boolean(user && !user.is_anonymous)
 
-  return <LandingContent user={user} hasSession={hasSession} />
+  return <LandingContent user={user} hasSession={hasSession} loading={loading} />
 }
 
 export default function LandingPage() {

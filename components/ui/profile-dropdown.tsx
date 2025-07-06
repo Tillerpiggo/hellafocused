@@ -5,7 +5,7 @@ import { User, LogOut, Sun, Moon, Monitor, ArrowRight, Target } from 'lucide-rea
 import { useTheme } from 'next-themes'
 import { useRouter } from 'next/navigation'
 import { useUIStore } from '@/store/ui-store'
-import { supabase } from '@/lib/supabase'
+import { supabase, getBaseUrl } from '@/lib/supabase'
 import { syncEngine } from '@/lib/sync-engine'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 
@@ -27,6 +27,9 @@ export function ProfileDropdown({ user, showBackToApp = false, showFocusButton =
       syncEngine.clearAllLocalState()
       
       await supabase.auth.signOut()
+      
+      // Redirect to the appropriate base URL
+      window.location.href = getBaseUrl()
     } catch (error) {
       console.error('Error signing out:', error)
     }

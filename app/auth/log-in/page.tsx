@@ -38,7 +38,8 @@ export default function LogInPage() {
 
       syncEngine.syncPendingChanges()
 
-      router.push("/")
+      // Redirect to app or landing page based on environment
+      router.push("/app")
     } catch (error) {
       setError(error instanceof Error ? error.message : 'An error occurred')
     } finally {

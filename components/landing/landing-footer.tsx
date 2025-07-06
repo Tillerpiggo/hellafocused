@@ -36,7 +36,7 @@ export function LandingFooter() {
               <Link href="#" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Help Center
               </Link>
-              <Link href="#" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="https://discord.gg/UQYybzN3Ac" target="_blank" rel="noopener noreferrer" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Discord
               </Link>
               <Link href="#" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
