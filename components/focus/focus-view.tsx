@@ -2,7 +2,7 @@
 import { useAppStore } from "@/store/app-store"
 import { useUIStore } from "@/store/ui-store"
 import { useFocusStore } from "@/store/focus-store"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { AddTasksView } from "./add-tasks-view"
 import { AllTasksCompletedView } from "./all-tasks-completed-view"
 import { NoTasksAvailableView } from "./no-tasks-available-view"
@@ -34,6 +34,14 @@ export function FocusView({ startPath }: FocusViewProps) {
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [isExiting, setIsExiting] = useState(false)
 
+  const handleExitFocusMode = useCallback(() => {
+    setIsExiting(true)
+    setTimeout(() => {
+      resetFocus()
+      setFocusMode(false)
+    }, 500) // Increased from 300ms to 500ms for gentler exit
+  }, [resetFocus, setFocusMode])
+
   // Initialize focus store when component mounts
   useEffect(() => {
     initializeFocus(projects, startPath)
@@ -42,7 +50,7 @@ export function FocusView({ startPath }: FocusViewProps) {
     return () => {
       resetFocus()
     }
-  }, [])
+  }, [initializeFocus, projects, resetFocus, startPath])
 
   // Handle initial load animation
   useEffect(() => {
@@ -64,15 +72,7 @@ export function FocusView({ startPath }: FocusViewProps) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [])
-
-  const handleExitFocusMode = () => {
-    setIsExiting(true)
-    setTimeout(() => {
-      resetFocus()
-      setFocusMode(false)
-    }, 500) // Increased from 300ms to 500ms for gentler exit
-  }
+  }, [handleExitFocusMode])
 
   // Determine the main content based on current state
   const renderMainContent = () => {

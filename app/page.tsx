@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { LandingNavigation } from "@/components/landing/landing-navigation"
@@ -15,7 +15,29 @@ import { FAQSection } from "@/components/landing/faq-section"
 import { LandingFooter } from "@/components/landing/landing-footer"
 import type { User } from "@supabase/supabase-js"
 
-export default function LandingPage() {
+interface LandingContentProps {
+  user: User | null
+  hasSession: boolean
+}
+
+function LandingContent({ user, hasSession }: LandingContentProps) {
+  return (
+    <div className="min-h-screen bg-background">
+      <LandingNavigation hasSession={hasSession} user={user} />
+      <HeroSection hasSession={hasSession} />
+      <VideoDemoSection />
+      <StickyScrollSection />
+      <RecursiveBreakdownSection />
+      <FlowSection />
+      <FocusShowcaseSection />
+      <FinalCTASection hasSession={hasSession} />
+      <FAQSection />
+      <LandingFooter />
+    </div>
+  )
+}
+
+function AuthHandler() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const router = useRouter()
@@ -76,20 +98,22 @@ export default function LandingPage() {
     )
   }
 
-  const hasSession = user && !user.is_anonymous
+  const hasSession = Boolean(user && !user.is_anonymous)
 
+  return <LandingContent user={user} hasSession={hasSession} />
+}
+
+export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-background">
-      <LandingNavigation hasSession={hasSession} user={user} />
-      <HeroSection hasSession={hasSession} />
-      <VideoDemoSection />
-      <StickyScrollSection />
-      <RecursiveBreakdownSection />
-      <FlowSection />
-      <FocusShowcaseSection />
-      <FinalCTASection hasSession={hasSession} />
-      <FAQSection />
-      <LandingFooter />
-    </div>
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg font-medium">Loading...</div>
+          <div className="text-muted-foreground mt-2">Initializing...</div>
+        </div>
+      </div>
+    }>
+      <AuthHandler />
+    </Suspense>
   )
 }

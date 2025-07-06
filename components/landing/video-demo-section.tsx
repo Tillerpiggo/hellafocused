@@ -3,14 +3,12 @@ import { Play } from "lucide-react"
 import { useState, useRef } from "react"
 
 export function VideoDemoSection() {
-  const [isPlaying, setIsPlaying] = useState(false)
   const [showOverlay, setShowOverlay] = useState(true)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   const handlePlayClick = () => {
     if (videoRef.current) {
       videoRef.current.play()
-      setIsPlaying(true)
       setShowOverlay(false)
     }
   }
@@ -19,21 +17,18 @@ export function VideoDemoSection() {
     if (videoRef.current) {
       if (videoRef.current.paused) {
         videoRef.current.play()
-        setIsPlaying(true)
       } else {
         videoRef.current.pause()
-        setIsPlaying(false)
       }
     }
   }
 
   const handleVideoEnd = () => {
-    setIsPlaying(false)
     setShowOverlay(true)
   }
 
   const handleVideoPause = () => {
-    setIsPlaying(false)
+    // Keep overlay hidden while paused - user can still use controls
   }
 
   return (

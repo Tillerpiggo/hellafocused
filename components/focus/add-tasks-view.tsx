@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 
 import { Button } from "@/components/ui/button"
 import { AddForm } from "@/components/ui/add-form"
@@ -80,6 +80,13 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
     }
   }, [isDismissing, onClose])
 
+  const handleClose = useCallback(() => {
+    if (!isDismissing) {
+      setIsDismissing(true)
+      setIsAnimating(false)
+    }
+  }, [isDismissing])
+
   // Handle escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -97,7 +104,7 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown, { capture: true })
     }
-  }, [isVisible])
+  }, [isVisible, handleClose])
 
   // Get tasks at the current path
   const getTasksAtPath = (): TaskData[] => {
@@ -146,13 +153,6 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
       setCurrentPath([])
     } else if (currentPath.length > 1) {
       setCurrentPath(currentPath.slice(0, -1))
-    }
-  }
-
-  const handleClose = () => {
-    if (!isDismissing) {
-      setIsDismissing(true)
-      setIsAnimating(false)
     }
   }
 
