@@ -18,13 +18,12 @@ import type { User } from "@supabase/supabase-js"
 interface LandingContentProps {
   user: User | null
   hasSession: boolean
-  loading: boolean
 }
 
-function LandingContent({ user, hasSession, loading }: LandingContentProps) {
+function LandingContent({ user, hasSession }: LandingContentProps) {
   return (
     <div className="min-h-screen bg-background">
-      <LandingNavigation hasSession={hasSession} user={user} loading={loading} />
+      <LandingNavigation hasSession={hasSession} user={user} />
       <HeroSection hasSession={hasSession} />
       <VideoDemoSection />
       <StickyScrollSection />
@@ -40,7 +39,6 @@ function LandingContent({ user, hasSession, loading }: LandingContentProps) {
 
 function AuthHandler() {
   const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -61,8 +59,6 @@ function AuthHandler() {
         }
       } catch (error) {
         console.error('Error checking auth:', error)
-      } finally {
-        setLoading(false)
       }
     }
 
@@ -91,7 +87,7 @@ function AuthHandler() {
 
   const hasSession = Boolean(user && !user.is_anonymous)
 
-  return <LandingContent user={user} hasSession={hasSession} loading={loading} />
+  return <LandingContent user={user} hasSession={hasSession} />
 }
 
 export default function LandingPage() {

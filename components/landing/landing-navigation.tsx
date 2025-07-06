@@ -6,10 +6,9 @@ import type { User } from "@supabase/supabase-js"
 interface LandingNavigationProps {
   hasSession?: boolean | null
   user?: User | null
-  loading?: boolean
 }
 
-export function LandingNavigation({ hasSession, user, loading }: LandingNavigationProps) {
+export function LandingNavigation({ hasSession, user }: LandingNavigationProps) {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background">
       <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-6 sm:px-8">
