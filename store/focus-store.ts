@@ -193,11 +193,33 @@ export const useFocusStore = create<FocusState>((set, get) => ({
     // When dismissing add-tasks-view, update leaves to sync with latest data
     if (!show) {
       const projects = useAppStore.getState().projects
+      const { currentFocusTask, focusStartPath } = get()
+      
+      // Check if the current focus task now has subtasks (i.e., it's no longer a leaf)
+      if (currentFocusTask) {
+        const currentTaskInProjects = findTaskAtPath(projects, [...focusStartPath, currentFocusTask.id])
+        const currentTaskHasSubtasks = currentTaskInProjects?.subtasks?.filter(st => !st.completed).length ?? 0 > 0
+        
+        if (currentTaskHasSubtasks) {
+          // The task now has incomplete subtasks, so refocus on this task's children
+          const newFocusPath = [...focusStartPath, currentFocusTask.id]
+          const newLeavesForTask = getHierarchicalLeafNodes(projects, newFocusPath)
+          
+          set({
+            focusStartPath: newFocusPath,
+            focusModeProjectLeaves: newLeavesForTask,
+            currentFocusTask: randomFrom(newLeavesForTask),
+          })
+          return
+        }
+      }
+      
+      // If no refocusing happened, just update leaves normally
       get().updateFocusLeaves(projects)
       
       // If there's no current task but there are available leaves, pick one
-      const { currentFocusTask, focusModeProjectLeaves } = get()
-      if (!currentFocusTask && focusModeProjectLeaves.length > 0) {
+      const { currentFocusTask: updatedCurrentTask, focusModeProjectLeaves } = get()
+      if (!updatedCurrentTask && focusModeProjectLeaves.length > 0) {
         const availableLeaves = focusModeProjectLeaves.filter(leaf => !leaf.completed)
         if (availableLeaves.length > 0) {
           set({ currentFocusTask: randomFrom(availableLeaves) })
