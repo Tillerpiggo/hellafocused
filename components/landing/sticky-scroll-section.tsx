@@ -914,7 +914,7 @@ export function StickyScrollSection() {
                   3
                 </div>
                 <div className="flex items-center">
-                  <h3 className="text-2xl font-medium text-foreground">Click &apos;focus&apos; to see the next smallest step</h3>
+                  <h3 className="text-2xl font-medium text-foreground">Click &apos;focus&apos; to see the next step</h3>
                 </div>
               </div>
               <div
