@@ -4,43 +4,24 @@ export function LandingFooter() {
   return (
     <footer className="bg-muted/20 border-t border-border/40">
       <div className="container max-w-screen-xl mx-auto px-8 sm:px-12 lg:px-16 py-12">
-        <div className="grid md:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-3 gap-8">
           {/* Brand */}
           <div className="space-y-4">
             <Link href="/" className="text-xl font-medium text-primary tracking-wide">
               hellafocused
             </Link>
-            <p className="text-sm text-muted-foreground">Turn overwhelming tasks into simple actions.</p>
-          </div>
-
-          {/* Product */}
-          <div className="space-y-4">
-            <h3 className="font-medium text-foreground">Product</h3>
-            <div className="space-y-2">
-              <Link href="/" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Features
-              </Link>
-              <Link href="/" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Pricing
-              </Link>
-              <Link href="/" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Roadmap
-              </Link>
-            </div>
+            <p className="text-sm text-muted-foreground">A to-do app that tells you what to do.</p>
           </div>
 
           {/* Support */}
           <div className="space-y-4">
             <h3 className="font-medium text-foreground">Support</h3>
             <div className="space-y-2">
-              <Link href="#" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Help Center
-              </Link>
               <Link href="https://discord.gg/UQYybzN3Ac" target="_blank" rel="noopener noreferrer" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Discord
               </Link>
-              <Link href="#" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Contact
+              <Link href="mailto:tyler.gee333@gmail.com" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Email
               </Link>
             </div>
           </div>
@@ -49,14 +30,11 @@ export function LandingFooter() {
           <div className="space-y-4">
             <h3 className="font-medium text-foreground">Legal</h3>
             <div className="space-y-2">
-              <Link href="#" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/privacy" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Privacy Policy
               </Link>
-              <Link href="#" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="/terms" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Terms of Service
-              </Link>
-              <Link href="#" className="block text-sm text-muted-foreground hover:text-foreground transition-colors">
-                Cookie Policy
               </Link>
             </div>
           </div>

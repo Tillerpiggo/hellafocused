@@ -46,7 +46,7 @@ export function TaskItem({ task, currentPath }: TaskItemProps) {
   const taskContent = (
     <div
       className={cn(
-        "flex items-center justify-between p-4 my-2 rounded-2xl border transition-all duration-300 group",
+        "flex items-start justify-between p-4 my-2 rounded-2xl border transition-all duration-300 group",
         task.completed
           ? "bg-muted/20 opacity-60 border-border/30"
           : "hover:bg-accent/50 hover:border-primary/30 border-border/50",
@@ -55,36 +55,40 @@ export function TaskItem({ task, currentPath }: TaskItemProps) {
       )}
       onClick={handleNavigate}
     >
-      <div className="flex items-center gap-4 flex-grow min-w-0">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={handleToggleCompletion}
-          className="h-8 w-8 flex-shrink-0 rounded-full"
-        >
-          {task.completed ? (
-            <CheckCircle className="h-5 w-5 text-primary" />
-          ) : (
-            <Circle className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-          )}
-        </Button>
-        {isEditing ? (
-          <EditableTitle
-            ref={editableTitleRef}
-            value={task.name}
-            onChange={handleTaskNameChange}
-            className={cn("text-base font-medium", task.completed && "line-through text-muted-foreground")}
-            isCompleted={task.completed}
-          />
-        ) : (
-          <span
-            className={cn("text-base font-medium truncate", task.completed && "line-through text-muted-foreground")}
+      <div className="flex items-start gap-4 flex-grow min-w-0">
+        <div className="flex items-center min-h-[2rem] pt-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleToggleCompletion}
+            className="h-8 w-8 flex-shrink-0 rounded-full"
           >
-            {task.name}
-          </span>
-        )}
+            {task.completed ? (
+              <CheckCircle className="h-5 w-5 text-primary" />
+            ) : (
+              <Circle className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+            )}
+          </Button>
+        </div>
+        <div className="flex items-center min-h-[2rem] flex-grow min-w-0">
+          {isEditing ? (
+            <EditableTitle
+              ref={editableTitleRef}
+              value={task.name}
+              onChange={handleTaskNameChange}
+              className={cn("text-base font-medium", task.completed && "line-through text-muted-foreground")}
+              isCompleted={task.completed}
+            />
+          ) : (
+            <span
+              className={cn("text-base font-medium break-words", task.completed && "line-through text-muted-foreground")}
+            >
+              {task.name}
+            </span>
+          )}
+        </div>
       </div>
-      <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2 min-h-[2rem]">
         <ChevronRight className="h-4 w-4 group-hover:text-primary transition-colors" />
       </div>
     </div>

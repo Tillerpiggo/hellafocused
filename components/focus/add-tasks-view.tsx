@@ -75,7 +75,7 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
         setShouldRender(false)
         setIsDismissing(false)
         onClose()
-      }, 400)
+      }, 450)
       return () => clearTimeout(timer)
     }
   }, [isDismissing, onClose])
@@ -165,8 +165,8 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
   return (
     <div
       ref={viewRef}
-      className={`fixed inset-0 bg-background z-50 transition-all duration-600 ease-out ${
-        isAnimating && !isDismissing ? "animate-gentle-spring-up" : isDismissing ? "animate-gentle-spring-down" : ""
+      className={`fixed inset-0 bg-background z-50 ${
+        isAnimating && !isDismissing ? "animate-slide-up-from-bottom" : isDismissing ? "animate-slide-down-to-bottom" : "translate-y-full"
       }`}
     >
       {/* Header */}

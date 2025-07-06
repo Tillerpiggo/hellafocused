@@ -19,34 +19,32 @@ export function FocusTaskView({
   const [taskKey, setTaskKey] = useState(0)
   const [displayedTaskName, setDisplayedTaskName] = useState("")
 
-  // Update displayed task name when current task changes (but not during completion)
+  // Update displayed task name when current task changes (but not during completion or transition)
   useEffect(() => {
-    if (currentTask && !isCompleting) {
+    if (currentTask && !isCompleting && !isTransitioning) {
       setDisplayedTaskName(currentTask.name)
       setTaskKey((prev) => prev + 1)
     }
-  }, [currentTask, isCompleting])
+  }, [currentTask, isCompleting, isTransitioning])
 
   const handleCompleteTask = () => {
     if (isCompleting || !currentTask) return
 
     setIsCompleting(true)
+    setIsTransitioning(true)
 
     // Trigger confetti
     triggerConfetti()
 
-    // Start transition animation
-    setIsTransitioning(true)
-
-    // Complete task in backend but delay getting next task
+    // Complete task in backend immediately
     completeFocusTask()
 
-    // After animation, get next task and update display
+    // Wait for slide-out animation to complete (0.4s) before getting next task
     setTimeout(() => {
       getNextFocusTask()
       setIsTransitioning(false)
       setIsCompleting(false)
-    }, 0)
+    }, 450) // Slightly longer than the 0.4s slideUpOut animation
   }
 
   const handleGetNextTask = () => {
@@ -54,11 +52,13 @@ export function FocusTaskView({
 
     setIsTransitioning(true)
 
+    // Wait for slide-out animation to complete before getting next task
     setTimeout(() => {
       getNextFocusTask()
       setIsTransitioning(false)
-    }, 0)
+    }, 450)
   }
+
   return (
     <>
       {/* Main content area with task title - centered vertically and horizontally */}
