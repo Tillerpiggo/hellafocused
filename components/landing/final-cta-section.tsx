@@ -12,11 +12,18 @@ export function FinalCTASection({ hasSession }: FinalCTASectionProps) {
         <h2 className="text-4xl sm:text-5xl font-light text-foreground mb-8">
           Ready to get hella focused?
         </h2>
-        <Link href="/app">
-          <Button size="lg" className="px-12 py-4 text-xl rounded-full bg-primary hover:bg-primary/90">
-            {hasSession ? "Back to app" : "Start focusing now for free"}
-          </Button>
-        </Link>
+        <div className="flex flex-col items-center">
+          <Link href="/app">
+            <Button size="lg" className="px-12 py-4 text-xl rounded-full bg-primary hover:bg-primary/90">
+              {hasSession ? "Back to app" : "Get started"}
+            </Button>
+          </Link>
+          {!hasSession && (
+            <p className="text-sm text-muted-foreground mt-2">
+              No signup required
+            </p>
+          )}
+        </div>
       </div>
     </section>
   )

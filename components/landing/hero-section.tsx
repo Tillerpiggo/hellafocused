@@ -39,7 +39,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
   }, [])
 
   return (
-    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-muted/20 pt-4 lg:pt-0">
+    <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50/20 via-background to-purple-50/10 dark:from-blue-950/10 dark:via-background dark:to-purple-950/5 pt-4 lg:pt-0">
       <div className="container max-w-screen-xl mx-auto px-8 sm:px-12 lg:px-16">
         <div className="text-center">
           {/* Hero Title - Bottom aligned to midpoint */}
@@ -71,17 +71,22 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
             <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
               Focusing becomes easy when your to-do app tells you what to do.
             </p>
-            <div className="flex justify-center">
+            <div className="flex flex-col items-center">
               <Link href="/app">
                 <Button size="lg" className="text-lg px-8 py-6">
-                  {hasSession ? "Back to app" : "Start focusing now"}
+                  {hasSession ? "Back to app" : "Get started"}
                 </Button>
               </Link>
+              {!hasSession && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  No signup required
+                </p>
+              )}
             </div>
           </div>
 
           {/* Focus Mode Visual - Matching actual focus view with taller container */}
-          <div className="mt-16 -mx-4 sm:-mx-6 lg:-mx-8">
+          <div className="mt-16 -mx-4 sm:-mx-6 lg:-mx-8 relative">
             <div
               className="bg-background rounded-3xl border border-border/50 overflow-hidden shadow-2xl w-full mx-auto relative"
               style={{ height: "500px" }}
@@ -123,6 +128,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
                 </div>
               </div>
             </div>
+
           </div>
         </div>
       </div>

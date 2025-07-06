@@ -20,26 +20,30 @@ export function LandingNavigation({ hasSession, user, loading }: LandingNavigati
 
         {/* Right side - Navigation links */}
         <div className="flex items-center gap-6">
-          {!loading && (
-            <Link href="https://discord.gg/UQYybzN3Ac" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors animate-profile-fade-in">
-              Discord
-            </Link>
-          )}
-          
-          {!loading && (
-            hasSession && user ? (
+          {hasSession && user ? (
+            // Authenticated user - show Discord and profile with smooth animation
+            <div className="flex items-center gap-6 animate-profile-fade-in">
+              <Link href="https://discord.gg/UQYybzN3Ac" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Discord
+              </Link>
               <ProfileDropdown user={user} showBackToApp={true} />
-            ) : (
+            </div>
+          ) : (
+            // Not authenticated - show Discord and Try Now buttons immediately
+            <>
+              <Link href="https://discord.gg/UQYybzN3Ac" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Discord
+              </Link>
               <Link href="/app">
                 <Button
                   variant="outline"
                   size="sm"
-                  className="rounded-lg bg-transparent border border-border hover:bg-muted/20 transition-colors animate-profile-fade-in"
+                  className="rounded-lg bg-transparent border border-border hover:bg-muted/20 transition-colors"
                 >
                   Try now
                 </Button>
               </Link>
-            )
+            </>
           )}
         </div>
       </div>

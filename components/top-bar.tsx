@@ -77,8 +77,11 @@ export function TopBar() {
             // Show nothing while auth is loading to prevent flash
             <div className="w-24 h-8" />
           ) : user && !isAnonymousUser ? (
-            // Authenticated user - show profile dropdown with animation
-            <div className={`${shouldAnimate ? 'animate-profile-fade-in' : 'opacity-0'}`}>
+            // Authenticated user - show Discord and profile dropdown with animation
+            <div className={`flex items-center space-x-3 ${shouldAnimate ? 'animate-profile-fade-in' : 'opacity-0'}`}>
+              <Link href="https://discord.gg/UQYybzN3Ac" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                Discord
+              </Link>
               <ProfileDropdown user={user} showFocusButton={true} />
             </div>
           ) : (
