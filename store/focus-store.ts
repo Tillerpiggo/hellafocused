@@ -106,11 +106,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
   }),
 
   getNextFocusTask: () => {
-    // Update leaves first to get the latest data
-    const projects = useAppStore.getState().projects
-    get().updateFocusLeaves(projects)
-    
-    // Then pick next task from updated leaves
+    // Pick next task from current leaves (no need to update leaves since completeFocusTask already did)
     set((state) => {
       const availableLeaves = state.focusModeProjectLeaves.filter(
         (leaf) => leaf.id !== state.currentFocusTask?.id && !leaf.completed,
