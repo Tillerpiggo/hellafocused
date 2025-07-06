@@ -76,6 +76,7 @@ export class MergeManager {
     return {
       id: cloudProject.id,
       name: cloudProject.name,
+      createdAt: cloudProject.created_at,
       lastModificationDate: cloudProject.updated_at,
       tasks: projectTasks,
     }
@@ -92,6 +93,7 @@ export class MergeManager {
       name: cloudTask.name,
       completed: cloudTask.completed,
       completionDate: cloudTask.completion_date || undefined,
+      createdAt: cloudTask.created_at,
       lastModificationDate: cloudTask.updated_at,
       subtasks,
     }
@@ -110,6 +112,7 @@ export class MergeManager {
     const merged: ProjectData = {
       id: cloudProject.id,
       name: useCloudProject ? cloudProject.name : localProject.name,
+      createdAt: useCloudProject ? cloudProject.created_at : localProject.createdAt,
       lastModificationDate: useCloudProject ? cloudUpdateDate : localProject.lastModificationDate,
       tasks: this.mergeProjectTasks(localProject, cloudProject, cloudTasks, pendingChanges)
     }
@@ -183,6 +186,7 @@ export class MergeManager {
       name: useCloudTask ? cloudTask.name : localTask.name,
       completed: useCloudTask ? cloudTask.completed : localTask.completed,
       completionDate: useCloudTask ? (cloudTask.completion_date || undefined) : localTask.completionDate,
+      createdAt: useCloudTask ? cloudTask.created_at : localTask.createdAt,
       lastModificationDate: useCloudTask ? cloudUpdateDate : localTask.lastModificationDate,
       subtasks: this.mergeTaskSubtasks(localTask, cloudTask, allCloudTasks, pendingChanges)
     }

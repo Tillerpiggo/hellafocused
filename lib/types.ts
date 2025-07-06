@@ -3,6 +3,7 @@ export interface TaskData {
   name: string
   completed: boolean
   completionDate?: string // Store as ISO string instead of Date object
+  createdAt: string // Store as ISO string, tracks creation date
   lastModificationDate: string // Store as ISO string, tracks last modification
   subtasks: TaskData[]
   isCompleting?: boolean // For animation
@@ -11,6 +12,7 @@ export interface TaskData {
 export interface ProjectData {
   id: string
   name: string
+  createdAt: string // Store as ISO string, tracks creation date
   lastModificationDate: string // Store as ISO string, tracks last modification
   tasks: TaskData[]
 }
