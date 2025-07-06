@@ -69,7 +69,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
           {/* Subtitle and CTA - Top aligned to midpoint */}
           <div className="flex flex-col justify-start">
             <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-              Focusing becomes easy when your to-do app tells you what to do.
+               A to-do app that tells you what to do.
             </p>
             <div className="flex flex-col items-center">
               <Link href="/app">

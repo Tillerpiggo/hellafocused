@@ -28,8 +28,8 @@ export function ProfileDropdown({ user, showBackToApp = false, showFocusButton =
       
       await supabase.auth.signOut()
       
-      // Redirect to the appropriate base URL
-      window.location.href = getBaseUrl()
+      // Redirect to /app to keep users in the app after logout
+      window.location.href = `${getBaseUrl()}/app`
     } catch (error) {
       console.error('Error signing out:', error)
     }

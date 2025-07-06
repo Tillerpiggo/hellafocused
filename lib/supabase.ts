@@ -15,22 +15,33 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Helper function to get the correct base URL for OAuth redirects
 export function getBaseUrl(): string {
+  console.log('getBaseUrl() called with:', {
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
+    NODE_ENV: process.env.NODE_ENV,
+    windowExists: typeof window !== 'undefined',
+    windowOrigin: typeof window !== 'undefined' ? window.location.origin : 'N/A'
+  })
+  
   // In production, use the NEXT_PUBLIC_SITE_URL environment variable
   if (process.env.NEXT_PUBLIC_SITE_URL) {
+    console.log('Using NEXT_PUBLIC_SITE_URL:', process.env.NEXT_PUBLIC_SITE_URL)
     return process.env.NEXT_PUBLIC_SITE_URL
   }
   
   // In development, use localhost
   if (process.env.NODE_ENV === 'development') {
+    console.log('Using development URL: http://localhost:3000')
     return 'http://localhost:3000'
   }
   
   // Fallback to window.location.origin if available (client-side)
   if (typeof window !== 'undefined') {
+    console.log('Using window.location.origin:', window.location.origin)
     return window.location.origin
   }
   
   // Production fallback to hellafocused.com
+  console.log('Using production fallback: https://hellafocused.com')
   return 'https://hellafocused.com'
 }
 

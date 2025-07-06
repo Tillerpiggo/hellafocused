@@ -3,7 +3,7 @@ import { useAppStore } from '@/store/app-store'
 import { useSyncStore } from '@/store/sync-store'
 import { mergeManager } from './merge-manager'
 import type { ProjectData, TaskData } from './types'
-import type { RealtimePostgresChangesPayload } from '@supabase/supabase-js'
+import type { RealtimePostgresChangesPayload, User } from '@supabase/supabase-js'
 import { findTaskAtPath, findProjectAtPath, isProjectList, isProject } from './task-utils'
 
 class SyncEngine {
@@ -47,8 +47,15 @@ class SyncEngine {
   }
 
   private async ensureAuthenticated() {
-    console.log("ensuring authenticated")
-    const { data: { user } } = await supabase.auth.getUser()
+    console.log("🔐 Ensuring authenticated...")
+    
+    // First, check current session (Supabase handles session restoration automatically)
+    const { data: { user }, error: getUserError } = await supabase.auth.getUser()
+    
+    if (getUserError) {
+      console.error('❌ Error getting user:', getUserError)
+    }
+    
     if (!user) {
       // Don't auto-sign in anonymously on auth pages
       if (typeof window !== 'undefined' && window.location.pathname.startsWith('/auth/')) {
@@ -56,29 +63,69 @@ class SyncEngine {
         return
       }
       
-      console.log("signing in anonymously")
+      // Check if we have a stored anonymous session that might have been lost
+      const storedAnonymousId = localStorage.getItem('hellafocused-anonymous-user-id')
+      if (storedAnonymousId) {
+        console.log('⚠️ No session found but had previous anonymous user:', storedAnonymousId)
+        console.log('📝 Session may have expired, creating new anonymous user')
+      }
+      
+      console.log("🆔 Creating new anonymous user...")
       const { data, error } = await supabase.auth.signInAnonymously()
-      console.log("signed in anonymously", data, error)
       
       if (error) {
+        console.error('❌ Failed to sign in anonymously:', error)
         throw new Error(`Failed to sign in anonymously: ${error.message}`)
       }
       
       if (data.user?.id) {
-        // Store the anonymous user ID for potential future migration
+        // Store the anonymous user ID for potential future migration and tracking
         sessionStorage.setItem('previous-anonymous-user-id', data.user.id)
+        localStorage.setItem('hellafocused-anonymous-user-id', data.user.id)
+        localStorage.setItem('hellafocused-anonymous-created-at', Date.now().toString())
+        
+        // Log session creation details
+        if (storedAnonymousId && storedAnonymousId !== data.user.id) {
+          console.log('📝 New anonymous user created (previous session lost)')
+          console.log('   Previous:', storedAnonymousId)
+          console.log('   New:', data.user.id)
+        } else if (!storedAnonymousId) {
+          console.log('📝 First-time anonymous user created:', data.user.id)
+        } else {
+          console.log('📝 Anonymous user session restored:', data.user.id)
+        }
         
         // Sync pending changes and merge with cloud after successful sign-in
         await this.syncPendingChanges()
         await this.mergeWithCloud()
       }
     } else {
-      // If this is a real (non-anonymous) user, we can clear any stored anonymous ID
-      // since they're already authenticated and any migration would have happened
-      if (!user.is_anonymous) {
+      const userType = user.is_anonymous ? 'anonymous' : 'authenticated'
+      console.log(`✅ User already authenticated: ${user.id} (${userType})`)
+      
+      // Track the current session
+      if (user.is_anonymous) {
+        // For anonymous users, ensure we're tracking this session
+        sessionStorage.setItem('previous-anonymous-user-id', user.id)
+        localStorage.setItem('hellafocused-anonymous-user-id', user.id)
+        
+        // Check if this is a session restoration
+        const storedAnonymousId = localStorage.getItem('hellafocused-anonymous-user-id')
+        if (storedAnonymousId === user.id) {
+          const createdAt = localStorage.getItem('hellafocused-anonymous-created-at')
+          if (createdAt) {
+            const ageInHours = (Date.now() - parseInt(createdAt)) / (1000 * 60 * 60)
+            console.log(`📝 Anonymous session restored (age: ${ageInHours.toFixed(1)} hours)`)
+          }
+        }
+      } else {
+        // If this is a real (non-anonymous) user, clean up anonymous tracking
         const storedAnonymousId = sessionStorage.getItem('previous-anonymous-user-id')
         if (storedAnonymousId && storedAnonymousId !== user.id) {
+          console.log('🧹 Cleaning up anonymous session tracking for authenticated user')
           sessionStorage.removeItem('previous-anonymous-user-id')
+          localStorage.removeItem('hellafocused-anonymous-user-id')
+          localStorage.removeItem('hellafocused-anonymous-created-at')
         }
       }
     }
@@ -456,6 +503,42 @@ class SyncEngine {
   }
 
   /**
+   * Debug utility to check anonymous session health
+   */
+  getAnonymousSessionInfo() {
+    const anonymousId = localStorage.getItem('hellafocused-anonymous-user-id')
+    const createdAt = localStorage.getItem('hellafocused-anonymous-created-at')
+    const sessionAnonymousId = sessionStorage.getItem('previous-anonymous-user-id')
+    
+    if (!anonymousId) {
+      return { status: 'no-session', message: 'No anonymous session found' }
+    }
+    
+    const info = {
+      status: 'active',
+      anonymousId,
+      sessionAnonymousId,
+      createdAt: createdAt ? new Date(parseInt(createdAt)).toISOString() : 'unknown',
+      ageInHours: createdAt ? (Date.now() - parseInt(createdAt)) / (1000 * 60 * 60) : null,
+      sessionMatches: anonymousId === sessionAnonymousId
+    }
+    
+    console.log('📊 Anonymous Session Info:', info)
+    return info
+  }
+
+  /**
+   * Debug utility to reset anonymous session (forces new anonymous user creation)
+   */
+  resetAnonymousSession() {
+    console.log('🔄 Resetting anonymous session...')
+    localStorage.removeItem('hellafocused-anonymous-user-id')
+    localStorage.removeItem('hellafocused-anonymous-created-at')
+    sessionStorage.removeItem('previous-anonymous-user-id')
+    console.log('✅ Anonymous session reset. Next auth will create new anonymous user.')
+  }
+
+  /**
    * Sets current user ID and handles auth state changes
    */
   setCurrentUser(userId: string | null) {
@@ -475,13 +558,15 @@ class SyncEngine {
       
       // If user signed out (became null), sign in anonymously
       if (!userId && currentUserId) {
-        console.log('🔄 User signed out, signing in anonymously...')
+        console.log('🔄 User signed out, transitioning to anonymous session...')
+        
         this.ensureAuthenticated().then(async () => {
           const { data: { user } } = await supabase.auth.getUser()
           useSyncStore.getState().setCurrentUserId(user?.id || null)
           
           if (user?.id) {
             this.setupRealtimeSync()
+            console.log('✅ Anonymous session established after logout')
           }
         }).catch(error => {
           console.error('❌ Failed to sign in anonymously after sign out:', error)
@@ -514,4 +599,26 @@ class SyncEngine {
 }
 
 // Global sync engine instance
-export const syncEngine = new SyncEngine() 
+export const syncEngine = new SyncEngine()
+
+// Expose debug utilities globally for console access
+if (typeof window !== 'undefined') {
+  interface HellafocusedDebug {
+    getAnonymousSessionInfo: () => ReturnType<typeof syncEngine.getAnonymousSessionInfo>
+    resetAnonymousSession: () => void
+    getCurrentUser: () => Promise<User | null>
+    syncEngine: typeof syncEngine
+  }
+  
+  (window as typeof window & { hellafocusedDebug: HellafocusedDebug }).hellafocusedDebug = {
+    getAnonymousSessionInfo: () => syncEngine.getAnonymousSessionInfo(),
+    resetAnonymousSession: () => syncEngine.resetAnonymousSession(),
+    getCurrentUser: async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      console.log('Current user:', user)
+      return user
+    },
+    syncEngine
+  }
+  console.log('🔧 Debug utilities available at window.hellafocusedDebug')
+} 
