@@ -168,8 +168,7 @@ export const useSyncStore = create<SyncStore>()(
         pendingChanges: state.pendingChanges,
         lastSyncedAt: state.lastSyncedAt,
         deviceId: state.deviceId,
-        syncLoading: state.syncLoading,
-        // Exclude isInitialized and currentUserId - they should reset each session
+        // Exclude isInitialized, currentUserId, and syncLoading - they should reset each session
       }),
     }
   )
