@@ -40,12 +40,15 @@ export function AddForm({ placeholder, onSubmit, inputId }: AddFormProps) {
     if (e.key === "Enter" && !e.shiftKey) {
       // Enter without Shift submits the task
       e.preventDefault()
+      e.stopPropagation()
       if (value.trim() !== "") {
         onSubmit(value.trim())
         setValue("")
         setIsFocused(false)
       }
     } else if (e.key === "Escape") {
+      e.preventDefault()
+      e.stopPropagation()
       setValue("")
       setIsFocused(false)
       // Blur the textarea to deselect it

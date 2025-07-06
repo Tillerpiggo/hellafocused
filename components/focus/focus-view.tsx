@@ -50,7 +50,7 @@ export function FocusView({ startPath }: FocusViewProps) {
     return () => {
       resetFocus()
     }
-  }, [initializeFocus, projects, resetFocus, startPath])
+  }, [initializeFocus, resetFocus, startPath])
 
   // Handle initial load animation
   useEffect(() => {

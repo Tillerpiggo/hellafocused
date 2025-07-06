@@ -41,45 +41,27 @@ export const useFocusStore = create<FocusState>((set, get) => ({
     // Recalculate leaves based on current focus path
     const newLeaves = getHierarchicalLeafNodes(projects, focusStartPath)
     
-    // Check if current focus task is still valid
+    // Check if current focus task now has subtasks (i.e., it's no longer a leaf)
     if (currentFocusTask) {
-      const isCurrentTaskInNewLeaves = newLeaves.some(leaf => leaf.id === currentFocusTask.id)
-      
-      if (!isCurrentTaskInNewLeaves) {
-        // Check if the current task now has subtasks (i.e., it's no longer a leaf)
-        const currentTaskInProjects = findTaskAtPath(projects, [...focusStartPath, currentFocusTask.id])
-        const currentTaskHasSubtasks = currentTaskInProjects?.subtasks?.filter(st => !st.completed).length ?? 0 > 0
-        if (currentTaskHasSubtasks) {
-          // The task now has incomplete subtasks, so refocus on this task
-          const newFocusPath = [...focusStartPath, currentFocusTask.id]
-          const newLeavesForTask = getHierarchicalLeafNodes(projects, newFocusPath)
-          
-          set({
-            focusStartPath: newFocusPath,
-            focusModeProjectLeaves: newLeavesForTask,
-            currentFocusTask: randomFrom(newLeavesForTask),
-          })
-          return
-        }
+      const currentTaskInProjects = findTaskAtPath(projects, [...focusStartPath, currentFocusTask.id])
+      const currentTaskHasSubtasks = currentTaskInProjects?.subtasks?.filter(st => !st.completed).length ?? 0 > 0
+      if (currentTaskHasSubtasks) {
+        // The task now has incomplete subtasks, so refocus on this task
+        const newFocusPath = [...focusStartPath, currentFocusTask.id]
+        const newLeavesForTask = getHierarchicalLeafNodes(projects, newFocusPath)
         
-        // Current task is not in leaves and doesn't have subtasks, pick a new random task
         set({
-          focusModeProjectLeaves: newLeaves,
-          currentFocusTask: newLeaves.length > 0 ? randomFrom(newLeaves) : null,
+          focusStartPath: newFocusPath,
+          focusModeProjectLeaves: newLeavesForTask,
         })
-      } else {
-        // Current task is still valid, just update the leaves
-        set({
-          focusModeProjectLeaves: newLeaves,
-        })
+        return
       }
-    } else {
-      // No current focus task, pick a new one
-      set({
-        focusModeProjectLeaves: newLeaves,
-        currentFocusTask: newLeaves.length > 0 ? randomFrom(newLeaves) : null,
-      })
     }
+    
+    // Just update the leaves - never change currentFocusTask
+    set({
+      focusModeProjectLeaves: newLeaves,
+    })
   },
 
   initializeFocus: (projects, startPath) => {
@@ -106,7 +88,11 @@ export const useFocusStore = create<FocusState>((set, get) => ({
   }),
 
   getNextFocusTask: () => {
-    // Pick next task from current leaves (no need to update leaves since completeFocusTask already did)
+    // Update leaves first to get the latest data
+    const projects = useAppStore.getState().projects
+    get().updateFocusLeaves(projects)
+    
+    // Then pick next task from updated leaves
     set((state) => {
       const availableLeaves = state.focusModeProjectLeaves.filter(
         (leaf) => leaf.id !== state.currentFocusTask?.id && !leaf.completed,
@@ -208,6 +194,15 @@ export const useFocusStore = create<FocusState>((set, get) => ({
     if (!show) {
       const projects = useAppStore.getState().projects
       get().updateFocusLeaves(projects)
+      
+      // If there's no current task but there are available leaves, pick one
+      const { currentFocusTask, focusModeProjectLeaves } = get()
+      if (!currentFocusTask && focusModeProjectLeaves.length > 0) {
+        const availableLeaves = focusModeProjectLeaves.filter(leaf => !leaf.completed)
+        if (availableLeaves.length > 0) {
+          set({ currentFocusTask: randomFrom(availableLeaves) })
+        }
+      }
     }
   },
 })) 
