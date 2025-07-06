@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { PasswordInput } from "@/components/ui/password-input"
 import { GoogleLogo } from "@/components/ui/google-logo"
-import { supabase } from "@/lib/supabase"
+import { supabase, getBaseUrl } from "@/lib/supabase"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { syncEngine } from "@/lib/sync-engine"
@@ -46,7 +46,7 @@ export default function SignUpPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${getBaseUrl()}/auth/callback`,
         },
       })
 
@@ -78,7 +78,7 @@ export default function SignUpPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${getBaseUrl()}/auth/callback`,
           queryParams: {
             prompt: 'select_account'
           }
@@ -102,7 +102,7 @@ export default function SignUpPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => router.push("/")}
+            onClick={() => router.push("/app")}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -124,7 +124,7 @@ export default function SignUpPage() {
             <div className="text-sm text-muted-foreground bg-green-50 dark:bg-green-900/20 p-3 rounded-md">
               A confirmation email has been sent to <strong>{email}</strong>
             </div>
-            <Button onClick={() => router.push("/")} className="w-full">
+            <Button onClick={() => router.push("/app")} className="w-full">
               Got it
             </Button>
           </div>
@@ -140,7 +140,7 @@ export default function SignUpPage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/app")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -160,7 +160,7 @@ export default function SignUpPage() {
                                                   Already have an account?{" "}
                  <Link
                    href="/auth/log-in"
-                   className="text-primary hover:underline font-semibold"
+                   className="text-primary hover:underline"
                  >
                    Log in
                  </Link>
@@ -235,8 +235,8 @@ export default function SignUpPage() {
 
           {/* Google Sign Up */}
           <Button
-            variant="default"
-            className="w-full bg-primary/90 hover:bg-primary text-primary-foreground"
+            variant="outline"
+            className="w-full bg-blue-50 hover:bg-blue-100 border-blue-200 hover:border-blue-300 text-gray-700 dark:bg-blue-950/30 dark:hover:bg-blue-900/50 dark:border-blue-800 dark:hover:border-blue-700 dark:text-blue-100"
             onClick={handleGoogleSignUp}
             disabled={loading}
           >

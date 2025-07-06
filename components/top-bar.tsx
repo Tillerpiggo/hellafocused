@@ -95,7 +95,7 @@ export function TopBar() {
               <Button
                 size="sm"
                 onClick={() => router.push('/auth/sign-up')}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
               >
                 Sign up
               </Button>

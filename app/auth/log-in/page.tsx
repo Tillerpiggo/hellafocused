@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { PasswordInput } from "@/components/ui/password-input"
 import { GoogleLogo } from "@/components/ui/google-logo"
-import { supabase } from "@/lib/supabase"
+import { supabase, getBaseUrl } from "@/lib/supabase"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { syncEngine } from "@/lib/sync-engine"
@@ -57,7 +57,7 @@ export default function LogInPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: `${getBaseUrl()}/auth/callback`,
           queryParams: {
             prompt: 'select_account'
           }
@@ -80,7 +80,7 @@ export default function LogInPage() {
         <Button
           variant="ghost"
           size="sm"
-          onClick={() => router.push("/")}
+          onClick={() => router.push("/app")}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
@@ -98,7 +98,7 @@ export default function LogInPage() {
               Don&apos;t have an account?{" "}
               <Link
                 href="/auth/sign-up"
-                className="text-primary hover:underline font-"
+                className="text-primary hover:underline"
               >
                 Sign up
               </Link>
@@ -179,8 +179,8 @@ export default function LogInPage() {
 
           {/* Google Log In */}
           <Button
-            variant="default"
-            className="w-full"
+            variant="outline"
+            className="w-full bg-blue-50 hover:bg-blue-100 border-blue-200 hover:border-blue-300 text-gray-700 dark:bg-blue-950/30 dark:hover:bg-blue-900/50 dark:border-blue-800 dark:hover:border-blue-700 dark:text-blue-100"
             onClick={handleGoogleSignIn}
             disabled={loading}
           >

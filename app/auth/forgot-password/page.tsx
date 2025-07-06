@@ -42,15 +42,15 @@ export default function ForgotPasswordPage() {
       <div className="min-h-screen bg-background flex flex-col">
         {/* Back Button */}
         <div className="p-6">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.push("/")}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </Button>
+                  <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => router.push("/app")}
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back
+        </Button>
         </div>
 
         {/* Success Content */}
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
               If an account with that email exists, you&apos;ll receive a password reset link shortly.
             </div>
             <div className="flex gap-2">
-              <Button variant="outline" onClick={() => router.push("/")} className="flex-1">
+              <Button variant="outline" onClick={() => router.push("/app")} className="flex-1">
                 Close
               </Button>
             </div>

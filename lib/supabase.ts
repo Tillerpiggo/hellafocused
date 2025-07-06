@@ -13,6 +13,27 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
+// Helper function to get the correct base URL for OAuth redirects
+export function getBaseUrl(): string {
+  // In production, use the NEXT_PUBLIC_SITE_URL environment variable
+  if (process.env.NEXT_PUBLIC_SITE_URL) {
+    return process.env.NEXT_PUBLIC_SITE_URL
+  }
+  
+  // In development, use localhost
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:3000'
+  }
+  
+  // Fallback to window.location.origin if available (client-side)
+  if (typeof window !== 'undefined') {
+    return window.location.origin
+  }
+  
+  // Final fallback
+  return 'http://localhost:3000'
+}
+
 // Types for our database tables (based on the schema in the design doc)
 export interface DatabaseProject {
   id: string

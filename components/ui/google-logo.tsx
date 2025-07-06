@@ -5,7 +5,7 @@ interface GoogleLogoProps {
 }
 
 export function GoogleLogo({ className }: GoogleLogoProps) {
-  const fillColor = "#7a9b8a"
+  const fillColor = "#4285f4"
   return (
     <svg className={cn("w-4 h-4", className)} viewBox="0 0 24 24">
       {/* G - top part */}
