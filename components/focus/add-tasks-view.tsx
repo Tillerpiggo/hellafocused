@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button"
 import { AddForm } from "@/components/ui/add-form"
 import { useAppStore } from "@/store/app-store"
 import { useFocusStore } from "@/store/focus-store"
-import { ArrowDown, ArrowLeft } from "lucide-react"
+import { ArrowDown, ArrowLeft, ChevronRight, CheckCircle, Circle } from "lucide-react"
 import type { TaskData } from "@/lib/types"
-import { ProjectsView } from "./projects-view"
-import { TasksView } from "./tasks-view"
+
 import { 
   findTaskPath, 
   getProjectId, 
@@ -17,6 +16,7 @@ import {
   findProjectAtPath,
   findTaskAtPath
 } from "@/lib/task-utils"
+import { cn } from "@/lib/utils"
 
 interface AddTasksViewProps {
   isVisible: boolean
@@ -165,12 +165,12 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
   return (
     <div
       ref={viewRef}
-      className={`fixed inset-0 bg-background z-50 ${
+      className={`fixed inset-0 bg-background z-50 flex flex-col ${
         isAnimating && !isDismissing ? "animate-slide-up-from-bottom" : isDismissing ? "animate-slide-down-to-bottom" : "translate-y-full"
       }`}
     >
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b">
+      <div className="flex items-center justify-between p-6 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="w-10">
           {!isProjectList(currentPath) && (
             <Button variant="ghost" size="icon" onClick={handleNavigateBack}>
@@ -186,22 +186,97 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex-1 overflow-y-auto p-6">
-        {isProjectList(currentPath) ? (
-          <ProjectsView projects={projects} onNavigateToProject={handleNavigateToProject} />
-        ) : (
-          <TasksView tasks={currentTasks} onNavigateToTask={handleNavigateToTask} />
-        )}
-        {!isProjectList(currentPath) && (
-          <div className={currentTasks.length > 0 ? "mt-6" : "mt-2"}>
-            <AddForm
-              placeholder={isProject(currentPath) ? "Add task..." : "Add subtask..."}
-              onSubmit={(taskName) => addSubtaskToParent(currentPath, taskName)}
-              inputId="add-task-input-inline"
-            />
+      {/* Content with proper scrolling and rubber band effect */}
+      <div 
+        className="flex-1 overflow-y-auto overscroll-y-auto"
+        style={{ 
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'auto'
+        }}
+      >
+        <div className="container max-w-4xl mx-auto py-6 px-6">
+          <div className="space-y-6">
+            {isProjectList(currentPath) ? (
+              <div className="space-y-2">
+                {projects.map((project) => (
+                  <div
+                    key={project.id}
+                    className={cn(
+                      "flex items-start justify-between p-4 my-2 rounded-2xl border transition-all duration-300 group cursor-pointer",
+                      "hover:bg-accent/50 hover:border-primary/30 border-border/50"
+                    )}
+                    onClick={() => handleNavigateToProject(project.id)}
+                  >
+                    <div className="flex items-start gap-4 flex-grow min-w-0">
+                      <div className="flex items-center min-h-[2rem] pt-0">
+                        <div className="h-8 w-8 flex-shrink-0" />
+                      </div>
+                      <div className="flex items-center min-h-[2rem] flex-grow min-w-0">
+                        <span className="text-base font-medium break-words">
+                          {project.name}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2 min-h-[2rem]">
+                      <ChevronRight className="h-4 w-4 group-hover:text-primary transition-colors" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <>
+                {/* Tasks List using TaskItem styling */}
+                <div className="space-y-1">
+                  {currentTasks.map((task) => (
+                    <div
+                      key={task.id}
+                      className={cn(
+                        "flex items-start justify-between p-4 my-2 rounded-2xl border transition-all duration-300 group cursor-pointer",
+                        task.completed
+                          ? "bg-muted/20 opacity-60 border-border/30"
+                          : "hover:bg-accent/50 hover:border-primary/30 border-border/50"
+                      )}
+                      onClick={() => handleNavigateToTask(task.id)}
+                    >
+                      <div className="flex items-start gap-4 flex-grow min-w-0">
+                        <div className="flex items-center min-h-[2rem] pt-0">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 flex-shrink-0 rounded-full pointer-events-none"
+                          >
+                            {task.completed ? (
+                              <CheckCircle className="h-5 w-5 text-primary" />
+                            ) : (
+                              <Circle className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+                            )}
+                          </Button>
+                        </div>
+                        <div className="flex items-center min-h-[2rem] flex-grow min-w-0">
+                          <span className={cn("text-base font-medium break-words", task.completed && "line-through text-muted-foreground")}>
+                            {task.name}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2 min-h-[2rem]">
+                        <ChevronRight className="h-4 w-4 group-hover:text-primary transition-colors" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add Task Form */}
+                <div className="pt-4">
+                  <AddForm
+                    placeholder={isProject(currentPath) ? "Add task..." : "Add subtask..."}
+                    onSubmit={(taskName) => addSubtaskToParent(currentPath, taskName)}
+                    inputId="add-task-input-inline"
+                  />
+                </div>
+              </>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   )
