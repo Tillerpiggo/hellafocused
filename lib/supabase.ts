@@ -30,8 +30,8 @@ export function getBaseUrl(): string {
     return window.location.origin
   }
   
-  // Final fallback
-  return 'http://localhost:3000'
+  // Production fallback to hellafocused.com
+  return 'https://hellafocused.com'
 }
 
 // Types for our database tables (based on the schema in the design doc)

@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { supabase } from "@/lib/supabase"
+import { supabase, getBaseUrl } from "@/lib/supabase"
 import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
@@ -24,7 +24,7 @@ export default function ForgotPasswordPage() {
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+        redirectTo: `${getBaseUrl()}/auth/reset-password`,
       })
 
       if (error) throw error
