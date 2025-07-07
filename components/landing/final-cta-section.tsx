@@ -15,7 +15,7 @@ export function FinalCTASection({ hasSession }: FinalCTASectionProps) {
         <div className="flex flex-col items-center">
           <Link href="/app">
             <Button size="lg" className="px-12 py-4 text-xl rounded-full bg-primary hover:bg-primary/90">
-              {hasSession ? "Back to app" : "Get started"}
+              {hasSession ? "Back to app" : "Get started for free"}
             </Button>
           </Link>
           {!hasSession && (

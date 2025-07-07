@@ -42,7 +42,7 @@ export function LandingNavigation({ hasSession, user }: LandingNavigationProps) 
                   size="sm"
                   className="rounded-lg bg-transparent border border-border hover:bg-muted/20 transition-colors"
                 >
-                  Try now
+                  Get started
                 </Button>
               </Link>
             </>

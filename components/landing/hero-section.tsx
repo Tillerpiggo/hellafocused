@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
+import { SegmentedControl } from "@/components/ui/segmented-control"
 import Link from "next/link"
-import { X, Plus, Check, Shuffle } from "lucide-react"
+import { X, Plus, Check, Shuffle, ChevronRight, Split } from "lucide-react"
 
 const examples = [
   { goal: "write a book", task: "open a blank document" },
@@ -29,6 +30,7 @@ interface HeroSectionProps {
 
 export function HeroSection({ hasSession }: HeroSectionProps) {
   const [currentExample, setCurrentExample] = useState(0)
+  const [selectedView, setSelectedView] = useState('focus')
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -45,7 +47,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
           {/* Hero Title - Bottom aligned to midpoint */}
           <div className="flex flex-col justify-end h-64 mb-8">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-light text-foreground leading-tight">
-              Hellafocused turns{" "}
+              {/* Break down{" "}
               <span className="relative inline-block">
                 <span
                   key={`goal-${currentExample}`}
@@ -62,19 +64,20 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
                 >
                   &quot;{examples[currentExample].task}&quot;
                 </span>
-              </span>
+              </span> */}
+              One task at a time.
             </h1>
           </div>
 
           {/* Subtitle and CTA - Top aligned to midpoint */}
           <div className="flex flex-col justify-start">
             <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-               Break it down. Then focus on the smallest next step.
+               And if that's too much, break it down.
             </p>
             <div className="flex flex-col items-center">
               <Link href="/app">
                 <Button size="lg" className="text-lg px-8 py-6">
-                  {hasSession ? "Back to app" : "Get started"}
+                  {hasSession ? "Back to app" : "Get started for free"}
                 </Button>
               </Link>
               {!hasSession && (
@@ -85,14 +88,27 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
             </div>
           </div>
 
-          {/* Focus Mode Visual - Matching actual focus view with taller container */}
-          <div className="mt-16 -mx-4 sm:-mx-6 lg:-mx-8 relative">
-            <div
-              className="bg-background rounded-3xl border border-border/50 overflow-hidden shadow-2xl w-full mx-auto relative"
-              style={{ height: "500px" }}
-            >
-              {/* Focus view layout matching actual app */}
-              <div className="w-full h-full flex flex-col relative">
+          {/* View Selector */}
+          <div className="mt-16 mb-8 flex justify-center">
+            <SegmentedControl
+              options={[
+                { value: 'nested', label: 'Nested subtasks' },
+                { value: 'focus', label: 'Focus mode' }
+              ]}
+              value={selectedView}
+              onChange={setSelectedView}
+            />
+          </div>
+
+          {/* Visual Demo */}
+          <div className="-mx-4 sm:-mx-6 lg:-mx-8 relative">
+            {selectedView === 'focus' ? (
+              <div
+                className="bg-background rounded-3xl border border-border/50 overflow-hidden shadow-2xl w-full mx-auto relative"
+                style={{ height: "500px" }}
+              >
+                {/* Focus view layout matching actual app */}
+                <div className="w-full h-full flex flex-col relative">
                 {/* Exit button in top left (like actual app) */}
                 <div className="absolute top-6 left-6 h-10 w-10 rounded-full bg-muted/20 flex items-center justify-center opacity-50">
                   <X className="h-5 w-5 text-muted-foreground" />
@@ -126,9 +142,67 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
                     Next
                   </button>
                 </div>
+                </div>
               </div>
-            </div>
-
+            ) : (
+              // Nested subtasks view
+              <div
+                className="bg-background rounded-3xl border border-border/50 overflow-hidden shadow-2xl w-full mx-auto relative"
+                style={{ height: "500px" }}
+              >
+                <div className="w-full h-full flex items-center justify-center p-8">
+                  <div className="space-y-6 w-full max-w-md">
+                    {/* Main task */}
+                    <div className="flex items-center justify-between p-4 bg-primary/10 rounded-xl border border-primary/20">
+                      <div className="flex items-center gap-3">
+                        <div className="h-6 w-6 rounded-full border-2 border-primary"></div>
+                        <span className="font-medium text-primary">Write a book</span>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-primary" />
+                    </div>
+                    
+                    {/* Subtasks */}
+                    <div className="ml-6 space-y-2">
+                      <div className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-primary/5">
+                        <div className="flex items-center gap-3">
+                          <div className="h-4 w-4 rounded-sm border border-primary bg-primary"></div>
+                          <Split className="h-3 w-3 text-primary" />
+                          <span className="text-sm font-medium text-primary">Plan the book</span>
+                        </div>
+                        <ChevronRight className="h-3 w-3 text-primary" />
+                      </div>
+                      
+                      <div className="flex items-center justify-between p-3 rounded-lg border border-border/50 opacity-60">
+                        <div className="flex items-center gap-3">
+                          <div className="h-4 w-4 rounded-sm border border-muted-foreground"></div>
+                          <Split className="h-3 w-3 text-muted-foreground" />
+                          <span className="text-sm text-muted-foreground">Write chapters</span>
+                        </div>
+                      </div>
+                      
+                      {/* Sub-subtasks */}
+                      <div className="ml-6 space-y-1">
+                        <div className="flex items-center justify-between p-2 rounded-lg border border-primary/30 bg-primary/10">
+                          <div className="flex items-center gap-2">
+                            <div className="h-3 w-3 rounded-sm border border-primary bg-primary"></div>
+                            <Split className="h-2 w-2 text-primary" />
+                            <span className="text-xs font-medium text-primary">Research topic</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between p-2 rounded-lg border border-border/30 opacity-40">
+                          <div className="flex items-center gap-2">
+                            <div className="h-3 w-3 rounded-sm border border-muted-foreground"></div>
+                            <Split className="h-2 w-2 text-muted-foreground" />
+                            <span className="text-xs text-muted-foreground">Create outline</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
