@@ -75,20 +75,23 @@ export function TopBar() {
         <div className="flex items-center space-x-3">
           {/* <ThemeToggle /> */}
           {isAuthLoading ? (
-            // Show nothing while auth is loading to prevent flash
-            <div className="w-24 h-8" />
+            // Show feedback and discord while auth is loading, positioned to slide left when auth loads
+            <div className="flex items-center space-x-3">
+              <FeedbackButton />
+            </div>
           ) : user && !isAnonymousUser ? (
             // Authenticated user - show Feedback, Discord and profile dropdown with animation
             <div className={`flex items-center space-x-3 ${shouldAnimate ? 'animate-profile-fade-in' : 'opacity-0'}`}>
               <FeedbackButton />
-              <Link href="https://discord.gg/UQYybzN3Ac" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="https://discord.gg/UQYybzN3Ac" target="_blank" rel="noopener noreferrer" className="hidden sm:block text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Discord
               </Link>
               <ProfileDropdown user={user} showFocusButton={true} />
             </div>
           ) : (
-            // Not authenticated or anonymous user - show auth buttons with animation
+            // Not authenticated or anonymous user - show feedback, discord and auth buttons with animation
             <div className={`flex items-center space-x-3 ${shouldAnimate ? 'animate-profile-fade-in' : 'opacity-0'}`}>
+              <FeedbackButton />
               <Button
                 variant="ghost"
                 size="sm"

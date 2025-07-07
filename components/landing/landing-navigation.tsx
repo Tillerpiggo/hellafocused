@@ -24,7 +24,7 @@ export function LandingNavigation({ hasSession, user }: LandingNavigationProps) 
             // Authenticated user - show Feedback, Discord and profile with smooth animation
             <div className="flex items-center gap-6 animate-profile-fade-in">
               <FeedbackButton />
-              <Link href="https://discord.gg/UQYybzN3Ac" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="https://discord.gg/UQYybzN3Ac" target="_blank" rel="noopener noreferrer" className="hidden sm:block text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Discord
               </Link>
               <ProfileDropdown user={user} showBackToApp={true} />
@@ -33,7 +33,7 @@ export function LandingNavigation({ hasSession, user }: LandingNavigationProps) 
             // Not authenticated - show Feedback, Discord and Try Now buttons immediately
             <>
               <FeedbackButton />
-              <Link href="https://discord.gg/UQYybzN3Ac" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+              <Link href="https://discord.gg/UQYybzN3Ac" target="_blank" rel="noopener noreferrer" className="hidden sm:block text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Discord
               </Link>
               <Link href="/app">

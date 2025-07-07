@@ -193,7 +193,7 @@ export function FeedbackPopup({ isOpen, onClose, buttonRef }: FeedbackPopupProps
                 className="text-xs px-0"
                 onClick={handleBack}
               >
-                ← Back
+                ←  Back
               </Button>
               <Button
                 variant="ghost"
@@ -224,7 +224,7 @@ export function FeedbackPopup({ isOpen, onClose, buttonRef }: FeedbackPopupProps
               }
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
-              className="min-h-[80px] resize-none"
+              className="min-h-[80px] resize-none text-sm"
               autoFocus
             />
             
