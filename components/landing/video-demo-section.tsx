@@ -37,7 +37,7 @@ export function VideoDemoSection() {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light text-foreground mb-4">
-            The best to-do app for getting locked in.
+            Pick a random task by pressing 'focus'
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto">
             Hellafocused picks a task for you to work on. If you don&apos;t like it, you can reroll. If the task is too big,
