@@ -5,26 +5,29 @@ import { Button } from "@/components/ui/button"
 import { SegmentedControl } from "@/components/ui/segmented-control"
 import { Textarea } from "@/components/ui/textarea"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { X, Plus, Check, Shuffle, ChevronRight, Split, ArrowRight } from "lucide-react"
-import { useAppStore } from "@/store/app-store"
 
-const placeholderGoals = [
-  "Learn Spanish",
-  "Write a book", 
-  "Get in shape",
-  "Start a business",
-  "Learn to code",
-  "Eat healthier",
-  "Make new friends",
-  "Learn piano",
-  "Save money",
-  "Get organized",
-  "Learn guitar",
-  "Start a podcast",
-  "Run a marathon",
-  "Learn photography",
-  "Start cooking more"
+const examples = [
+  { goal: "write a book", task: "type your name at the top of a blank page" },
+  { goal: "learn Spanish", task: "say 'hola' out loud once" },
+  { goal: "get fit", task: "do one pushup on your knees" },
+  { goal: "start a business", task: "text one friend your business idea" },
+  { goal: "learn piano", task: "press middle C with your pointer finger" },
+  { goal: "clean my room", task: "put one sock in the hamper" },
+  { goal: "eat healthier", task: "take one bite of an apple" },
+  { goal: "save money", task: "put one quarter in a jar" },
+  { goal: "make friends", task: "say 'hi' to one person today" },
+  { goal: "learn coding", task: "type 'hello world' in a text editor" },
+  { goal: "read more books", task: "read one sentence of any book" },
+  { goal: "meditate daily", task: "take a deep breath" },
+  { goal: "start gardening", task: "touch one leaf of a plant" },
+  { goal: "cook dinner", task: "turn on the stove" },
+  { goal: "network better", task: "look up one person's LinkedIn profile" },
+  { goal: "learn guitar", task: "hold a guitar pick between your fingers" },
+  { goal: "get organized", task: "move one item to where it belongs" },
+  { goal: "wake up earlier", task: "set your alarm 1 minute earlier" },
+  { goal: "drink more water", task: "fill a glass with water" },
+  { goal: "start journaling", task: "write today's date on paper" }
 ];
 
 interface HeroSectionProps {
@@ -32,32 +35,30 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ hasSession }: HeroSectionProps) {
-  const [currentPlaceholder, setCurrentPlaceholder] = useState(0)
+  const [currentExample, setCurrentExample] = useState(0)
   const [selectedView, setSelectedView] = useState('focus')
-  const [inputText, setInputText] = useState('')
-  const router = useRouter()
-  const { addProject, selectProject } = useAppStore()
+  const [showGeneric, setShowGeneric] = useState(true)
+  const [taskInput, setTaskInput] = useState("")
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentPlaceholder((prev) => (prev + 1) % placeholderGoals.length)
+      setCurrentExample((prev) => {
+        const nextIndex = (prev + 1) % examples.length
+        // Show "Break down anything" every 3 examples
+        setShowGeneric(nextIndex % 3 === 0)
+        return nextIndex
+      })
     }, 4500)
 
     return () => clearInterval(interval)
   }, [])
 
   const handleContinue = () => {
-    if (inputText.trim()) {
-      // Store project name for creation after auth
-      localStorage.setItem('pendingProjectName', inputText.trim())
-      router.push('/app')
-    }
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleContinue()
+    if (taskInput.trim()) {
+      // Store the task input for use after auth
+      sessionStorage.setItem('pending-task-input', taskInput.trim())
+      // Navigate to app (which will trigger auth)
+      window.location.href = '/app'
     }
   }
 
@@ -66,43 +67,81 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
       <div className="container max-w-screen-xl mx-auto px-8 sm:px-12 lg:px-16">
         <div className="text-center">
           {/* Hero Title - Bottom aligned to midpoint */}
-          <div className="flex flex-col justify-end h-48 mb-6">
-                          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4">
-                Break down <span className="text-accent-foreground font-black">anything</span>
-              </h1>
-            
-            {/* Static subtitle */}
-            <div className="text-lg sm:text-xl lg:text-2xl font-normal text-muted-foreground leading-tight">
-              Turn projects into hierarchical subtasks.
-            </div>
-                      </div>
-
-          {/* Interactive Text Area */}
-          <div className="mt-12 mb-8 max-w-lg mx-auto">
-            <div className="relative">
-              <Textarea
-                placeholder={placeholderGoals[currentPlaceholder] + "..."}
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="pr-12 text-lg resize-none min-h-[60px] rounded-xl border-2 border-border/50 focus:border-primary/50 bg-background/80 backdrop-blur placeholder:text-muted-foreground/70"
-                rows={2}
-              />
-              <button
-                onClick={handleContinue}
-                disabled={!inputText.trim()}
-                className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all duration-200 ${
-                  inputText.trim()
-                    ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
-                    : 'bg-muted text-muted-foreground/50 cursor-not-allowed'
-                }`}
-              >
-                <ArrowRight className="h-4 w-4" />
-              </button>
-            </div>
+          <div className="flex flex-col justify-end h-64 mb-8">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
+              {showGeneric ? (
+                <span
+                  key="generic"
+                  className="animate-in fade-in duration-500"
+                >
+                  Break down <span className="text-primary font-medium italic">anything</span>
+                </span>
+              ) : (
+                <>
+                  Break down{" "}
+                  <span className="relative inline-block">
+                    <span
+                      key={`goal-${currentExample}`}
+                      className="text-primary font-medium italic animate-in fade-in duration-500"
+                    >
+                      &quot;{examples[currentExample].goal}&quot;
+                    </span>
+                  </span>{" "}
+                  into{" "}
+                  <span className="relative inline-block">
+                    <span
+                      key={`task-${currentExample}`}
+                      className="text-primary font-medium italic animate-in fade-in duration-500"
+                    >
+                      &quot;{examples[currentExample].task}&quot;
+                    </span>
+                  </span>
+                </>
+              )}
+            </h1>
           </div>
 
-
+          {/* Subtitle and Task Input - Top aligned to midpoint */}
+          <div className="flex flex-col justify-start">
+            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
+              Turn overwhelming goals into embarrassingly simple next steps.
+            </p>
+            <div className="flex flex-col items-center">
+              {hasSession ? (
+                <Link href="/app">
+                  <Button size="lg" className="text-lg px-8 py-6">
+                    Back to app
+                  </Button>
+                </Link>
+              ) : (
+                <div className="relative w-full max-w-md">
+                  <Textarea
+                    placeholder="What would you like to break down?"
+                    value={taskInput}
+                    onChange={(e) => setTaskInput(e.target.value)}
+                    className="min-h-[80px] text-center text-lg placeholder:text-muted-foreground/60 resize-none pr-16"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault()
+                        handleContinue()
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={handleContinue}
+                    disabled={!taskInput.trim()}
+                    className={`absolute bottom-3 right-3 p-2 rounded-full transition-all duration-300 ${
+                      taskInput.trim() 
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg hover:shadow-xl' 
+                        : 'bg-muted text-muted-foreground cursor-not-allowed'
+                    }`}
+                  >
+                    <ArrowRight className="h-5 w-5" />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
 
           {/* View Selector */}
           <div className="mt-16 mb-8 flex justify-center">
@@ -139,10 +178,10 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
                 <div className="flex-1 flex items-center justify-center p-8">
                   <div className="text-center max-w-4xl">
                     <h1
-                      key="visual-task-static"
+                      key={`visual-task-${currentExample}`}
                       className="text-3xl sm:text-4xl md:text-5xl font-light text-foreground leading-relaxed break-words animate-in fade-in duration-500"
                     >
-                      set your alarm 5 minutes earlier
+                      {examples[currentExample].task}
                     </h1>
                   </div>
                 </div>
