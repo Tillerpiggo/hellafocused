@@ -53,31 +53,20 @@ export default function HomePage() {
 
   const titleRef = useRef<EditableTitleRef>(null)
 
-  // Handle pending project creation after authentication
-  useEffect(() => {
-    const handlePendingProjectCreation = () => {
-      try {
-        const storedRequest = sessionStorage.getItem('create-project-and-navigate')
-        if (storedRequest) {
-          const { projectName } = JSON.parse(storedRequest)
-          sessionStorage.removeItem('create-project-and-navigate')
-          
-          // Create the project and get its ID
-          const newProjectId = addProject(projectName)
-          
-          // Navigate to the new project immediately
-          selectProject(newProjectId)
-        }
-      } catch (error) {
-        console.error('Error handling pending project creation:', error)
-      }
-    }
-
-    handlePendingProjectCreation()
-  }, [addProject, selectProject])
-
   // Show loading until sync has been initialized at least once
   const shouldShowLoading = syncLoading || lastSyncedAt === 0
+
+  // Handle project creation from landing page after auth
+  useEffect(() => {
+    // Only attempt to create project if not loading (auth is complete)
+    if (!shouldShowLoading) {
+      const pendingProjectName = localStorage.getItem('pendingProjectName')
+      if (pendingProjectName) {
+        addProject(pendingProjectName)
+        localStorage.removeItem('pendingProjectName')
+      }
+    }
+  }, [shouldShowLoading, addProject])
 
   const tasksToDisplay = getCurrentTasksForView(store)
   const currentProject = findProjectAtPath(projects, currentPath)

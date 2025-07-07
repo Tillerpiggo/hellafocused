@@ -193,7 +193,7 @@ export const useAppStore = create<AppState>()(
     trackTaskUpdated(taskPath)
   },
 
-  addProject: (projectName: string) => {
+  addProject: (projectName) => {
     
     const newProjectId = uuidv4()
     const newProject: ProjectData = {
@@ -211,8 +211,6 @@ export const useAppStore = create<AppState>()(
     )
   
     trackProjectCreated(newProject.id)
-    
-    return newProjectId
   },
 
   clearLocalState: () => set({

@@ -23,9 +23,6 @@ export default function AuthCallback() {
           // Check if this is a new authenticated user upgrading from anonymous
           await handleAnonymousUpgrade(user.id)
           
-          // Check for pending task input and handle project creation
-          await handlePendingTaskInput()
-          
           // Successfully authenticated, redirect to app
           window.location.href = `${getBaseUrl()}/app`
         } else {
@@ -35,24 +32,6 @@ export default function AuthCallback() {
       } catch (error) {
         console.error('Unexpected error during auth callback:', error)
         window.location.href = getBaseUrl()
-      }
-    }
-
-    const handlePendingTaskInput = async () => {
-      try {
-        const pendingTaskInput = sessionStorage.getItem('pending-task-input')
-        if (pendingTaskInput) {
-          // Clear the pending input
-          sessionStorage.removeItem('pending-task-input')
-          
-          // Store the project creation request for the app to handle
-          sessionStorage.setItem('create-project-and-navigate', JSON.stringify({
-            projectName: pendingTaskInput,
-            timestamp: Date.now()
-          }))
-        }
-      } catch (error) {
-        console.error('Error handling pending task input:', error)
       }
     }
 
