@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { SyncStatus } from '@/components/sync-status'
 import { Button } from '@/components/ui/button'
 import { ProfileDropdown } from '@/components/ui/profile-dropdown'
+import { FeedbackButton } from '@/components/ui/feedback-button'
 import { supabase } from '@/lib/supabase'
 import { syncEngine } from '@/lib/sync-engine'
 import type { User } from '@supabase/supabase-js'
@@ -77,8 +78,9 @@ export function TopBar() {
             // Show nothing while auth is loading to prevent flash
             <div className="w-24 h-8" />
           ) : user && !isAnonymousUser ? (
-            // Authenticated user - show Discord and profile dropdown with animation
+            // Authenticated user - show Feedback, Discord and profile dropdown with animation
             <div className={`flex items-center space-x-3 ${shouldAnimate ? 'animate-profile-fade-in' : 'opacity-0'}`}>
+              <FeedbackButton />
               <Link href="https://discord.gg/UQYybzN3Ac" target="_blank" rel="noopener noreferrer" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Discord
               </Link>
