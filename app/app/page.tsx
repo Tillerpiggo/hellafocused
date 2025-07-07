@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button"
 import { Target, Loader2 } from "lucide-react"
 import { AddTaskForm } from "@/components/task/add-task-form"
 import { type EditableTitleRef } from "@/components/editable-title"
-import { useRef } from "react"
+import { useRef, useEffect } from "react"
 import { countSubtasksRecursively, findTaskAtPath, findProjectAtPath, getProjectId, isProject, isProjectList } from "@/lib/task-utils"
 
 export default function HomePage() {
@@ -55,6 +55,18 @@ export default function HomePage() {
 
   // Show loading until sync has been initialized at least once
   const shouldShowLoading = syncLoading || lastSyncedAt === 0
+
+  // Handle project creation from landing page after auth
+  useEffect(() => {
+    // Only attempt to create project if not loading (auth is complete)
+    if (!shouldShowLoading) {
+      const pendingProjectName = localStorage.getItem('pendingProjectName')
+      if (pendingProjectName) {
+        addProject(pendingProjectName)
+        localStorage.removeItem('pendingProjectName')
+      }
+    }
+  }, [shouldShowLoading, addProject])
 
   const tasksToDisplay = getCurrentTasksForView(store)
   const currentProject = findProjectAtPath(projects, currentPath)

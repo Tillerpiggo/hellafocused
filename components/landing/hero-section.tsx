@@ -3,8 +3,10 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { SegmentedControl } from "@/components/ui/segmented-control"
+import { Textarea } from "@/components/ui/textarea"
 import Link from "next/link"
-import { X, Plus, Check, Shuffle, ChevronRight, Split } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { X, Plus, Check, Shuffle, ChevronRight, Split, ArrowRight } from "lucide-react"
 
 const examples = [
   { goal: "write a book", task: "type your name at the top of a blank page" },
@@ -36,6 +38,8 @@ interface HeroSectionProps {
 export function HeroSection({ hasSession }: HeroSectionProps) {
   const [currentExample, setCurrentExample] = useState(0)
   const [selectedView, setSelectedView] = useState('focus')
+  const [inputText, setInputText] = useState('')
+  const router = useRouter()
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -45,18 +49,33 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
     return () => clearInterval(interval)
   }, [])
 
+  const handleContinue = () => {
+    if (inputText.trim()) {
+      // Store project name for creation after auth
+      localStorage.setItem('pendingProjectName', inputText.trim())
+      router.push('/app')
+    }
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleContinue()
+    }
+  }
+
   return (
     <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50/20 via-background to-purple-50/10 dark:from-blue-950/10 dark:via-background dark:to-purple-950/5 pt-4 lg:pt-0">
       <div className="container max-w-screen-xl mx-auto px-8 sm:px-12 lg:px-16">
         <div className="text-center">
           {/* Hero Title - Bottom aligned to midpoint */}
-          <div className="flex flex-col justify-end h-64 mb-8">
+          <div className="flex flex-col justify-end h-48 mb-6">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4">
               Break down <span className="text-primary font-medium italic">anything</span>
             </h1>
             
             {/* Typing effect subtitle */}
-            <div className="text-xl sm:text-2xl lg:text-3xl font-normal text-muted-foreground leading-tight">
+            <div className="text-lg sm:text-xl lg:text-2xl font-normal text-muted-foreground leading-tight">
               <span 
                 key={`example-${currentExample}`}
                 className="inline-block animate-wipe-in"
@@ -64,21 +83,39 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
                   animation: 'wipe-in 0.8s ease-out forwards'
                 }}
               >
-                Turn{" "}
-                <span className="text-primary">
-                  &quot;{examples[currentExample].goal}&quot;
-                </span>{" "}
-                into{" "}
-                <span className="text-primary">
-                  &quot;{examples[currentExample].task}&quot;
-                </span>
+                Turn &quot;{examples[currentExample].goal}&quot; into &quot;{examples[currentExample].task}&quot;
               </span>
+            </div>
+                      </div>
+
+          {/* Interactive Text Area */}
+          <div className="mt-12 mb-8 max-w-lg mx-auto">
+            <div className="relative">
+              <Textarea
+                placeholder="What do you want to do?"
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                onKeyPress={handleKeyPress}
+                className="pr-12 text-lg resize-none min-h-[60px] rounded-xl border-2 border-border/50 focus:border-primary/50 bg-background/80 backdrop-blur placeholder:text-muted-foreground/70"
+                rows={2}
+              />
+              <button
+                onClick={handleContinue}
+                disabled={!inputText.trim()}
+                className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all duration-200 ${
+                  inputText.trim()
+                    ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
+                    : 'bg-muted text-muted-foreground/50 cursor-not-allowed'
+                }`}
+              >
+                <ArrowRight className="h-4 w-4" />
+              </button>
             </div>
           </div>
 
-                    {/* CTA - Top aligned to midpoint */}
+          {/* CTA - Top aligned to midpoint */}
           <div className="flex flex-col justify-start">
-            <div className="flex flex-col items-center mt-12">
+            <div className="flex flex-col items-center">
               <Link href="/app">
                 <Button size="lg" className="text-lg px-8 py-6">
                   {hasSession ? "Back to app" : "Create an account"}
