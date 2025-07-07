@@ -41,7 +41,7 @@ interface AppState {
   addSubtaskToParent: (parentPath: string[], subtaskName: string) => void
   updateProjectName: (projectId: string, newName: string) => void
   updateTaskName: (taskPath: string[], newName: string) => void
-  addProject: (projectName: string) => string
+  addProject: (projectName: string) => void
   clearLocalState: () => void
 }
 

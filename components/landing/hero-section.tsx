@@ -3,28 +3,30 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { SegmentedControl } from "@/components/ui/segmented-control"
-import { Textarea } from "@/components/ui/textarea"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { X, Plus, Check, Shuffle, ChevronRight, Split, ArrowRight } from "lucide-react"
-import { useAppStore } from "@/store/app-store"
+import { X, Plus, Check, Shuffle, ChevronRight, Split } from "lucide-react"
 
-const placeholderGoals = [
-  "Learn Spanish",
-  "Write a book", 
-  "Get in shape",
-  "Start a business",
-  "Learn to code",
-  "Eat healthier",
-  "Make new friends",
-  "Learn piano",
-  "Save money",
-  "Get organized",
-  "Learn guitar",
-  "Start a podcast",
-  "Run a marathon",
-  "Learn photography",
-  "Start cooking more"
+const examples = [
+  { goal: "Write a book", task: "type your name at the top of a blank page" },
+  { goal: "Learn Spanish", task: "say 'hola' out loud once" },
+  { goal: "Get fit", task: "do one pushup on your knees" },
+  { goal: "Start a business", task: "text one friend your business idea" },
+  { goal: "Learn piano", task: "press middle C with your pointer finger" },
+  { goal: "Clean my room", task: "put one sock in the hamper" },
+  { goal: "Eat healthier", task: "take one bite of an apple" },
+  { goal: "Save money", task: "put one quarter in a jar" },
+  { goal: "Make friends", task: "say 'hi' to one person today" },
+  { goal: "Learn coding", task: "type 'hello world' in a text editor" },
+  { goal: "Read more books", task: "read one sentence of any book" },
+  { goal: "Meditate daily", task: "take a deep breath" },
+  { goal: "Start gardening", task: "touch one leaf of a plant" },
+  { goal: "Cook dinner", task: "turn on the stove" },
+  { goal: "Network better", task: "look up one person's LinkedIn profile" },
+  { goal: "Learn guitar", task: "hold a guitar pick between your fingers" },
+  { goal: "Get organized", task: "move one item to where it belongs" },
+  { goal: "Wake up earlier", task: "set your alarm 1 minute earlier" },
+  { goal: "Drink more water", task: "fill a glass with water" },
+  { goal: "Start journaling", task: "write today's date on paper" }
 ];
 
 interface HeroSectionProps {
@@ -32,77 +34,64 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ hasSession }: HeroSectionProps) {
-  const [currentPlaceholder, setCurrentPlaceholder] = useState(0)
+  const [currentExample, setCurrentExample] = useState(0)
   const [selectedView, setSelectedView] = useState('focus')
-  const [inputText, setInputText] = useState('')
-  const router = useRouter()
-  const { addProject, selectProject } = useAppStore()
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentPlaceholder((prev) => (prev + 1) % placeholderGoals.length)
+      setCurrentExample((prev) => (prev + 1) % examples.length)
     }, 4500)
 
     return () => clearInterval(interval)
   }, [])
-
-  const handleContinue = () => {
-    if (inputText.trim()) {
-      // Store project name for creation after auth
-      localStorage.setItem('pendingProjectName', inputText.trim())
-      router.push('/app')
-    }
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleContinue()
-    }
-  }
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50/20 via-background to-purple-50/10 dark:from-blue-950/10 dark:via-background dark:to-purple-950/5 pt-4 lg:pt-0">
       <div className="container max-w-screen-xl mx-auto px-8 sm:px-12 lg:px-16">
         <div className="text-center">
           {/* Hero Title - Bottom aligned to midpoint */}
-          <div className="flex flex-col justify-end h-48 mb-6">
-                          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4">
-                Break down <span className="text-accent-foreground font-black">anything</span>
-              </h1>
+          <div className="flex flex-col justify-end h-64 mb-8">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground leading-tight mb-4">
+              {/* Break down <span className="text-primary font-bold italic">anything.</span> */}
+              One task. Full screen.
+            </h1>
             
-            {/* Static subtitle */}
-            <div className="text-lg sm:text-xl lg:text-2xl font-normal text-muted-foreground leading-tight">
-              Turn projects into hierarchical subtasks.
-            </div>
-                      </div>
-
-          {/* Interactive Text Area */}
-          <div className="mt-12 mb-8 max-w-lg mx-auto">
-            <div className="relative">
-              <Textarea
-                placeholder={placeholderGoals[currentPlaceholder] + "..."}
-                value={inputText}
-                onChange={(e) => setInputText(e.target.value)}
-                onKeyPress={handleKeyPress}
-                className="pr-12 text-lg resize-none min-h-[60px] rounded-xl border-2 border-border/50 focus:border-primary/50 bg-background/80 backdrop-blur placeholder:text-muted-foreground/70"
-                rows={2}
-              />
-              <button
-                onClick={handleContinue}
-                disabled={!inputText.trim()}
-                className={`absolute bottom-3 right-3 p-2 rounded-lg transition-all duration-200 ${
-                  inputText.trim()
-                    ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm'
-                    : 'bg-muted text-muted-foreground/50 cursor-not-allowed'
-                }`}
+            {/* Typing effect subtitle */}
+            <div className="text-xl sm:text-2xl lg:text-3xl font-normal text-muted-foreground leading-tight">
+              <span 
+                key={`example-${currentExample}`}
+                className="inline-block animate-wipe-in"
+                style={{
+                  animation: 'wipe-in 0.8s ease-out forwards'
+                }}
               >
-                <ArrowRight className="h-4 w-4" />
-              </button>
+                <span className="text-muted-foreground">
+                  &quot;{examples[currentExample].goal}&quot;
+                </span>{" "}
+                becomes{" "}
+                <span className="text-muted-foreground">
+                  &quot;{examples[currentExample].task}&quot;
+                </span>
+                .
+              </span>
             </div>
           </div>
 
-
+                    {/* CTA - Top aligned to midpoint */}
+          <div className="flex flex-col justify-start">
+            <div className="flex flex-col items-center mt-12">
+              <Link href="/app">
+                <Button size="lg" className="text-lg px-8 py-6">
+                  {hasSession ? "Back to app" : "Start focusing now"}
+                </Button>
+              </Link>
+              {!hasSession && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  No signup required.
+                </p>
+              )}
+            </div>
+          </div>
 
           {/* View Selector */}
           <div className="mt-16 mb-8 flex justify-center">
@@ -139,10 +128,10 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
                 <div className="flex-1 flex items-center justify-center p-8">
                   <div className="text-center max-w-4xl">
                     <h1
-                      key="visual-task-static"
+                      key={`visual-task-${currentExample}`}
                       className="text-3xl sm:text-4xl md:text-5xl font-light text-foreground leading-relaxed break-words animate-in fade-in duration-500"
                     >
-                      set your alarm 5 minutes earlier
+                      {examples[currentExample].task}
                     </h1>
                   </div>
                 </div>
