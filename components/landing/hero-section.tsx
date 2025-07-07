@@ -36,16 +36,10 @@ interface HeroSectionProps {
 export function HeroSection({ hasSession }: HeroSectionProps) {
   const [currentExample, setCurrentExample] = useState(0)
   const [selectedView, setSelectedView] = useState('focus')
-  const [showGeneric, setShowGeneric] = useState(true)
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentExample((prev) => {
-        const nextIndex = (prev + 1) % examples.length
-        // Show "Break down anything" every 3 examples
-        setShowGeneric(nextIndex % 3 === 0)
-        return nextIndex
-      })
+      setCurrentExample((prev) => (prev + 1) % examples.length)
     }, 4500)
 
     return () => clearInterval(interval)
@@ -57,45 +51,34 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
         <div className="text-center">
           {/* Hero Title - Bottom aligned to midpoint */}
           <div className="flex flex-col justify-end h-64 mb-8">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
-              {showGeneric ? (
-                <span
-                  key="generic"
-                  className="animate-in fade-in duration-500"
-                >
-                  Break down <span className="text-primary font-medium italic">anything</span>
-                </span>
-              ) : (
-                <>
-                  Break down{" "}
-                  <span className="relative inline-block">
-                    <span
-                      key={`goal-${currentExample}`}
-                      className="text-primary font-medium italic animate-in fade-in duration-500"
-                    >
-                      &quot;{examples[currentExample].goal}&quot;
-                    </span>
-                  </span>{" "}
-                  into{" "}
-                  <span className="relative inline-block">
-                    <span
-                      key={`task-${currentExample}`}
-                      className="text-primary font-medium italic animate-in fade-in duration-500"
-                    >
-                      &quot;{examples[currentExample].task}&quot;
-                    </span>
-                  </span>
-                </>
-              )}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4">
+              Break down <span className="text-primary font-medium italic">anything</span>
             </h1>
+            
+            {/* Typing effect subtitle */}
+            <div className="text-xl sm:text-2xl lg:text-3xl font-normal text-muted-foreground leading-tight">
+              <span 
+                key={`example-${currentExample}`}
+                className="inline-block animate-wipe-in"
+                style={{
+                  animation: 'wipe-in 0.8s ease-out forwards'
+                }}
+              >
+                Turn{" "}
+                <span className="text-primary">
+                  &quot;{examples[currentExample].goal}&quot;
+                </span>{" "}
+                into{" "}
+                <span className="text-primary">
+                  &quot;{examples[currentExample].task}&quot;
+                </span>
+              </span>
+            </div>
           </div>
 
-          {/* Subtitle and CTA - Top aligned to midpoint */}
+                    {/* CTA - Top aligned to midpoint */}
           <div className="flex flex-col justify-start">
-            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-              Turn overwhelming goals into embarrassingly simple next steps.
-            </p>
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-center mt-12">
               <Link href="/app">
                 <Button size="lg" className="text-lg px-8 py-6">
                   {hasSession ? "Back to app" : "Create an account"}
