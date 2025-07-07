@@ -7,28 +7,24 @@ import { Textarea } from "@/components/ui/textarea"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { X, Plus, Check, Shuffle, ChevronRight, Split, ArrowRight } from "lucide-react"
+import { useAppStore } from "@/store/app-store"
 
-const examples = [
-  { goal: "write a book", task: "type your name at the top of a blank page" },
-  { goal: "learn Spanish", task: "say 'hola' out loud once" },
-  { goal: "get fit", task: "do one pushup on your knees" },
-  { goal: "start a business", task: "text one friend your business idea" },
-  { goal: "learn piano", task: "press middle C with your pointer finger" },
-  { goal: "clean my room", task: "put one sock in the hamper" },
-  { goal: "eat healthier", task: "take one bite of an apple" },
-  { goal: "save money", task: "put one quarter in a jar" },
-  { goal: "make friends", task: "say 'hi' to one person today" },
-  { goal: "learn coding", task: "type 'hello world' in a text editor" },
-  { goal: "read more books", task: "read one sentence of any book" },
-  { goal: "meditate daily", task: "take a deep breath" },
-  { goal: "start gardening", task: "touch one leaf of a plant" },
-  { goal: "cook dinner", task: "turn on the stove" },
-  { goal: "network better", task: "look up one person's LinkedIn profile" },
-  { goal: "learn guitar", task: "hold a guitar pick between your fingers" },
-  { goal: "get organized", task: "move one item to where it belongs" },
-  { goal: "wake up earlier", task: "set your alarm 1 minute earlier" },
-  { goal: "drink more water", task: "fill a glass with water" },
-  { goal: "start journaling", task: "write today's date on paper" }
+const placeholderGoals = [
+  "Learn Spanish",
+  "Write a book", 
+  "Get in shape",
+  "Start a business",
+  "Learn to code",
+  "Eat healthier",
+  "Make new friends",
+  "Learn piano",
+  "Save money",
+  "Get organized",
+  "Learn guitar",
+  "Start a podcast",
+  "Run a marathon",
+  "Learn photography",
+  "Start cooking more"
 ];
 
 interface HeroSectionProps {
@@ -36,14 +32,15 @@ interface HeroSectionProps {
 }
 
 export function HeroSection({ hasSession }: HeroSectionProps) {
-  const [currentExample, setCurrentExample] = useState(0)
+  const [currentPlaceholder, setCurrentPlaceholder] = useState(0)
   const [selectedView, setSelectedView] = useState('focus')
   const [inputText, setInputText] = useState('')
   const router = useRouter()
+  const { addProject, selectProject } = useAppStore()
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentExample((prev) => (prev + 1) % examples.length)
+      setCurrentPlaceholder((prev) => (prev + 1) % placeholderGoals.length)
     }, 4500)
 
     return () => clearInterval(interval)
@@ -70,21 +67,13 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
         <div className="text-center">
           {/* Hero Title - Bottom aligned to midpoint */}
           <div className="flex flex-col justify-end h-48 mb-6">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4">
-              Break down <span className="text-primary font-medium italic">anything</span>
-            </h1>
+                          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground leading-tight mb-4">
+                Break down <span className="text-accent-foreground font-black">anything</span>
+              </h1>
             
-            {/* Typing effect subtitle */}
+            {/* Static subtitle */}
             <div className="text-lg sm:text-xl lg:text-2xl font-normal text-muted-foreground leading-tight">
-              <span 
-                key={`example-${currentExample}`}
-                className="inline-block animate-wipe-in"
-                style={{
-                  animation: 'wipe-in 0.8s ease-out forwards'
-                }}
-              >
-                Turn &quot;{examples[currentExample].goal}&quot; into &quot;{examples[currentExample].task}&quot;
-              </span>
+              Turn projects into hierarchical subtasks.
             </div>
                       </div>
 
@@ -92,7 +81,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
           <div className="mt-12 mb-8 max-w-lg mx-auto">
             <div className="relative">
               <Textarea
-                placeholder="What do you want to do?"
+                placeholder={placeholderGoals[currentPlaceholder] + "..."}
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
                 onKeyPress={handleKeyPress}
@@ -113,21 +102,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
             </div>
           </div>
 
-          {/* CTA - Top aligned to midpoint */}
-          <div className="flex flex-col justify-start">
-            <div className="flex flex-col items-center">
-              <Link href="/app">
-                <Button size="lg" className="text-lg px-8 py-6">
-                  {hasSession ? "Back to app" : "Create an account"}
-                </Button>
-              </Link>
-              {!hasSession && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  No signup required.
-                </p>
-              )}
-            </div>
-          </div>
+
 
           {/* View Selector */}
           <div className="mt-16 mb-8 flex justify-center">
@@ -164,10 +139,10 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
                 <div className="flex-1 flex items-center justify-center p-8">
                   <div className="text-center max-w-4xl">
                     <h1
-                      key={`visual-task-${currentExample}`}
+                      key="visual-task-static"
                       className="text-3xl sm:text-4xl md:text-5xl font-light text-foreground leading-relaxed break-words animate-in fade-in duration-500"
                     >
-                      {examples[currentExample].task}
+                      set your alarm 5 minutes earlier
                     </h1>
                   </div>
                 </div>
