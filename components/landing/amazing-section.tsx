@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { Check, Star, Target, Sparkles } from "lucide-react"
+import { Check, Target, Sparkles } from "lucide-react"
 
 const achievements = [
   { goal: "Write a novel", progress: "Started with one sentence", icon: "📚" },

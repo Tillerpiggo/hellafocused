@@ -37,7 +37,7 @@ export function AddTasksSection() {
             Add tasks without losing focus.
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto mt-6">
-            Hit the "+" button to capture new ideas or break down what you're working on.
+            Hit the &quot;+&quot; button to capture new ideas or break down what you&apos;re working on.
           </p>
         </div>
 

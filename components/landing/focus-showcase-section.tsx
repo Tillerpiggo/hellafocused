@@ -37,7 +37,7 @@ export function FocusShowcaseSection() {
             Focus on one subtask at a time.
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto mt-6">
-            Press 'focus' and we'll pick a task for you.
+            Press &apos;focus&apos; and we&apos;ll pick a task for you.
           </p>
         </div>
 

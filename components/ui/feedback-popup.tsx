@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Bug, Lightbulb, Send, CheckCircle, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'

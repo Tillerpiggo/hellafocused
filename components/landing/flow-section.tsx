@@ -51,7 +51,7 @@ export function FlowSection() {
               Focus mode.
             </h2>
             <p className="text-xl text-muted-foreground leading-relaxed mt-6">
-              Get told what's next.
+              Get told what&apos;s next.
             </p>
           </div>
         </div>
