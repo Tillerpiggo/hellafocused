@@ -34,10 +34,10 @@ export function FocusShowcaseSection() {
         {/* Title */}
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
-            See your next task in full screen.
+            Stop staring at lists. Start making progress.
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto mt-6">
-            Press &apos;focus&apos; to pick a random task. Press next to get a different one.
+          Press &apos;focus&apos; to see one task in full screen. Press next when you're ready for another.
           </p>
         </div>
 

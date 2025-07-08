@@ -34,8 +34,8 @@ export function VideoDemoSection() {
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4">
             Break down any goal into tiny tasks.
           </h2>
-          <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto">
-            Nested subtasks let you make anything approachable.
+          <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto mt-6">
+          Nested subtasks let you make anything approachable. Turn &quot;get fit&quot; into &quot;do 1 push-up&quot;.
           </p>
         </div>
 

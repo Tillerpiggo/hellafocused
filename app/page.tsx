@@ -24,8 +24,8 @@ function LandingContent({ user, hasSession }: LandingContentProps) {
     <div className="min-h-screen bg-background">
       <LandingNavigation hasSession={hasSession} user={user} />
       <HeroSection hasSession={hasSession} />
-      <VideoDemoSection />
       <FocusShowcaseSection />
+      <VideoDemoSection />
       <AddTasksSection />
       <SubdivideTasksSection />
       {/* <StickyScrollSection /> */}
