@@ -76,7 +76,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
               {/* One task. Full screen. */}
               {/* Break down any goal. */}
               {/* Make anything easy. */}
-              Bite-sized productivity.
+              Focus on one tiny task at a time.
             </h1>
             
             {/* Typing effect subtitle with todo styling */}
