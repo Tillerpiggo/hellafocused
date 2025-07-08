@@ -7,25 +7,20 @@ import Link from "next/link"
 import { X, Plus, Check, Shuffle, ChevronRight, Split } from "lucide-react"
 
 const examples = [
-  { goal: "Write a book", task: "type your name at the top of a blank page" },
-  { goal: "Learn Spanish", task: "say 'hola' out loud once" },
-  { goal: "Get fit", task: "do one pushup on your knees" },
-  { goal: "Start a business", task: "text one friend your business idea" },
-  { goal: "Learn piano", task: "press middle C with your pointer finger" },
+  { goal: "Write a book", task: "write one sentence" },
+  { goal: "Learn Spanish", task: "download Duolingo" },
+  { goal: "Get fit", task: "do 1 push-up" },
+  { goal: "Start a business", task: "name a problem you have" },
+  { goal: "Learn piano", task: "download a piano app" },
   { goal: "Clean my room", task: "put one sock in the hamper" },
-  { goal: "Eat healthier", task: "take one bite of an apple" },
-  { goal: "Save money", task: "put one quarter in a jar" },
-  { goal: "Make friends", task: "say 'hi' to one person today" },
-  { goal: "Learn coding", task: "type 'hello world' in a text editor" },
-  { goal: "Read more books", task: "read one sentence of any book" },
+  { goal: "Eat healthier", task: "find a calorie tracker" },
+  { goal: "Save money", task: "put away 5 dollars" },
+  { goal: "Make friends", task: "text one person 'how are you?'" },
+  { goal: "Learn coding", task: "look up coding tutorials on YouTube" },
   { goal: "Meditate daily", task: "take a deep breath" },
-  { goal: "Start gardening", task: "touch one leaf of a plant" },
   { goal: "Cook dinner", task: "turn on the stove" },
-  { goal: "Network better", task: "look up one person's LinkedIn profile" },
-  { goal: "Learn guitar", task: "hold a guitar pick between your fingers" },
-  { goal: "Get organized", task: "move one item to where it belongs" },
+  { goal: "Network better", task: "text an old friend" },
   { goal: "Wake up earlier", task: "set your alarm 1 minute earlier" },
-  { goal: "Drink more water", task: "fill a glass with water" },
   { goal: "Start journaling", task: "write today's date on paper" }
 ];
 
@@ -36,14 +31,23 @@ interface HeroSectionProps {
 export function HeroSection({ hasSession }: HeroSectionProps) {
   const [currentExample, setCurrentExample] = useState(0)
   const [selectedView, setSelectedView] = useState('focus')
+  const [isTaskChecked, setIsTaskChecked] = useState(false)
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentExample((prev) => (prev + 1) % examples.length)
-    }, 4500)
+      setIsTaskChecked(true)
+      
+      // After a brief pause, move to next example and uncheck
+      setTimeout(() => {
+        const nextExample = (currentExample + 1) % examples.length
+        setCurrentExample(nextExample)
+        // Always reset to unchecked, and ensure first example stays unchecked
+        setIsTaskChecked(false)
+      }, 2000)
+    }, 3000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [currentExample])
 
   return (
     <section className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50/20 via-background to-purple-50/10 dark:from-blue-950/10 dark:via-background dark:to-purple-950/5 pt-4 lg:pt-0">
@@ -52,37 +56,72 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
           {/* Hero Title - Bottom aligned to midpoint */}
           <div className="flex flex-col justify-end h-64 mb-8">
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground leading-tight mb-4">
-              {/* Break down <span className="text-primary font-bold italic">anything.</span> */}
-              One task. Full screen.
+              {/* Break down <span className="text-primary font-bold italic">any goal.</span> */}
+              {/* One task. Full screen. */}
+              {/* Break down any goal. */}
+              {/* Make anything easy. */}
+              Bite-sized productivity.
             </h1>
             
-            {/* Typing effect subtitle */}
+            {/* Typing effect subtitle with todo styling */}
             <div className="text-xl sm:text-2xl lg:text-3xl font-normal text-muted-foreground leading-tight">
-              <span 
+              <div 
                 key={`example-${currentExample}`}
-                className="inline-block animate-wipe-in"
+                className="flex flex-col sm:inline-flex sm:flex-row items-center gap-3 sm:gap-4 animate-wipe-in"
                 style={{
                   animation: 'wipe-in 0.8s ease-out forwards'
                 }}
               >
-                <span className="text-muted-foreground">
-                  &quot;{examples[currentExample].goal}&quot;
-                </span>{" "}
-                becomes{" "}
-                <span className="text-muted-foreground">
-                  &quot;{examples[currentExample].task}&quot;
-                </span>
-                .
-              </span>
+                {/* Goal todo item */}
+                <div className="flex items-center gap-3 sm:gap-2 bg-muted/20 rounded-lg px-4 py-3 sm:px-3 sm:py-2 border border-border/30">
+                  <div className="h-5 w-5 sm:h-4 sm:w-4 rounded-sm border-2 border-muted-foreground bg-transparent flex items-center justify-center">
+                  </div>
+                  <span className="text-muted-foreground">
+                    {examples[currentExample].goal}
+                  </span>
+                </div>
+
+                <span className="text-muted-foreground mx-0 sm:mx-2">becomes</span>
+
+                {/* Task todo item */}
+                <div className="flex items-center gap-3 sm:gap-2 bg-muted/20 rounded-lg px-4 py-3 sm:px-3 sm:py-2 border border-border/30">
+                  <div 
+                    className={`h-5 w-5 sm:h-4 sm:w-4 rounded-sm border-2 transition-all duration-300 flex items-center justify-center ${
+                      isTaskChecked ? 'border-blue-500 bg-blue-500' : 'border-muted-foreground bg-transparent'
+                    }`}
+                  >
+                    {isTaskChecked && (
+                      <Check className="h-4 w-4 sm:h-3 sm:w-3 text-white animate-in zoom-in duration-200" />
+                    )}
+                  </div>
+                  <span 
+                    className={`text-muted-foreground transition-all duration-300 ${
+                      isTaskChecked ? 'line-through' : ''
+                    }`}
+                  >
+                    {examples[currentExample].task}
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
 
-                    {/* CTA - Top aligned to midpoint */}
+          {/* CTA - Top aligned to midpoint */}
           <div className="flex flex-col justify-start">
-            <div className="flex flex-col items-center mt-12">
+            <div className="flex flex-col items-center mt-6">
               <Link href="/app">
                 <Button size="lg" className="text-lg px-8 py-6">
-                  {hasSession ? "Back to app" : "Start focusing now"}
+                  {hasSession ? (
+                    <>
+                      <span className="sm:hidden">Continue by tapping here</span>
+                      <span className="hidden sm:inline">Continue by clicking here</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="sm:hidden">Start by tapping here</span>
+                      <span className="hidden sm:inline">Start by clicking here</span>
+                    </>
+                  )}
                 </Button>
               </Link>
               {!hasSession && (
