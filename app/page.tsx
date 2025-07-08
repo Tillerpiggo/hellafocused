@@ -11,7 +11,6 @@ import { RecursiveBreakdownSection } from "@/components/landing/recursive-breakd
 import { FlowSection } from "@/components/landing/flow-section"
 import { FocusShowcaseSection } from "@/components/landing/focus-showcase-section"
 import { AddTasksSection } from "@/components/landing/add-tasks-section"
-import { AmazingSection } from "@/components/landing/amazing-section"
 import { FinalCTASection } from "@/components/landing/final-cta-section"
 import { FAQSection } from "@/components/landing/faq-section"
 import { LandingFooter } from "@/components/landing/landing-footer"
@@ -33,7 +32,6 @@ function LandingContent({ user, hasSession }: LandingContentProps) {
       {/* <StickyScrollSection /> */}
       {/* <RecursiveBreakdownSection /> */}
       {/* <FlowSection /> */}
-      <AmazingSection />
       <FinalCTASection hasSession={hasSession} />
       <FAQSection />
       <LandingFooter />
