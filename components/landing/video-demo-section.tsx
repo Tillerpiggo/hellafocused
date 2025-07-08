@@ -32,10 +32,10 @@ export function VideoDemoSection() {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4">
-            Break down any goal into tiny tasks.
+            Recursively break down your goals.
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto mt-6">
-          Nested subtasks let you make anything approachable. Turn &quot;get fit&quot; into &quot;do 1 push-up&quot;.
+          Nested subtasks let you manage anything.
           </p>
         </div>
 

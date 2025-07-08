@@ -13,6 +13,9 @@ const fontSans = Outfit({
 export const metadata: Metadata = {
   title: "hellafocused.com",
   description: "A to-do app that tells you what to do.",
+  icons: {
+    icon: "/hellafocused_favicon.svg",
+  },
 }
 
 export default function RootLayout({

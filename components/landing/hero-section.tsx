@@ -7,11 +7,11 @@ import { Check } from "lucide-react"
 
 const examples = [
   { goal: "Get fit", task: "do 1 push-up" },
-  { goal: "Start journaling", task: "open notes app" },
+  { goal: "Start a blog", task: "open notes app" },
   { goal: "Meditate daily", task: "take a deep breath" },
   { goal: "Clean my room", task: "take out the trash" },
   { goal: "Write a book", task: "open Google Docs" },
-  { goal: "Start a business", task: "name a problem" }, 
+  { goal: "Fix a bug", task: "add a print statement" }, 
   { goal: "Make friends", task: "text someone 'how are you?'" },
   { goal: "Cook dinner", task: "turn on the stove" },
   
@@ -77,7 +77,9 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
               {/* Break down any goal. */}
               {/* Make anything easy. */}
               {/* Focus on one tiny task at a time. */}
-              Tiny tasks. Big progress.
+              {/* Big tasks are hard. Make them smaller. */}
+              {/* Bite-sized productivity.*/}
+              Turn complex projects into tiny tasks.
             </h1>
             
             {/* Typing effect subtitle with todo styling */}
