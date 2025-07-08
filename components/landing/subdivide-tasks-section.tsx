@@ -34,7 +34,7 @@ export function SubdivideTasksSection() {
         {/* Title */}
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
-            Subdivide intimidating tasks
+            Subdivide intimidating tasks.
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto mt-6">
             Break down whatever you&apos;re working on into approachable steps.

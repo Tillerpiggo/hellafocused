@@ -134,7 +134,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
                     </>
                   ) : (
                     <>
-                      <span className="sm:hidden">Start by tapping here</span>
+                      <span className="sm:hidden">Get started for free</span>
                       <span className="hidden sm:inline">Get started for free</span>
                     </>
                   )}
