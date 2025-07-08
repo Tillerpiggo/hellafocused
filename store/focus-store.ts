@@ -43,18 +43,29 @@ export const useFocusStore = create<FocusState>((set, get) => ({
     
     // Check if current focus task now has subtasks (i.e., it's no longer a leaf)
     if (currentFocusTask) {
-      const currentTaskInProjects = findTaskAtPath(projects, [...focusStartPath, currentFocusTask.id])
-      const currentTaskHasSubtasks = currentTaskInProjects?.subtasks?.filter(st => !st.completed).length ?? 0 > 0
-      if (currentTaskHasSubtasks) {
-        // The task now has incomplete subtasks, so refocus on this task
-        const newFocusPath = [...focusStartPath, currentFocusTask.id]
-        const newLeavesForTask = getHierarchicalLeafNodes(projects, newFocusPath)
-        
-        set({
-          focusStartPath: newFocusPath,
-          focusModeProjectLeaves: newLeavesForTask,
-        })
-        return
+      const currentProjectId = getProjectId(focusStartPath)
+      if (currentProjectId) {
+        const project = projects.find((p) => p.id === currentProjectId)
+        if (project) {
+          // Find the correct path to the current focus task
+          const taskPathInProject = findTaskPath(project.tasks, currentFocusTask.id)
+          if (taskPathInProject) {
+            const fullTaskPath = [currentProjectId, ...taskPathInProject]
+            const currentTaskInProjects = findTaskAtPath(projects, fullTaskPath)
+            const currentTaskHasSubtasks = currentTaskInProjects?.subtasks?.filter(st => !st.completed).length ?? 0 > 0
+            if (currentTaskHasSubtasks) {
+              // The task now has incomplete subtasks, so refocus on this task
+              const newFocusPath = fullTaskPath
+              const newLeavesForTask = getHierarchicalLeafNodes(projects, newFocusPath)
+              
+              set({
+                focusStartPath: newFocusPath,
+                focusModeProjectLeaves: newLeavesForTask,
+              })
+              return
+            }
+          }
+        }
       }
     }
     
@@ -197,20 +208,31 @@ export const useFocusStore = create<FocusState>((set, get) => ({
       
       // Check if the current focus task now has subtasks (i.e., it's no longer a leaf)
       if (currentFocusTask) {
-        const currentTaskInProjects = findTaskAtPath(projects, [...focusStartPath, currentFocusTask.id])
-        const currentTaskHasSubtasks = currentTaskInProjects?.subtasks?.filter(st => !st.completed).length ?? 0 > 0
-        
-        if (currentTaskHasSubtasks) {
-          // The task now has incomplete subtasks, so refocus on this task's children
-          const newFocusPath = [...focusStartPath, currentFocusTask.id]
-          const newLeavesForTask = getHierarchicalLeafNodes(projects, newFocusPath)
-          
-          set({
-            focusStartPath: newFocusPath,
-            focusModeProjectLeaves: newLeavesForTask,
-            currentFocusTask: randomFrom(newLeavesForTask),
-          })
-          return
+        const currentProjectId = getProjectId(focusStartPath)
+        if (currentProjectId) {
+          const project = projects.find((p) => p.id === currentProjectId)
+          if (project) {
+            // Find the correct path to the current focus task
+            const taskPathInProject = findTaskPath(project.tasks, currentFocusTask.id)
+            if (taskPathInProject) {
+              const fullTaskPath = [currentProjectId, ...taskPathInProject]
+              const currentTaskInProjects = findTaskAtPath(projects, fullTaskPath)
+              const currentTaskHasSubtasks = currentTaskInProjects?.subtasks?.filter(st => !st.completed).length ?? 0 > 0
+              
+              if (currentTaskHasSubtasks) {
+                // The task now has incomplete subtasks, so refocus on this task's children
+                const newFocusPath = fullTaskPath
+                const newLeavesForTask = getHierarchicalLeafNodes(projects, newFocusPath)
+                
+                set({
+                  focusStartPath: newFocusPath,
+                  focusModeProjectLeaves: newLeavesForTask,
+                  currentFocusTask: randomFrom(newLeavesForTask),
+                })
+                return
+              }
+            }
+          }
         }
       }
       

@@ -9,7 +9,7 @@ export function FinalCTASection({ hasSession }: FinalCTASectionProps) {
   return (
     <section className="py-20">
       <div className="container max-w-4xl mx-auto px-8 sm:px-12 lg:px-16 text-center">
-        <h2 className="text-4xl sm:text-5xl font-light text-foreground mb-8">
+        <h2 className="text-4xl sm:text-5xl font-bold text-foreground mb-8">
           Ready to get hella focused?
         </h2>
         <div className="flex flex-col items-center">
