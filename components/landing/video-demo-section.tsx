@@ -32,10 +32,10 @@ export function VideoDemoSection() {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4">
-            Break down your goals into nested subtasks.
+            Break down your goals into tiny tasks.
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto">
-            Turn goals into simple, focused tasks.
+            Nested subtasks let you make anything approachable.
           </p>
         </div>
 

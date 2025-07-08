@@ -34,7 +34,7 @@ export function FocusShowcaseSection() {
         {/* Title */}
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
-            Focus on one subtask at a time.
+            See what you&apos;re working on in full screen.
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto mt-6">
             Press &apos;focus&apos; and we&apos;ll pick a task for you.
