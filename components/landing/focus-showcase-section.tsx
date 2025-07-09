@@ -34,10 +34,10 @@ export function FocusShowcaseSection() {
         {/* Title */}
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
-            Focus Mode shows you what&apos;s next.
+            Work without worrying.
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto mt-6">
-            Stay focused with each task in full screen.
+            You can relax. Just do what's right in front of you.
           </p>
         </div>
 
