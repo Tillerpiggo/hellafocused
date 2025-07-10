@@ -22,14 +22,14 @@ export function FeedbackPopup({ isOpen, onClose, buttonRef }: FeedbackPopupProps
   const [isSubmitting, setIsSubmitting] = useState(false)
   const popupRef = useRef<HTMLDivElement>(null)
 
-  console.log('FeedbackPopup render - isOpen:', isOpen, 'stage:', stage)
+  // console.log('FeedbackPopup render - isOpen:', isOpen, 'stage:', stage)
 
   // Check when popup element is mounted/unmounted
   useEffect(() => {
     if (isOpen && popupRef.current) {
-      console.log('Popup element mounted to DOM:', popupRef.current)
-      console.log('Popup computed styles:', window.getComputedStyle(popupRef.current))
-      console.log('Popup bounding rect:', popupRef.current.getBoundingClientRect())
+      // console.log('Popup element mounted to DOM:', popupRef.current)
+      // console.log('Popup computed styles:', window.getComputedStyle(popupRef.current))
+      // console.log('Popup bounding rect:', popupRef.current.getBoundingClientRect())
     }
   }, [isOpen])
 
@@ -37,12 +37,12 @@ export function FeedbackPopup({ isOpen, onClose, buttonRef }: FeedbackPopupProps
 
   // Handle outside click
   useEffect(() => {
-    console.log('Outside click effect triggered - isOpen:', isOpen)
+    // console.log('Outside click effect triggered - isOpen:', isOpen)
     
     const handleClickOutside = (event: MouseEvent) => {
-      console.log('Outside click detected - target:', event.target)
-      console.log('Popup ref current:', popupRef.current)
-      console.log('Button ref current:', buttonRef.current)
+      // console.log('Outside click detected - target:', event.target)
+      // console.log('Popup ref current:', popupRef.current)
+      // console.log('Button ref current:', buttonRef.current)
       
       if (
         isOpen &&
@@ -50,18 +50,18 @@ export function FeedbackPopup({ isOpen, onClose, buttonRef }: FeedbackPopupProps
         !popupRef.current.contains(event.target as Node) &&
         !buttonRef.current?.contains(event.target as Node)
       ) {
-        console.log('Calling onClose due to outside click')
+        // console.log('Calling onClose due to outside click')
         onClose()
       } else {
-        console.log('Outside click ignored')
+        // console.log('Outside click ignored')
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
-    console.log('Added mousedown listener')
+    // console.log('Added mousedown listener')
     
     return () => {
-      console.log('Removing mousedown listener')
+      // console.log('Removing mousedown listener')
       document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [isOpen, onClose, buttonRef])
@@ -120,12 +120,12 @@ export function FeedbackPopup({ isOpen, onClose, buttonRef }: FeedbackPopupProps
   }
 
   if (!isOpen) {
-    console.log('Popup not rendering - isOpen is false')
+    // console.log('Popup not rendering - isOpen is false')
     return null
   }
 
-  console.log('Popup rendering in top-right corner')
-  console.log('Popup element will be rendered to DOM')
+  // console.log('Popup rendering in top-right corner')
+  // console.log('Popup element will be rendered to DOM')
 
   return (
     <div

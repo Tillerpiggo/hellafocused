@@ -79,7 +79,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
               {/* Focus on one tiny task at a time. */}
               {/* Big tasks are hard. Make them smaller. */}
               {/* Bite-sized productivity.*/}
-              Turn complex projects into tiny tasks.
+              Turn complex projects into simple tasks.
             </h1>
             
             {/* Typing effect subtitle with todo styling */}

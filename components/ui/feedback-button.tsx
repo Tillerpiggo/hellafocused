@@ -20,7 +20,7 @@ export function FeedbackButton({
   const buttonRef = useRef<HTMLButtonElement>(null)
 
   const handleClick = () => {
-    console.log('Feedback button clicked - current state:', isPopupOpen, 'new state:', !isPopupOpen)
+    // console.log('Feedback button clicked - current state:', isPopupOpen, 'new state:', !isPopupOpen)
     setIsPopupOpen(!isPopupOpen)
   }
 
@@ -40,7 +40,7 @@ export function FeedbackButton({
       <FeedbackPopup
         isOpen={isPopupOpen}
         onClose={() => {
-          console.log('FeedbackPopup onClose called')
+          // console.log('FeedbackPopup onClose called')
           setIsPopupOpen(false)
         }}
         buttonRef={buttonRef}

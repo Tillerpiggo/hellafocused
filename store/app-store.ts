@@ -43,6 +43,7 @@ interface AppState {
   updateProjectName: (projectId: string, newName: string) => void
   updateTaskName: (taskPath: string[], newName: string) => void
   addProject: (projectName: string) => void
+  reorderTasks: (parentPath: string[], fromIndex: number, toIndex: number) => void
   clearLocalState: () => void
 }
 
@@ -223,6 +224,93 @@ export const useAppStore = create<AppState>()(
     )
   
     trackProjectCreated(newProject.id)
+  },
+
+  reorderTasks: (parentPath, fromIndex, toIndex) => {
+    if (fromIndex === toIndex) return
+
+    console.log(`🔄 Reordering tasks: moving from index ${fromIndex} to ${toIndex}`)
+
+    // Store task IDs for sync tracking after state update
+    let updatedTaskIds: string[] = []
+
+    set(
+      produce((draft: AppState) => {
+        // Get the tasks at the parent level
+        let tasks: TaskData[]
+        if (parentPath.length === 0) {
+          return // Can't reorder at project list level
+        } else if (parentPath.length === 1) {
+          // Reordering tasks in a project
+          const project = draft.projects.find((p) => p.id === parentPath[0])
+          if (!project) return
+          tasks = project.tasks
+        } else {
+          // Reordering subtasks in a task
+          const parentTask = findTaskAtPath(draft.projects, parentPath)
+          if (!parentTask) return
+          tasks = parentTask.subtasks
+        }
+
+        // Only reorder incomplete tasks (since that's what's displayed)
+        // Sort by position to match what's displayed in TaskListView
+        const incompleteTasks = tasks
+          .filter(task => !task.completed)
+          .sort((a, b) => {
+            // Sort by position, with fallback to creation date for missing positions
+            if (a.position !== undefined && b.position !== undefined) {
+              return a.position - b.position
+            }
+            if (a.position !== undefined && b.position === undefined) return -1
+            if (a.position === undefined && b.position !== undefined) return 1
+            return a.lastModificationDate.localeCompare(b.lastModificationDate)
+          })
+        
+        if (fromIndex >= incompleteTasks.length || toIndex >= incompleteTasks.length) return
+
+        // Debug: Show what tasks are in the incompleteTasks array
+        console.log('📋 incompleteTasks array:')
+        incompleteTasks.forEach((task, index) => {
+          console.log(`  ${index}: "${task.name}" (ID: ${task.id})`)
+        })
+
+        // Log positions before reordering
+        console.log('📍 Positions BEFORE reordering:')
+        incompleteTasks.forEach((task, index) => {
+          console.log(`  index ${index}: "${task.name}" (position: ${task.position})`)
+        })
+
+        console.log(`🔄 Swapping indices: ${fromIndex} ↔ ${toIndex}`)
+        console.log(`🔄 incompleteTasks array length: ${incompleteTasks.length}`)
+        console.log(`🔄 Moving task: "${incompleteTasks[fromIndex]?.name}" (ID: ${incompleteTasks[fromIndex]?.id}) from index ${fromIndex} to index ${toIndex}`)
+
+        // Remove the task from the old position and insert at new position
+        const [movedTask] = incompleteTasks.splice(fromIndex, 1)
+        incompleteTasks.splice(toIndex, 0, movedTask)
+
+        // Update positions for all affected tasks and collect their IDs for sync
+        incompleteTasks.forEach((task, index) => {
+          task.position = index
+          task.lastModificationDate = new Date().toISOString()
+          updatedTaskIds.push(task.id)
+        })
+
+        // Log positions after reordering (sorted by position for clarity)
+        console.log('📍 Positions AFTER reordering (sorted by position):')
+        const sortedByPosition = [...incompleteTasks].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+        sortedByPosition.forEach((task) => {
+          const arrayIndex = incompleteTasks.findIndex(t => t.id === task.id)
+          console.log(`  position ${task.position}: "${task.name}" (at array index ${arrayIndex})`)
+        })
+      }),
+    )
+
+    // Track each affected task for sync AFTER state update is committed
+    console.log('🔄 Tracking sync for updated tasks:', updatedTaskIds.length)
+    updatedTaskIds.forEach(taskId => {
+      const taskPath = [...parentPath, taskId]
+      trackTaskUpdated(taskPath)
+    })
   },
 
   clearLocalState: () => set({

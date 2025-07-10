@@ -14,9 +14,10 @@ import { useState, useRef } from "react"
 interface TaskItemProps {
   task: TaskData
   currentPath: string[] // Unified path to the parent of this task
+  isDragging?: boolean
 }
 
-export function TaskItem({ task, currentPath }: TaskItemProps) {
+export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProps) {
   const navigateToTask = useAppStore((state) => state.navigateToTask)
   const updateTaskName = useAppStore((state) => state.updateTaskName)
   const attemptTaskCompletion = useUIStore((state) => state.attemptTaskCompletion)
@@ -51,7 +52,8 @@ export function TaskItem({ task, currentPath }: TaskItemProps) {
           ? "bg-muted/20 opacity-60 border-border/30"
           : "hover:bg-accent/50 hover:border-primary/30 border-border/50",
         isEditing && "bg-accent/70 border-primary/50",
-        "cursor-pointer",
+        isDragging && "opacity-50 scale-95",
+        !task.completed ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
       )}
       onClick={handleNavigate}
     >
