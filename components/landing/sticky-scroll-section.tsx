@@ -507,7 +507,7 @@ export function StickyScrollSection() {
         <div className="container max-w-screen-xl mx-auto px-8 sm:px-12 lg:px-16">
                      {/* Section Header - Only visible on mobile */}
            <div className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light text-foreground mb-4">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4">
               How it works
             </h2>
           </div>
@@ -518,7 +518,7 @@ export function StickyScrollSection() {
               {/* Section Header - now part of the sticky element */}
               <div className="text-center mb-16">
                 <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light text-foreground mb-4">
-                  3 steps to start doing things
+                  How it works
                 </h2>
               </div>
               <div className="grid lg:grid-cols-2 gap-16">

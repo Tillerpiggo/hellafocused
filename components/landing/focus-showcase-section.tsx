@@ -34,10 +34,10 @@ export function FocusShowcaseSection() {
         {/* Title */}
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
-            Focus Mode shows you what&apos;s next.
+            We&apos;ll tell you what to focus on.
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto mt-6">
-            Stay focused with each task in full screen.
+            Focus Mode continually presents you with a random choice from the smallest subtasks (the leaf nodes), making it easy to get in a flow state.
           </p>
         </div>
 

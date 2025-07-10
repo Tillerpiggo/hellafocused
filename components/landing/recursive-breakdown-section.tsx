@@ -20,11 +20,11 @@ export function RecursiveBreakdownSection() {
         {/* Title */}
         <div className="mb-16">
           <div className="text-center lg:text-left lg:max-w-2xl">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-light leading-tight text-foreground">
-              Nested subtasks.
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
+              Each to-do becomes effortless.
             </h2>
             <p className="text-xl text-muted-foreground leading-relaxed mt-6">
-              No limit on depth. Make your tasks trivial.
+              With nested subtasks, you can keep subdividing subtasks until they&apos;re embarrassingly easy.
             </p>
           </div>
         </div>

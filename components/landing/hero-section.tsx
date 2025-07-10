@@ -70,7 +70,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
       <div className="container max-w-screen-xl mx-auto px-8 sm:px-12 lg:px-16">
         <div className="text-center">
           {/* Hero Title - Bottom aligned to midpoint */}
-          <div className="flex flex-col justify-end h-72 sm:h-64 mb-8 pt-8 sm:pt-0">
+          <div className="flex flex-col justify-end h-96 sm:h-80 lg:h-96 mb-8 pt-12 sm:pt-16">
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground leading-tight mb-4">
               {/* Break down <span className="text-primary font-bold italic">any goal.</span> */}
               {/* One task. Full screen. */}
@@ -158,7 +158,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
             <div className="rounded-3xl border border-border/50 overflow-hidden shadow-2xl w-full mx-auto relative">
               <video
                 key={isDark ? 'dark' : 'light'}
-                src={isDark ? "/HeroDemo_Dark.mov" : "/HeroDemo_Light.mov"}
+                src={isDark ? "/FocusDemo_Dark.mov" : "/FocusDemo_Light.mov"}
                 autoPlay
                 loop
                 muted

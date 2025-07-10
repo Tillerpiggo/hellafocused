@@ -27,15 +27,15 @@ export function VideoDemoSection() {
   }, [])
 
   return (
-    <section id="video-demo-section" className="py-20">
+    <section id="how-it-works" className="py-20">
       <div className="container max-w-6xl mx-auto px-8 sm:px-12 lg:px-16">
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4">
-            Recursively break down your goals.
+            Make your tasks tiny.
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto mt-6">
-          Nested subtasks let you manage anything.
+            Break down complex projects into manageable tasks.
           </p>
         </div>
 

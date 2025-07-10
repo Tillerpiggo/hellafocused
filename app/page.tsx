@@ -7,8 +7,9 @@ import { LandingNavigation } from "@/components/landing/landing-navigation"
 import { HeroSection } from "@/components/landing/hero-section"
 import { VideoDemoSection } from "@/components/landing/video-demo-section"
 import { FocusShowcaseSection } from "@/components/landing/focus-showcase-section"
-import { AddTasksSection } from "@/components/landing/add-tasks-section"
-import { SubdivideTasksSection } from "@/components/landing/subdivide-tasks-section"
+import { StickyScrollSection } from "@/components/landing/sticky-scroll-section"
+import { RecursiveBreakdownSection } from "@/components/landing/recursive-breakdown-section"
+import { FlowSection } from "@/components/landing/flow-section"
 import { FinalCTASection } from "@/components/landing/final-cta-section"
 import { FAQSection } from "@/components/landing/faq-section"
 import { LandingFooter } from "@/components/landing/landing-footer"
@@ -25,12 +26,10 @@ function LandingContent({ user, hasSession }: LandingContentProps) {
       <LandingNavigation hasSession={hasSession} user={user} />
       <HeroSection hasSession={hasSession} />
       <VideoDemoSection />
+      <StickyScrollSection />
+      <RecursiveBreakdownSection />
+      <FlowSection />
       <FocusShowcaseSection />
-      <SubdivideTasksSection />
-      <AddTasksSection />
-      {/* <StickyScrollSection /> */}
-      {/* <RecursiveBreakdownSection /> */}
-      {/* <FlowSection /> */}
       <FinalCTASection hasSession={hasSession} />
       <FAQSection />
       <LandingFooter />
