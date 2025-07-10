@@ -10,6 +10,8 @@ class SyncEngine {
   private syncInterval: NodeJS.Timeout | null = null
   private realtimeSubscriptions: ReturnType<typeof supabase.channel>[] = []
   private instanceId: string = `instance-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  private batchTimeout: NodeJS.Timeout | null = null
+  private readonly batchDelay = 10
 
   async init() {
     // Check if already initialized to prevent double initialization
@@ -194,6 +196,22 @@ class SyncEngine {
     }
   }
 
+  /**
+   * Triggers a batched sync with a delay to collect multiple changes
+   */
+  scheduleBatchSync() {
+    if (this.batchTimeout) {
+      clearTimeout(this.batchTimeout)
+    }
+    
+    this.batchTimeout = setTimeout(() => {
+      this.syncPendingChanges().catch(error => {
+        console.error('❌ Scheduled batch sync failed:', error)
+      })
+      this.batchTimeout = null
+    }, this.batchDelay)
+  }
+
   async syncPendingChanges() {
     const { pendingChanges, currentUserId } = useSyncStore.getState()
     
@@ -207,14 +225,147 @@ class SyncEngine {
       .filter(([, change]) => !change.synced && change.userId === currentUserId)
       .sort((a, b) => a[1].timestamp - b[1].timestamp) // Sync in order
 
-    for (const [id] of pending) {
-      await this.syncSingleChange(id)
-      console.log('🔄 Syncing change', id)
+    if (pending.length === 0) {
+      return
+    }
+
+    // Group changes by type and entity for batching
+    const batches = this.groupChangesForBatching(pending)
+    
+    // Process batches
+    for (const batch of batches) {
+      try {
+        if (batch.type === 'batch_task_updates') {
+          await this.batchUpdateTasks(batch.changes)
+        } else if (batch.type === 'batch_project_updates') {
+          await this.batchUpdateProjects(batch.changes)
+        } else {
+          // Process single changes for create/delete operations
+          for (const [id] of batch.changes) {
+            await this.syncSingleChange(id)
+          }
+        }
+      } catch (error) {
+        console.error('❌ Batch sync error:', error)
+        // Fall back to individual sync for this batch
+        for (const [id] of batch.changes) {
+          await this.syncSingleChange(id)
+        }
+      }
     }
 
     // Clean up synced changes
     useSyncStore.getState().removeSynced()
     useSyncStore.getState().updateLastSyncedAt()
+  }
+
+  private groupChangesForBatching(pending: [string, any][]) {
+    const batches: Array<{
+      type: string
+      changes: [string, any][]
+    }> = []
+    
+    const taskUpdates: [string, any][] = []
+    const projectUpdates: [string, any][] = []
+    const others: [string, any][] = []
+    
+    for (const item of pending) {
+      const [id, change] = item
+      
+      if (change.type === 'update' && change.entityType === 'task') {
+        taskUpdates.push(item)
+      } else if (change.type === 'update' && change.entityType === 'project') {
+        projectUpdates.push(item)
+      } else {
+        others.push(item)
+      }
+    }
+    
+    // Create batches
+    if (taskUpdates.length > 1) {
+      batches.push({ type: 'batch_task_updates', changes: taskUpdates })
+    } else if (taskUpdates.length === 1) {
+      others.push(taskUpdates[0])
+    }
+    
+    if (projectUpdates.length > 1) {
+      batches.push({ type: 'batch_project_updates', changes: projectUpdates })
+    } else if (projectUpdates.length === 1) {
+      others.push(projectUpdates[0])
+    }
+    
+    if (others.length > 0) {
+      batches.push({ type: 'individual', changes: others })
+    }
+    
+    return batches
+  }
+
+  private async batchUpdateTasks(changes: [string, any][]) {
+    const userId = await this.getCurrentUserId()
+    
+    // Prepare batch update data
+    const updates = changes.map(([id, change]) => ({
+      id: change.entityId,
+      name: change.data.name,
+      completed: change.data.completed,
+      completion_date: change.data.completionDate || null,
+      position: change.data.position ?? 0,
+      updated_at: change.data.lastModificationDate,
+      user_id: userId,
+      project_id: change.projectId, // Get from sync action metadata
+      parent_id: change.parentId || null, // Get from sync action metadata
+    }))
+    
+    console.log(`🔄 Batch updating ${updates.length} tasks`)
+    
+    // Use upsert for batch update
+    const { error } = await supabase
+      .from('tasks')
+      .upsert(updates, { 
+        onConflict: 'id',
+        ignoreDuplicates: false 
+      })
+    
+    if (error) {
+      throw new Error(`Failed to batch update tasks: ${error.message}`)
+    }
+    
+    // Mark all changes as synced
+    for (const [id] of changes) {
+      useSyncStore.getState().markSynced(id)
+    }
+  }
+
+  private async batchUpdateProjects(changes: [string, any][]) {
+    const userId = await this.getCurrentUserId()
+    
+    // Prepare batch update data
+    const updates = changes.map(([id, change]) => ({
+      id: change.entityId,
+      name: change.data.name,
+      updated_at: change.data.lastModificationDate,
+      user_id: userId,
+    }))
+    
+    console.log(`🔄 Batch updating ${updates.length} projects`)
+    
+    // Use upsert for batch update
+    const { error } = await supabase
+      .from('projects')
+      .upsert(updates, { 
+        onConflict: 'id',
+        ignoreDuplicates: false 
+      })
+    
+    if (error) {
+      throw new Error(`Failed to batch update projects: ${error.message}`)
+    }
+    
+    // Mark all changes as synced
+    for (const [id] of changes) {
+      useSyncStore.getState().markSynced(id)
+    }
   }
 
   async mergeWithCloud() {
@@ -504,6 +655,11 @@ class SyncEngine {
     if (this.syncInterval) {
       clearInterval(this.syncInterval)
       this.syncInterval = null
+    }
+
+    if (this.batchTimeout) {
+      clearTimeout(this.batchTimeout)
+      this.batchTimeout = null
     }
 
     console.log('cleanup real-time subscriptions', this.realtimeSubscriptions)

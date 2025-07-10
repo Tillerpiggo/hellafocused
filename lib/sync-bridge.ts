@@ -31,11 +31,8 @@ export const trackChange = (
   const syncActionId = useSyncStore.getState().addPendingChange(action)
   
   if (syncActionId) {
-    // Try to sync immediately (non-blocking)
-    syncEngine.syncSingleChange(syncActionId).catch((error) => {
-      console.error(`❌ Immediate sync failed for ${syncActionId}:`, error)
-      // Silently fail, will retry in periodic sync
-    })
+    // Schedule a batched sync with delay to collect multiple changes
+    syncEngine.scheduleBatchSync()
   }
 }
 
