@@ -18,8 +18,6 @@ export function TaskListView({ tasks, currentPath }: TaskListViewProps) {
     setDraggedIndex(index)
     e.dataTransfer.effectAllowed = "move"
     e.dataTransfer.setData("text/plain", index.toString())
-    console.log(`🟡 Drag started for task at index ${index}: "${tasks[index]?.name}" (ID: ${tasks[index]?.id})`)
-    console.log(`🟡 Tasks array length: ${tasks.length}`)
   }
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
@@ -36,7 +34,6 @@ export function TaskListView({ tasks, currentPath }: TaskListViewProps) {
     e.preventDefault()
     
     if (draggedIndex !== null && draggedIndex !== dropIndex) {
-      console.log(`🟢 Dropping task "${tasks[draggedIndex]?.name}" from index ${draggedIndex} to ${dropIndex}`)
       reorderTasks(currentPath, draggedIndex, dropIndex)
     }
     

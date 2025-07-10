@@ -229,8 +229,6 @@ export const useAppStore = create<AppState>()(
   reorderTasks: (parentPath, fromIndex, toIndex) => {
     if (fromIndex === toIndex) return
 
-    console.log(`🔄 Reordering tasks: moving from index ${fromIndex} to ${toIndex}`)
-
     // Store task IDs for sync tracking after state update
     let updatedTaskIds: string[] = []
 
@@ -268,21 +266,7 @@ export const useAppStore = create<AppState>()(
         
         if (fromIndex >= incompleteTasks.length || toIndex >= incompleteTasks.length) return
 
-        // Debug: Show what tasks are in the incompleteTasks array
-        console.log('📋 incompleteTasks array:')
-        incompleteTasks.forEach((task, index) => {
-          console.log(`  ${index}: "${task.name}" (ID: ${task.id})`)
-        })
 
-        // Log positions before reordering
-        console.log('📍 Positions BEFORE reordering:')
-        incompleteTasks.forEach((task, index) => {
-          console.log(`  index ${index}: "${task.name}" (position: ${task.position})`)
-        })
-
-        console.log(`🔄 Swapping indices: ${fromIndex} ↔ ${toIndex}`)
-        console.log(`🔄 incompleteTasks array length: ${incompleteTasks.length}`)
-        console.log(`🔄 Moving task: "${incompleteTasks[fromIndex]?.name}" (ID: ${incompleteTasks[fromIndex]?.id}) from index ${fromIndex} to index ${toIndex}`)
 
         // Remove the task from the old position and insert at new position
         const [movedTask] = incompleteTasks.splice(fromIndex, 1)
@@ -295,18 +279,11 @@ export const useAppStore = create<AppState>()(
           updatedTaskIds.push(task.id)
         })
 
-        // Log positions after reordering (sorted by position for clarity)
-        console.log('📍 Positions AFTER reordering (sorted by position):')
-        const sortedByPosition = [...incompleteTasks].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
-        sortedByPosition.forEach((task) => {
-          const arrayIndex = incompleteTasks.findIndex(t => t.id === task.id)
-          console.log(`  position ${task.position}: "${task.name}" (at array index ${arrayIndex})`)
-        })
+
       }),
     )
 
     // Track each affected task for sync AFTER state update is committed
-    console.log('🔄 Tracking sync for updated tasks:', updatedTaskIds.length)
     updatedTaskIds.forEach(taskId => {
       const taskPath = [...parentPath, taskId]
       trackTaskUpdated(taskPath)

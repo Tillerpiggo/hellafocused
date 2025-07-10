@@ -464,16 +464,13 @@ class SyncEngine {
   private async updateTask(taskId: string, task: TaskData) {
     const userId = await this.getCurrentUserId()
     
-    const positionToUpdate = task.position ?? 0
-    console.log(`💾 Updating task "${task.name}" (${taskId}) to position: ${positionToUpdate}`)
-    
     const { error } = await supabase
       .from('tasks')
       .update({
         name: task.name,
         completed: task.completed,
         completion_date: task.completionDate || null,
-        position: positionToUpdate,
+        position: task.position ?? 0,
         updated_at: task.lastModificationDate,
       })
       .eq('id', taskId)
@@ -482,8 +479,6 @@ class SyncEngine {
     if (error) {
       throw new Error(`Failed to update task: ${error.message}`)
     }
-    
-    console.log(`✅ Successfully updated task "${task.name}" to position ${positionToUpdate}`)
   }
 
   private async deleteTask(taskId: string) {
