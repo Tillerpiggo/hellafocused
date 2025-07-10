@@ -5,6 +5,7 @@ import { mergeManager } from './merge-manager'
 import type { ProjectData, TaskData } from './types'
 import type { RealtimePostgresChangesPayload, User } from '@supabase/supabase-js'
 import { findTaskAtPath, findProjectAtPath, isProjectList, isProject } from './task-utils'
+import type { SyncAction } from './sync-types'
 
 class SyncEngine {
   private syncInterval: NodeJS.Timeout | null = null
@@ -223,7 +224,7 @@ class SyncEngine {
     // Filter for current user's unsynced changes
     const pending = Object.entries(pendingChanges)
       .filter(([, change]) => !change.synced && change.userId === currentUserId)
-      .sort((a, b) => a[1].timestamp - b[1].timestamp) // Sync in order
+      .sort((a, b) => a[1].timestamp - b[1].timestamp) as [string, SyncAction][] // Sync in order
 
     if (pending.length === 0) {
       return
@@ -259,18 +260,18 @@ class SyncEngine {
     useSyncStore.getState().updateLastSyncedAt()
   }
 
-  private groupChangesForBatching(pending: [string, any][]) {
+  private groupChangesForBatching(pending: [string, SyncAction][]) {
     const batches: Array<{
       type: string
-      changes: [string, any][]
+      changes: [string, SyncAction][]
     }> = []
     
-    const taskUpdates: [string, any][] = []
-    const projectUpdates: [string, any][] = []
-    const others: [string, any][] = []
+    const taskUpdates: [string, SyncAction][] = []
+    const projectUpdates: [string, SyncAction][] = []
+    const others: [string, SyncAction][] = []
     
     for (const item of pending) {
-      const [id, change] = item
+      const [, change] = item
       
       if (change.type === 'update' && change.entityType === 'task') {
         taskUpdates.push(item)
@@ -301,21 +302,28 @@ class SyncEngine {
     return batches
   }
 
-  private async batchUpdateTasks(changes: [string, any][]) {
+  private async batchUpdateTasks(changes: [string, SyncAction][]) {
     const userId = await this.getCurrentUserId()
     
     // Prepare batch update data
-    const updates = changes.map(([id, change]) => ({
-      id: change.entityId,
-      name: change.data.name,
-      completed: change.data.completed,
-      completion_date: change.data.completionDate || null,
-      position: change.data.position ?? 0,
-      updated_at: change.data.lastModificationDate,
-      user_id: userId,
-      project_id: change.projectId, // Get from sync action metadata
-      parent_id: change.parentId || null, // Get from sync action metadata
-    }))
+    const updates = changes.map(([, change]) => {
+      const taskData = change.data as TaskData
+      if (!taskData) {
+        throw new Error('Task data is null for update operation')
+      }
+      
+      return {
+        id: change.entityId,
+        name: taskData.name,
+        completed: taskData.completed,
+        completion_date: taskData.completionDate || null,
+        position: taskData.position ?? 0,
+        updated_at: taskData.lastModificationDate,
+        user_id: userId,
+        project_id: change.projectId, // Get from sync action metadata
+        parent_id: change.parentId || null, // Get from sync action metadata
+      }
+    })
     
     console.log(`🔄 Batch updating ${updates.length} tasks`)
     
@@ -337,16 +345,23 @@ class SyncEngine {
     }
   }
 
-  private async batchUpdateProjects(changes: [string, any][]) {
+  private async batchUpdateProjects(changes: [string, SyncAction][]) {
     const userId = await this.getCurrentUserId()
     
     // Prepare batch update data
-    const updates = changes.map(([id, change]) => ({
-      id: change.entityId,
-      name: change.data.name,
-      updated_at: change.data.lastModificationDate,
-      user_id: userId,
-    }))
+    const updates = changes.map(([, change]) => {
+      const projectData = change.data as ProjectData
+      if (!projectData) {
+        throw new Error('Project data is null for update operation')
+      }
+      
+      return {
+        id: change.entityId,
+        name: projectData.name,
+        updated_at: projectData.lastModificationDate,
+        user_id: userId,
+      }
+    })
     
     console.log(`🔄 Batch updating ${updates.length} projects`)
     
