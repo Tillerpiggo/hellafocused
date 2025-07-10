@@ -1,8 +1,21 @@
 "use client"
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core'
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable'
 import type { TaskData } from "@/lib/types"
-import { TaskItem } from "./task-item"
+import { SortableTaskItem } from "./sortable-task-item"
 import { useAppStore } from "@/store/app-store"
-import { useState } from "react"
 
 interface TaskListViewProps {
   tasks: TaskData[]
@@ -11,65 +24,54 @@ interface TaskListViewProps {
 
 export function TaskListView({ tasks, currentPath }: TaskListViewProps) {
   const reorderTasks = useAppStore((state) => state.reorderTasks)
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null)
-  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null)
+  
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
 
-  const handleDragStart = (e: React.DragEvent, index: number) => {
-    setDraggedIndex(index)
-    e.dataTransfer.effectAllowed = "move"
-    e.dataTransfer.setData("text/plain", index.toString())
-  }
+  // Create efficient ID to index mapping
+  const taskIdToIndex = new Map(tasks.map((task, index) => [task.id, index]))
 
-  const handleDragOver = (e: React.DragEvent, index: number) => {
-    e.preventDefault()
-    e.dataTransfer.dropEffect = "move"
-    setDragOverIndex(index)
-  }
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event
 
-  const handleDragLeave = () => {
-    setDragOverIndex(null)
-  }
-
-  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
-    e.preventDefault()
-    
-    if (draggedIndex !== null && draggedIndex !== dropIndex) {
-      reorderTasks(currentPath, draggedIndex, dropIndex)
+    if (over && active.id !== over.id) {
+      const oldIndex = taskIdToIndex.get(active.id as string)
+      const newIndex = taskIdToIndex.get(over.id as string)
+      
+      if (oldIndex !== undefined && newIndex !== undefined) {
+        reorderTasks(currentPath, oldIndex, newIndex)
+      }
     }
-    
-    setDraggedIndex(null)
-    setDragOverIndex(null)
   }
 
-  const handleDragEnd = () => {
-    setDraggedIndex(null)
-    setDragOverIndex(null)
-  }
+  // Only allow dragging of incomplete tasks - use task IDs directly
+  const taskItems = tasks.map(task => task.id)
 
   return (
-    <div className="space-y-1">
-      {tasks.map((task, index) => (
-        <div
-          key={task.id}
-          draggable={!task.completed}
-          onDragStart={(e) => handleDragStart(e, index)}
-          onDragOver={(e) => handleDragOver(e, index)}
-          onDragLeave={handleDragLeave}
-          onDrop={(e) => handleDrop(e, index)}
-          onDragEnd={handleDragEnd}
-          className={`
-            ${draggedIndex === index ? "opacity-50" : ""}
-            ${dragOverIndex === index && draggedIndex !== index ? "border-t-2 border-primary" : ""}
-            transition-opacity duration-200
-          `}
-        >
-          <TaskItem
-            task={task}
-            currentPath={currentPath}
-            isDragging={draggedIndex === index}
-          />
+    <DndContext 
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragEnd={handleDragEnd}
+    >
+      <SortableContext 
+        items={taskItems}
+        strategy={verticalListSortingStrategy}
+      >
+        <div className="space-y-1">
+          {tasks.map((task) => (
+            <SortableTaskItem
+              key={task.id}
+              task={task}
+              currentPath={currentPath}
+              disabled={task.completed}
+            />
+          ))}
         </div>
-      ))}
-    </div>
+      </SortableContext>
+    </DndContext>
   )
 }
