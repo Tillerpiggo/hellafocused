@@ -45,7 +45,8 @@ function AuthHandler() {
   useEffect(() => {
     const checkAuthAndRedirect = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
+        const { data: { session } } = await supabase.auth.getSession()
+        const user = session?.user ?? null
         setUser(user)
         
         // Check if user has a session and isn't anonymous

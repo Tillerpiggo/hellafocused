@@ -27,7 +27,8 @@ class SyncEngine {
       await this.ensureAuthenticated()
       
       // Set current user in sync store
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { session } } = await supabase.auth.getSession()
+      const user = session?.user ?? null
       useSyncStore.getState().setCurrentUserId(user?.id || null)
       
       console.log("syncing pending changes")
@@ -53,11 +54,14 @@ class SyncEngine {
     console.log("🔐 Ensuring authenticated...")
     
     // First, check current session (Supabase handles session restoration automatically)
-    const { data: { user }, error: getUserError } = await supabase.auth.getUser()
+    const { data: { session }, error: getSessionError } = await supabase.auth.getSession()
+    const user = session?.user ?? null
     
-    if (getUserError) {
-      console.error('❌ Error getting user:', getUserError)
+    if (getSessionError) {
+      console.error('❌ Error getting session:', getSessionError)
     }
+
+    console.log("user", user)
     
     if (!user) {
       // Don't auto-sign in anonymously on auth pages
