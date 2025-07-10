@@ -3,6 +3,7 @@ import { useAppStore } from '@/store/app-store'
 import { useSyncStore } from '@/store/sync-store'
 import type { ProjectData, TaskData } from './types'
 import type { SyncAction } from './sync-types'
+import { fillMissingPositionsForProjects } from './task-utils'
 
 export class MergeManager {
   async mergeCloudWithLocal(cloudProjects: DatabaseProject[], cloudTasks: DatabaseTask[]) {
@@ -64,7 +65,10 @@ export class MergeManager {
       }
     }
     
-    // 3. Update the app store with merged data
+    // 3. Fill in missing positions for existing tasks
+    fillMissingPositionsForProjects(mergedProjects)
+    
+    // 4. Update the app store with merged data
     useAppStore.setState({ projects: mergedProjects })
   }
 
@@ -93,6 +97,7 @@ export class MergeManager {
       completed: cloudTask.completed,
       completionDate: cloudTask.completion_date || undefined,
       lastModificationDate: cloudTask.updated_at,
+      position: cloudTask.position,
       subtasks,
     }
   }
@@ -184,6 +189,7 @@ export class MergeManager {
       completed: useCloudTask ? cloudTask.completed : localTask.completed,
       completionDate: useCloudTask ? (cloudTask.completion_date || undefined) : localTask.completionDate,
       lastModificationDate: useCloudTask ? cloudUpdateDate : localTask.lastModificationDate,
+      position: useCloudTask ? cloudTask.position : localTask.position,
       subtasks: this.mergeTaskSubtasks(localTask, cloudTask, allCloudTasks, pendingChanges)
     }
   }

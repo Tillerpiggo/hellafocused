@@ -427,6 +427,20 @@ class SyncEngine {
     const userId = await this.getCurrentUserId()
     const now = new Date().toISOString()
     
+    // Calculate position if not set - query database for existing tasks at same level
+    let position = task.position ?? 0
+    if (position === 0) {
+      const { count } = await supabase
+        .from('tasks')
+        .select('*', { count: 'exact', head: true })
+        .eq('project_id', projectId)
+        .eq('parent_id', parentId || null)
+        .eq('user_id', userId)
+        .eq('is_deleted', false)
+      
+      position = (count || 0)
+    }
+    
     const { error } = await supabase.from('tasks').insert({
       id: task.id,
       name: task.name,
@@ -434,7 +448,7 @@ class SyncEngine {
       parent_id: parentId || null,
       completed: task.completed,
       completion_date: task.completionDate || null,
-      position: 0, // TODO: Calculate proper position
+      position: position,
       user_id: userId,
       device_id: this.instanceId,
       is_deleted: false,

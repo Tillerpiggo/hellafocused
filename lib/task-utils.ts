@@ -71,6 +71,43 @@ export const markAllSubtasksCompleted = (task: TaskData) => {
 }
 
 /**
+ * Fill in missing position values for tasks based on creation date/modification date
+ */
+export const fillMissingPositions = (tasks: TaskData[]): void => {
+  // Sort tasks by creation date (lastModificationDate as proxy) to determine proper order
+  const tasksWithMissingPositions = tasks.filter(task => task.position === undefined)
+  
+  if (tasksWithMissingPositions.length === 0) return
+  
+  // Sort by lastModificationDate to establish creation order
+  tasksWithMissingPositions.sort((a, b) => a.lastModificationDate.localeCompare(b.lastModificationDate))
+  
+  // Find the highest existing position
+  const maxPosition = Math.max(0, ...tasks.filter(task => task.position !== undefined).map(task => task.position!))
+  
+  // Assign positions starting from maxPosition + 1
+  tasksWithMissingPositions.forEach((task, index) => {
+    task.position = maxPosition + 1 + index
+  })
+  
+  // Recursively fill positions for subtasks
+  tasks.forEach(task => {
+    if (task.subtasks && task.subtasks.length > 0) {
+      fillMissingPositions(task.subtasks)
+    }
+  })
+}
+
+/**
+ * Fill missing positions for all projects
+ */
+export const fillMissingPositionsForProjects = (projects: ProjectData[]): void => {
+  projects.forEach(project => {
+    fillMissingPositions(project.tasks)
+  })
+}
+
+/**
  * Find the path to a specific task by task id
  */
 export const findTaskPath = (tasks: TaskData[], targetId: string, currentPath: string[] = []): string[] | null => {

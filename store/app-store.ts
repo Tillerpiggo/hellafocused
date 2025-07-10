@@ -14,6 +14,7 @@ import {
   addTaskToParent,
   isProject,
   isProjectList,
+  fillMissingPositionsForProjects,
 } from "@/lib/task-utils"
 import { 
   trackProjectCreated, 
@@ -138,6 +139,16 @@ export const useAppStore = create<AppState>()(
           return
         }
 
+        // Calculate position based on current number of tasks at this level
+        let position: number
+        if (parentPath.length === 1) {
+          // Adding to project root
+          position = project.tasks.length
+        } else {
+          // Adding to parent task
+          const parentTask = findTaskAtPath(draft.projects, parentPath)
+          position = parentTask ? parentTask.subtasks.length : 0
+        }
 
         const newTaskId = uuidv4()
         const newTask: TaskData = {
@@ -145,6 +156,7 @@ export const useAppStore = create<AppState>()(
           name: subtaskName,
           completed: false,
           lastModificationDate: new Date().toISOString(),
+          position: position,
           subtasks: [],
         }
 
@@ -226,6 +238,12 @@ export const useAppStore = create<AppState>()(
         currentPath: state.currentPath,
         showCompleted: state.showCompleted,
       }),
+      onRehydrateStorage: () => (state) => {
+        // Fill missing positions for any existing tasks when loading from storage
+        if (state?.projects) {
+          fillMissingPositionsForProjects(state.projects)
+        }
+      },
     }
   )
 )
@@ -250,10 +268,25 @@ export const getCurrentTasksForView = (store: AppState): TaskData[] => {
     tasksToShow = currentTask.subtasks
   }
 
+  // Helper function to sort tasks by position, with fallback to creation date for missing positions
+  const sortByPosition = (tasks: TaskData[]) => {
+    return tasks.sort((a, b) => {
+      // If both tasks have positions, sort by position
+      if (a.position !== undefined && b.position !== undefined) {
+        return a.position - b.position
+      }
+      // If only one has position, prioritize the one with position
+      if (a.position !== undefined && b.position === undefined) return -1
+      if (a.position === undefined && b.position !== undefined) return 1
+      // If neither has position, sort by lastModificationDate (creation order)
+      return a.lastModificationDate.localeCompare(b.lastModificationDate)
+    })
+  }
+
   // Filter and sort tasks based on showCompleted setting
   if (store.showCompleted) {
     // Show all tasks, with completed tasks sorted by completion date (most recent at bottom)
-    const incompleteTasks = tasksToShow.filter((task) => !task.completed)
+    const incompleteTasks = sortByPosition(tasksToShow.filter((task) => !task.completed))
     const completedTasks = tasksToShow
       .filter((task) => task.completed)
       .sort((a, b) => {
@@ -265,8 +298,8 @@ export const getCurrentTasksForView = (store: AppState): TaskData[] => {
 
     return [...completedTasks, ...incompleteTasks]
   } else {
-    // Show only incomplete tasks
-    return tasksToShow.filter((task) => !task.completed)
+    // Show only incomplete tasks, sorted by position
+    return sortByPosition(tasksToShow.filter((task) => !task.completed))
   }
 }
 
