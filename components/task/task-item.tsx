@@ -53,7 +53,7 @@ export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProp
           : "hover:bg-accent/50 hover:border-primary/30 border-border/50",
         isEditing && "bg-accent/70 border-primary/50",
         isDragging && "opacity-50 scale-95",
-        !task.completed ? "cursor-grab active:cursor-grabbing" : "cursor-pointer",
+        "cursor-pointer",
       )}
       onClick={handleNavigate}
     >

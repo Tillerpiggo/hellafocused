@@ -63,7 +63,6 @@ export function SortableTaskItem({ task, currentPath, disabled }: SortableTaskIt
       style={style}
       className={`
         ${isDragging ? 'z-50' : ''}
-        ${disabled ? '' : 'cursor-grab active:cursor-grabbing'}
       `}
       {...attributes}
       {...listeners}
@@ -75,4 +74,4 @@ export function SortableTaskItem({ task, currentPath, disabled }: SortableTaskIt
       />
     </div>
   )
-} 
+}
