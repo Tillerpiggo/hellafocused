@@ -68,6 +68,7 @@ function AuthHandler() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("auth state changed", event, session)
         const user = session?.user ?? null
         setUser(user)
         

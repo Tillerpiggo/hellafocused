@@ -51,13 +51,71 @@ export const useSyncStore = create<SyncStore>()(
 
       // Actions
       addPendingChange: (action) => {
-        const { currentUserId } = get()
+        const { currentUserId, pendingChanges } = get()
         
         // Only create pending changes if user is logged in
         if (!currentUserId) {
           return null
         }
         
+        // Look for existing pending action for the same entity
+        const existingEntry = Object.entries(pendingChanges).find(([, existingAction]) => 
+          existingAction.entityId === action.entityId &&
+          existingAction.userId === currentUserId &&
+          !existingAction.synced
+        )
+        
+        if (existingEntry) {
+          const [existingId, existingAction] = existingEntry
+          
+          // Merge logic based on action types
+          const shouldMerge = (() => {
+            // Delete supersedes everything
+            if (action.type === 'delete') {
+              return true
+            }
+            
+            // Can't merge different action types (except delete)
+            if (action.type !== existingAction.type) {
+              return false
+            }
+            
+            // For same action types, merge if new action is more recent
+            return action.timestamp > existingAction.timestamp
+          })()
+          
+          if (shouldMerge) {
+            console.log(`🔄 Merging sync action for ${action.entityId}: ${existingAction.type} + ${action.type}`)
+            
+            set(
+              produce((draft: SyncStore) => {
+                // For delete actions, preserve the delete but update timestamp
+                if (action.type === 'delete') {
+                  draft.pendingChanges[existingId] = { 
+                    ...action, 
+                    userId: currentUserId,
+                    // Preserve original retry state
+                    retryCount: existingAction.retryCount,
+                    lastError: existingAction.lastError
+                  }
+                } else {
+                  // For creates/updates, merge data and update timestamp
+                  draft.pendingChanges[existingId] = {
+                    ...existingAction,
+                    ...action,
+                    userId: currentUserId,
+                    // Preserve original retry state
+                    retryCount: existingAction.retryCount,
+                    lastError: existingAction.lastError
+                  }
+                }
+              })
+            )
+            return existingId
+          }
+        }
+        
+        // No existing action to merge with, create new one
         const id = uuidv4()
         
         set(

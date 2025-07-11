@@ -75,7 +75,8 @@ export function SyncStatus() {
 
   // Show loading when sync is loading
   if (syncLoading) {
-    return renderStatus(MoreHorizontal, 'Syncing...', true)
+    const syncText = pendingCount > 0 ? `Syncing... (${pendingCount} remaining)` : 'Syncing...'
+    return renderStatus(MoreHorizontal, syncText, true)
   }
 
   // Show offline status (only after mounting to avoid hydration mismatch)

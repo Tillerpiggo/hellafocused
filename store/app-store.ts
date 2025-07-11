@@ -29,15 +29,18 @@ interface AppState {
   projects: ProjectData[]
   currentPath: string[] // [] for project list, [projectId] for project, [projectId, taskId, ...] for tasks
   showCompleted: boolean
+  searchQuery: string
   // Actions
   selectProject: (projectId: string | null) => void
   navigateToTask: (taskId: string) => void
+  navigateToPath: (path: string[]) => void // Navigate directly to a specific path
   navigateBack: () => void // Navigates one level up in task hierarchy or to project list
 
   toggleTaskCompletion: (taskPath: string[]) => void
   deleteAtPath: (itemPath: string[]) => void
 
   toggleShowCompleted: () => void
+  setSearchQuery: (query: string) => void
 
   addSubtaskToParent: (parentPath: string[], subtaskName: string) => void
   updateProjectName: (projectId: string, newName: string) => void
@@ -55,10 +58,13 @@ export const useAppStore = create<AppState>()(
       projects: initialProjectsData,
       currentPath: [], // Start at project list
       showCompleted: false,
+      searchQuery: "",
 
   selectProject: (projectId) => set({ currentPath: projectId ? [projectId] : [] }),
 
   navigateToTask: (taskId) => set((state) => ({ currentPath: [...state.currentPath, taskId] })),
+
+  navigateToPath: (path) => set({ currentPath: path }),
 
   navigateBack: () =>
     set((state) => {
@@ -126,6 +132,8 @@ export const useAppStore = create<AppState>()(
   },
 
   toggleShowCompleted: () => set((state) => ({ showCompleted: !state.showCompleted })),
+
+  setSearchQuery: (query) => set({ searchQuery: query }),
 
   addSubtaskToParent: (parentPath, subtaskName) => {
 
@@ -294,6 +302,7 @@ export const useAppStore = create<AppState>()(
     projects: initialProjectsData,
     currentPath: [],
     showCompleted: false,
+    searchQuery: "",
   }),
     }),
     {
@@ -302,6 +311,7 @@ export const useAppStore = create<AppState>()(
         projects: state.projects,
         currentPath: state.currentPath,
         showCompleted: state.showCompleted,
+        searchQuery: state.searchQuery,
       }),
       onRehydrateStorage: () => (state) => {
         // Fill missing positions for any existing tasks when loading from storage
@@ -346,6 +356,14 @@ export const getCurrentTasksForView = (store: AppState): TaskData[] => {
       // If neither has position, sort by lastModificationDate (creation order)
       return a.lastModificationDate.localeCompare(b.lastModificationDate)
     })
+  }
+
+  // Apply search filter if there's a search query
+  if (store.searchQuery.trim()) {
+    const searchLower = store.searchQuery.toLowerCase().trim()
+    tasksToShow = tasksToShow.filter((task) => 
+      task.name.toLowerCase().includes(searchLower)
+    )
   }
 
   // Filter and sort tasks based on showCompleted setting

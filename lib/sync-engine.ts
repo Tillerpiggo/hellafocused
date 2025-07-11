@@ -31,16 +31,18 @@ class SyncEngine {
       const user = session?.user ?? null
       useSyncStore.getState().setCurrentUserId(user?.id || null)
       
-      console.log("syncing pending changes")
+      // Mark as initialized after authentication - UI can show now
+      useSyncStore.getState().setInitialized(true)
+      console.log("sync engine authenticated - UI ready")
+      
+      // Continue sync operations in background
+      console.log("syncing pending changes in background")
       await this.syncPendingChanges()
       await this.mergeWithCloud()
 
       this.startPeriodicSync()
       this.setupRealtimeSync()
-      console.log("sync engine initialized")
-      
-      // Mark as initialized
-      useSyncStore.getState().setInitialized(true)
+      console.log("background sync completed")
       
     } catch (error) {
       console.error('❌ Sync initialization error:', error)
@@ -194,7 +196,8 @@ class SyncEngine {
       
       return true
     } catch (error) {
-      console.error('Sync error for change', id, ':', error)
+      console.error('❌ Sync error for change:', id, error)
+      console.error('📄 Failed sync action:', JSON.stringify(change, null, 2))
       // Track error for debugging
       useSyncStore.getState().markFailed(id, error instanceof Error ? error.message : 'Unknown error')
       return false
@@ -237,8 +240,20 @@ class SyncEngine {
     // Group changes by type and entity for batching
     const batches = this.groupChangesForBatching(pending)
     
+    // Process batches in order: creates first, then updates, then deletes
+    const orderedBatches = batches.sort((a, b) => {
+      const order: Record<string, number> = { 
+        'individual_creates': 0, 
+        'batch_task_updates': 1, 
+        'batch_project_updates': 1, 
+        'individual_deletes': 2, 
+        'individual': 3 
+      }
+      return (order[a.type] || 999) - (order[b.type] || 999)
+    })
+    
     // Process batches
-    for (const batch of batches) {
+    for (const batch of orderedBatches) {
       try {
         if (batch.type === 'batch_task_updates') {
           await this.batchUpdateTasks(batch.changes)
@@ -252,6 +267,7 @@ class SyncEngine {
         }
       } catch (error) {
         console.error('❌ Batch sync error:', error)
+        console.error('📄 Failed batch changes:', JSON.stringify(batch.changes.map(([id, change]) => ({ id, change })), null, 2))
         // Fall back to individual sync for this batch
         for (const [id] of batch.changes) {
           await this.syncSingleChange(id)
@@ -272,12 +288,18 @@ class SyncEngine {
     
     const taskUpdates: [string, SyncAction][] = []
     const projectUpdates: [string, SyncAction][] = []
+    const creates: [string, SyncAction][] = []
+    const deletes: [string, SyncAction][] = []
     const others: [string, SyncAction][] = []
     
     for (const item of pending) {
       const [, change] = item
       
-      if (change.type === 'update' && change.entityType === 'task') {
+      if (change.type === 'create') {
+        creates.push(item)
+      } else if (change.type === 'delete') {
+        deletes.push(item)
+      } else if (change.type === 'update' && change.entityType === 'task') {
         taskUpdates.push(item)
       } else if (change.type === 'update' && change.entityType === 'project') {
         projectUpdates.push(item)
@@ -286,7 +308,11 @@ class SyncEngine {
       }
     }
     
-    // Create batches
+    // Create batches in proper order
+    if (creates.length > 0) {
+      batches.push({ type: 'individual_creates', changes: creates })
+    }
+    
     if (taskUpdates.length > 1) {
       batches.push({ type: 'batch_task_updates', changes: taskUpdates })
     } else if (taskUpdates.length === 1) {
@@ -299,6 +325,10 @@ class SyncEngine {
       others.push(projectUpdates[0])
     }
     
+    if (deletes.length > 0) {
+      batches.push({ type: 'individual_deletes', changes: deletes })
+    }
+    
     if (others.length > 0) {
       batches.push({ type: 'individual', changes: others })
     }
@@ -309,7 +339,7 @@ class SyncEngine {
   private async batchUpdateTasks(changes: [string, SyncAction][]) {
     const userId = await this.getCurrentUserId()
     
-    // Prepare batch update data
+    // Prepare batch update data (store already merged duplicates)
     const updates = changes.map(([, change]) => {
       const taskData = change.data as TaskData
       if (!taskData) {
@@ -326,20 +356,32 @@ class SyncEngine {
         user_id: userId,
         project_id: change.projectId, // Get from sync action metadata
         parent_id: change.parentId || null, // Get from sync action metadata
+        device_id: this.instanceId, // Include device_id for echo prevention
       }
     })
     
-    console.log(`🔄 Batch updating ${updates.length} tasks`)
+    // Filter out updates with invalid parent references (safety check)
+    const validUpdates = updates.filter(update => {
+      // If task has a parent_id, ensure it's not referencing itself
+      if (update.parent_id && update.parent_id === update.id) {
+        console.warn(`⚠️ Skipping task ${update.id} with self-referencing parent_id`)
+        return false
+      }
+      return true
+    })
+    
+    console.log(`🔄 Batch updating ${validUpdates.length} tasks`)
     
     // Use upsert for batch update
     const { error } = await supabase
       .from('tasks')
-      .upsert(updates, { 
+      .upsert(validUpdates, { 
         onConflict: 'id',
         ignoreDuplicates: false 
       })
     
     if (error) {
+      console.error('📄 Failed task sync actions:', JSON.stringify(changes.map(([id, change]) => ({ id, change })), null, 2))
       throw new Error(`Failed to batch update tasks: ${error.message}`)
     }
     
@@ -352,7 +394,7 @@ class SyncEngine {
   private async batchUpdateProjects(changes: [string, SyncAction][]) {
     const userId = await this.getCurrentUserId()
     
-    // Prepare batch update data
+    // Prepare batch update data (store already merged duplicates)
     const updates = changes.map(([, change]) => {
       const projectData = change.data as ProjectData
       if (!projectData) {
@@ -364,6 +406,7 @@ class SyncEngine {
         name: projectData.name,
         updated_at: projectData.lastModificationDate,
         user_id: userId,
+        device_id: this.instanceId, // Include device_id for echo prevention
       }
     })
     
@@ -378,6 +421,7 @@ class SyncEngine {
       })
     
     if (error) {
+      console.error('📄 Failed project sync actions:', JSON.stringify(changes.map(([id, change]) => ({ id, change })), null, 2))
       throw new Error(`Failed to batch update projects: ${error.message}`)
     }
     
@@ -567,6 +611,7 @@ class SyncEngine {
       .update({
         name: project.name,
         updated_at: project.lastModificationDate,
+        device_id: this.instanceId,
       })
       .eq('id', projectId)
       .eq('user_id', userId)
@@ -584,6 +629,7 @@ class SyncEngine {
       .update({
         is_deleted: true,
         updated_at: new Date().toISOString(),
+        device_id: this.instanceId,
       })
       .eq('id', projectId)
       .eq('user_id', userId)
@@ -642,6 +688,7 @@ class SyncEngine {
         completion_date: task.completionDate || null,
         position: task.position ?? 0,
         updated_at: task.lastModificationDate,
+        device_id: this.instanceId,
       })
       .eq('id', taskId)
       .eq('user_id', userId)
@@ -659,6 +706,7 @@ class SyncEngine {
       .update({
         is_deleted: true,
         updated_at: new Date().toISOString(),
+        device_id: this.instanceId,
       })
       .eq('id', taskId)
       .eq('user_id', userId)

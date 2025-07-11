@@ -42,6 +42,7 @@ export function TopBar() {
     // Listen for auth changes - this provides session data, so we keep using session here
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        console.log("auth state changed", event, session)
         const user = session?.user ?? null
         setUser(user)
         setIsAuthLoading(false)

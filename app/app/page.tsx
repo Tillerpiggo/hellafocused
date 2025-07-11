@@ -15,9 +15,12 @@ import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
 import { Target, Loader2 } from "lucide-react"
 import { AddTaskForm } from "@/components/task/add-task-form"
+import { SearchInput } from "@/components/search-input"
+import { SearchResults } from "@/components/search-results"
 import { type EditableTitleRef } from "@/components/editable-title"
 import { useRef } from "react"
 import { countSubtasksRecursively, findTaskAtPath, findProjectAtPath, getProjectId, isProject, isProjectList } from "@/lib/task-utils"
+import { searchAllTasks, groupSearchResults } from "@/lib/search-utils"
 
 export default function HomePage() {
   const store = useAppStore()
@@ -25,15 +28,18 @@ export default function HomePage() {
     projects,
     currentPath,
     navigateBack,
+    navigateToPath,
     selectProject,
     updateProjectName,
     updateTaskName,
     toggleTaskCompletion, // Still needed for uncompleting tasks (no confirmation needed)
     addProject,
     showCompleted,
+    searchQuery,
+    setSearchQuery,
   } = store
 
-  const { syncLoading, lastSyncedAt } = useSyncStore()
+  const { isInitialized } = useSyncStore()
 
   const uiStore = useUIStore()
   const {
@@ -53,14 +59,19 @@ export default function HomePage() {
 
   const titleRef = useRef<EditableTitleRef>(null)
 
-  // Show loading until sync has been initialized at least once
-  const shouldShowLoading = syncLoading || lastSyncedAt === 0
+  // Show loading until authentication is complete
+  const shouldShowLoading = !isInitialized
 
   const tasksToDisplay = getCurrentTasksForView(store)
   const currentProject = findProjectAtPath(projects, currentPath)
   const taskChain = getCurrentTaskChain(store)
   const currentTask = taskChain.length > 0 ? taskChain[taskChain.length - 1] : null
   const isCurrentTaskCompleted = currentTask?.completed || false
+
+  // Search results
+  const searchResults = searchAllTasks(projects, searchQuery, currentPath)
+  const { currentProject: currentProjectResults, otherProjects: otherProjectResults } = groupSearchResults(searchResults)
+  const hasSearchResults = searchQuery.trim() && searchResults.length > 0
 
   // Get pending task info for dialog
   const pendingTask = pendingTaskCompletion
@@ -154,6 +165,13 @@ export default function HomePage() {
     }
   }
 
+  const handleNavigateToSearchResult = (result: { path: string[] }) => {
+    // Clear search query when navigating to a result
+    setSearchQuery("")
+    // Navigate to the task
+    navigateToPath(result.path)
+  }
+
   // Check if current task/project should show complete button
   const shouldShowCompleteButton = () => {
     if (isProjectList(currentPath) || isProject(currentPath)) return false
@@ -221,11 +239,31 @@ export default function HomePage() {
           onUncomplete={() => toggleTaskCompletion(currentPath)}
         />
 
+        {/* Search Input */}
+        <SearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder="Search tasks..."
+          className="max-w-2xl w-full"
+        />
 
-
-        <div className="space-y-2">
-          <TaskListView tasks={tasksToDisplay} currentPath={currentPath} />
-        </div>
+        {/* Search Results or Regular Tasks */}
+        {hasSearchResults ? (
+          <SearchResults
+            results={searchResults}
+            currentProjectResults={currentProjectResults}
+            otherProjectResults={otherProjectResults}
+            onNavigateToResult={handleNavigateToSearchResult}
+          />
+        ) : searchQuery.trim() ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No tasks found matching &quot;{searchQuery}&quot;</p>
+          </div>
+        ) : (
+          <div className="space-y-2">
+            <TaskListView tasks={tasksToDisplay} currentPath={currentPath} />
+          </div>
+        )}
 
         {/* Show AddTaskForm for all levels */}
         {!isProjectList(currentPath) && <AddTaskForm currentPath={currentPath} />}
@@ -243,7 +281,7 @@ export default function HomePage() {
         <main className="flex-1 flex items-center justify-center">
           <div className="flex flex-col items-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <div className="text-sm text-muted-foreground">Loading...</div>
+            <div className="text-sm text-muted-foreground">Initializing...</div>
           </div>
         </main>
       ) : (

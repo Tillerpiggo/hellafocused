@@ -48,11 +48,16 @@ export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProp
     <div
       className={cn(
         "flex items-start justify-between p-4 my-2 rounded-2xl border transition-all duration-300 group",
-        task.completed
-          ? "bg-muted/20 opacity-60 border-border/30"
-          : "hover:bg-accent/50 hover:border-primary/30 border-border/50",
-        isEditing && "bg-accent/70 border-primary/50",
-        isDragging && "opacity-50 scale-95",
+        // Dragging state takes highest precedence
+        isDragging 
+          ? "bg-blue-100 dark:bg-blue-950/70 border-blue-400 dark:border-blue-600 shadow-lg ring-2 ring-blue-300 dark:ring-blue-600"
+          : [
+              "bg-background",
+              task.completed
+                ? "bg-muted/50 opacity-60 border-border/30"
+                : "hover:bg-accent/80 hover:border-primary/30 border-border/50",
+              isEditing && "bg-accent border-primary/50",
+            ],
         "cursor-pointer",
       )}
       onClick={handleNavigate}
