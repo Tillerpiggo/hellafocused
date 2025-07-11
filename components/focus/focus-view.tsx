@@ -50,7 +50,7 @@ export function FocusView({ startPath }: FocusViewProps) {
     return () => {
       resetFocus()
     }
-  }, [initializeFocus, resetFocus, startPath, projects])
+  }, [initializeFocus, resetFocus, startPath])
 
   // Handle initial load animation
   useEffect(() => {
@@ -112,7 +112,10 @@ export function FocusView({ startPath }: FocusViewProps) {
       </div>
 
       {/* Add Tasks View */}
-      <AddTasksView isVisible={showAddTasksView} onClose={() => setShowAddTasksView(false)} />
+      <AddTasksView isVisible={showAddTasksView} onClose={() => {
+        console.log('📞 FocusView onClose callback called - calling setShowAddTasksView(false)')
+        setShowAddTasksView(false)
+      }} />
     </>
   )
 }

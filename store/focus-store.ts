@@ -38,8 +38,11 @@ export const useFocusStore = create<FocusState>((set, get) => ({
   updateFocusLeaves: (projects) => {
     const { focusStartPath, currentFocusTask } = get()
     
+    console.log('🔄 updateFocusLeaves called with current task:', currentFocusTask?.name)
+    
     // Recalculate leaves based on current focus path
     const newLeaves = getHierarchicalLeafNodes(projects, focusStartPath)
+    console.log('📋 Recalculated leaves:', newLeaves.map(l => l.name))
     
     // Check if current focus task now has subtasks (i.e., it's no longer a leaf)
     if (currentFocusTask) {
@@ -54,9 +57,12 @@ export const useFocusStore = create<FocusState>((set, get) => ({
             const currentTaskInProjects = findTaskAtPath(projects, fullTaskPath)
             const currentTaskHasSubtasks = currentTaskInProjects?.subtasks?.filter(st => !st.completed).length ?? 0 > 0
             if (currentTaskHasSubtasks) {
+              console.log('🔀 Current task now has subtasks, refocusing on task children')
               // The task now has incomplete subtasks, so refocus on this task
               const newFocusPath = fullTaskPath
               const newLeavesForTask = getHierarchicalLeafNodes(projects, newFocusPath)
+              
+              console.log('📋 New leaves for refocused task:', newLeavesForTask.map(l => l.name))
               
               set({
                 focusStartPath: newFocusPath,
@@ -69,6 +75,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
       }
     }
     
+    console.log('✅ Just updating leaves, no currentFocusTask change')
     // Just update the leaves - never change currentFocusTask
     set({
       focusModeProjectLeaves: newLeaves,
@@ -99,6 +106,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
   }),
 
   getNextFocusTask: () => {
+    console.log('🎯 getNextFocusTask called')
     // Update leaves first to get the latest data
     const projects = useAppStore.getState().projects
     get().updateFocusLeaves(projects)
@@ -108,19 +116,28 @@ export const useFocusStore = create<FocusState>((set, get) => ({
       const availableLeaves = state.focusModeProjectLeaves.filter(
         (leaf) => leaf.id !== state.currentFocusTask?.id && !leaf.completed,
       )
+      console.log('🎲 Available leaves for next task:', availableLeaves.map(l => l.name))
+      
       // Pick a random task from the available leaves
       if (availableLeaves.length > 0) {
-        return { currentFocusTask: randomFrom(availableLeaves) }
+        const nextTask = randomFrom(availableLeaves)
+        console.log('✨ Selected next task:', nextTask?.name)
+        return { currentFocusTask: nextTask }
       }
       // If current task was the last one, or all are completed
       const allLeaves = state.focusModeProjectLeaves.filter((leaf) => !leaf.completed)
-      return { currentFocusTask: randomFrom(allLeaves) }
+      console.log('🔄 No other available leaves, picking from all incomplete:', allLeaves.map(l => l.name))
+      const nextTask = randomFrom(allLeaves)
+      console.log('✨ Selected next task (from all):', nextTask?.name)
+      return { currentFocusTask: nextTask }
     })
   },
 
   completeFocusTask: () => {
     const { currentFocusTask, focusStartPath } = get()
     const currentProjectId = getProjectId(focusStartPath)
+    
+    console.log('✅ completeFocusTask called for task:', currentFocusTask?.name)
     
     if (currentFocusTask && currentProjectId) {
       // Find the path to the currentFocusTask to mark it completed in the main projects data
@@ -131,6 +148,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
         if (taskPathInProject) {
           const fullTaskPath = [currentProjectId, ...taskPathInProject]
           
+          console.log('📝 Marking task as completed in app store')
           // Use the app store's toggleTaskCompletion function directly
           useAppStore.getState().toggleTaskCompletion(fullTaskPath)
         }
@@ -146,6 +164,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
         }),
       )
       
+      console.log('🔄 Calling updateFocusLeaves after completion')
       // Update leaves after completion to sync with latest data
       const updatedProjects = useAppStore.getState().projects
       get().updateFocusLeaves(updatedProjects)
@@ -199,6 +218,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
   },
 
   setShowAddTasksView: (show) => {
+    console.log('🎛️ setShowAddTasksView called with:', show)
     set({ showAddTasksView: show })
     
     // When dismissing add-tasks-view, update leaves to sync with latest data
