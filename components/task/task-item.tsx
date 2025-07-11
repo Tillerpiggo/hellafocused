@@ -53,7 +53,7 @@ export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProp
           ? "bg-blue-100 dark:bg-blue-950/70 border-blue-400 dark:border-blue-600 shadow-lg ring-2 ring-blue-300 dark:ring-blue-600"
           : [
               "bg-background",
-              task.completed
+        task.completed
                 ? "bg-muted/50 opacity-60 border-border/30"
                 : "hover:bg-accent/80 hover:border-primary/30 border-border/50",
               isEditing && "bg-accent border-primary/50",

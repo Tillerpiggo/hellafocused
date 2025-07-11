@@ -243,8 +243,8 @@ export default function HomePage() {
         <SearchInput
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Search tasks..."
-          className="max-w-2xl w-full"
+          placeholder="Search tasks and subtasks..."
+          className="w-full"
         />
 
         {/* Search Results or Regular Tasks */}
@@ -254,6 +254,9 @@ export default function HomePage() {
             currentProjectResults={currentProjectResults}
             otherProjectResults={otherProjectResults}
             onNavigateToResult={handleNavigateToSearchResult}
+            currentPath={currentPath}
+            isInProject={isProject(currentPath)}
+            query={searchQuery}
           />
         ) : searchQuery.trim() ? (
           <div className="text-center py-8">

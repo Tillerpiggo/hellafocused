@@ -270,7 +270,7 @@ class SyncEngine {
         console.error('📄 Failed batch changes:', JSON.stringify(batch.changes.map(([id, change]) => ({ id, change })), null, 2))
         // Fall back to individual sync for this batch
         for (const [id] of batch.changes) {
-          await this.syncSingleChange(id)
+      await this.syncSingleChange(id)
         }
       }
     }

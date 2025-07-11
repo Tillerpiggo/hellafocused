@@ -65,16 +65,16 @@ export function TaskListView({ tasks, currentPath }: TaskListViewProps) {
         items={taskItems}
         strategy={verticalListSortingStrategy}
       >
-        <div className="space-y-1">
-          {tasks.map((task) => (
+    <div className="space-y-1">
+      {tasks.map((task) => (
             <SortableTaskItem
-              key={task.id}
-              task={task}
+          key={task.id}
+          task={task}
               currentPath={currentPath}
               disabled={task.completed}
-            />
-          ))}
-        </div>
+        />
+      ))}
+    </div>
       </SortableContext>
     </DndContext>
   )

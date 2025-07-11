@@ -44,13 +44,17 @@ export function searchAllTasks(
     results.push(...projectResults)
   }
 
-  // Sort results: current project first, then by relevance (exact matches first)
+  // Sort results: current project first, then by relevance (exact matches first), then deprioritize completed
   return results.sort((a, b) => {
     // Current project results first
     if (a.isInCurrentProject && !b.isInCurrentProject) return -1
     if (!a.isInCurrentProject && b.isInCurrentProject) return 1
     
-    // Within same project category, exact matches first
+    // Within same project category, prioritize incomplete tasks
+    if (!a.task.completed && b.task.completed) return -1
+    if (a.task.completed && !b.task.completed) return 1
+    
+    // Within same completion status, exact matches first
     const aExactMatch = a.task.name.toLowerCase() === searchLower
     const bExactMatch = b.task.name.toLowerCase() === searchLower
     if (aExactMatch && !bExactMatch) return -1
@@ -133,4 +137,50 @@ export function groupSearchResults(results: SearchResult[]): {
   }
 
   return { currentProject, otherProjects }
+}
+
+/**
+ * Highlights matching keywords in text by wrapping them with highlighting elements
+ */
+export function highlightText(text: string, query: string): (string | { type: 'highlight'; text: string })[] {
+  if (!query.trim()) return [text]
+  
+  const searchTerms = query.toLowerCase().trim().split(/\s+/)
+  const parts: (string | { type: 'highlight'; text: string })[] = []
+  
+  let currentText = text
+  let currentIndex = 0
+  
+  while (currentIndex < currentText.length) {
+    let nearestMatch: { index: number; length: number; term: string } | null = null
+    
+    // Find the nearest match from current position
+    for (const term of searchTerms) {
+      const index = currentText.toLowerCase().indexOf(term, currentIndex)
+      if (index !== -1 && (!nearestMatch || index < nearestMatch.index)) {
+        nearestMatch = { index, length: term.length, term }
+      }
+    }
+    
+    if (!nearestMatch) {
+      // No more matches, add the rest of the text
+      parts.push(currentText.slice(currentIndex))
+      break
+    }
+    
+    // Add text before the match
+    if (nearestMatch.index > currentIndex) {
+      parts.push(currentText.slice(currentIndex, nearestMatch.index))
+    }
+    
+    // Add the highlighted match
+    parts.push({
+      type: 'highlight',
+      text: currentText.slice(nearestMatch.index, nearestMatch.index + nearestMatch.length)
+    })
+    
+    currentIndex = nearestMatch.index + nearestMatch.length
+  }
+  
+  return parts
 } 
