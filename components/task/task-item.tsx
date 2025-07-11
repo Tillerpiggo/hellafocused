@@ -50,7 +50,7 @@ export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProp
         "flex items-start justify-between p-4 my-2 rounded-2xl border transition-all duration-300 group",
         // Dragging state takes highest precedence
         isDragging 
-          ? "bg-blue-100 dark:bg-blue-950/70 border-blue-400 dark:border-blue-600 shadow-lg ring-2 ring-blue-300 dark:ring-blue-600"
+          ? "bg-accent/80 border-primary/30 opacity-80 scale-95"
           : [
               "bg-background",
         task.completed
