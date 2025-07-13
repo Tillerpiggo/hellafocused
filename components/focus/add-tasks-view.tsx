@@ -70,7 +70,7 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
       setIsDismissing(true)
       setIsAnimating(false)
     }
-  }, [isVisible, shouldRender, isDismissing, globalCurrentPath, currentFocusTask])
+  }, [isVisible, shouldRender, isDismissing, globalCurrentPath, currentFocusTask, projects])
 
   // Handle dismissal animation completion
   useEffect(() => {

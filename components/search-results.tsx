@@ -85,7 +85,6 @@ export function SearchResults({
               <SearchTaskItem
                 key={`direct-${index}`}
                 result={result}
-                currentPath={currentPath}
                 query={query}
                 onClick={() => onNavigateToResult(result)}
               />
@@ -134,12 +133,11 @@ interface SearchResultItemProps {
 
 interface SearchTaskItemProps {
   result: SearchResult
-  currentPath: string[]
   query: string
   onClick: () => void
 }
 
-function SearchTaskItem({ result, currentPath, query, onClick }: SearchTaskItemProps) {
+function SearchTaskItem({ result, query, onClick }: SearchTaskItemProps) {
   const { task } = result
   
   return (

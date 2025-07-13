@@ -35,7 +35,7 @@ export function VideoDemoSection() {
             Make your to-dos tiny.
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto mt-6">
-            With infinite nesting, it's easy to make your to-dos smaller... and smaller... and smaller...
+            With infinite nesting, it&apos;s easy to make your to-dos smaller... and smaller... and smaller...
           </p>
         </div>
 

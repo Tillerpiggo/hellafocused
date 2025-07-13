@@ -148,7 +148,7 @@ export function highlightText(text: string, query: string): (string | { type: 'h
   const searchTerms = query.toLowerCase().trim().split(/\s+/)
   const parts: (string | { type: 'highlight'; text: string })[] = []
   
-  let currentText = text
+  const currentText = text
   let currentIndex = 0
   
   while (currentIndex < currentText.length) {
