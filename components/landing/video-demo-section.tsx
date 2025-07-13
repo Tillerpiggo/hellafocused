@@ -32,10 +32,10 @@ export function VideoDemoSection() {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4">
-            Make your tasks tiny.
+            Make your to-dos tiny.
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto mt-6">
-            Break down complex projects into manageable tasks.
+            With infinite nesting, it's easy to make your to-dos smaller... and smaller... and smaller...
           </p>
         </div>
 

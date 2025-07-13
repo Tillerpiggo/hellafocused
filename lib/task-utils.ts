@@ -29,23 +29,41 @@ export const findTaskRecursive = (tasks: TaskData[], path: string[]): TaskData |
 }
 
 /**
- * Delete a task from an array at a task path
+ * Delete a task from an array at a task path and update positions
+ * Returns array of affected task IDs that had their positions updated
  */
-export const deleteTaskFromArray = (tasks: TaskData[], path: string[]): boolean => {
-  if (!path.length) return false
-
-  if (path.length === 1) {
+export const deleteTaskFromArray = (tasks: TaskData[], path: string[]): string[] => {
+  if (isTask(path)) {
     const index = tasks.findIndex((t) => t.id === path[0])
     if (index !== -1) {
       tasks.splice(index, 1)
-      return true
+      
+      // Update positions for remaining tasks and collect their IDs
+      const affectedTaskIds: string[] = []
+      tasks
+        .sort((a, b) => {
+          // Sort by position if possible, or fallback to lastModificationDate
+          if (a.position !== undefined && b.position !== undefined) {
+            return a.position - b.position
+          }
+          if (a.position !== undefined && b.position === undefined) return -1
+          if (a.position === undefined && b.position !== undefined) return 1
+          return a.lastModificationDate.localeCompare(b.lastModificationDate)
+        })
+        .forEach((task, index) => {
+          task.position = index
+          task.lastModificationDate = new Date().toISOString()
+          affectedTaskIds.push(task.id)
+        })
+      
+      return affectedTaskIds
     }
-    return false
+    return []
   }
 
   const currentId = path[0]
   const task = tasks.find((t) => t.id === currentId)
-  if (!task) return false
+  if (!task) return []
 
   return deleteTaskFromArray(task.subtasks, path.slice(1))
 }
@@ -189,7 +207,7 @@ export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: stri
  * Find a task by unified path (includes projectId)
  */
 export const findTaskAtPath = (projects: ProjectData[], taskPath: string[]): TaskData | null => {
-  if (taskPath.length <= 1) return null // Project level or invalid
+  if (!isTask(taskPath)) return null // Project level or invalid
   
   const project = projects.find(p => p.id === taskPath[0])
   if (!project) return null
@@ -218,26 +236,29 @@ export const updateTaskAtPath = (projects: ProjectData[], taskPath: string[], up
 }
 
 /**
- * Delete by unified path (can delete project or task)
+ * Delete by unified path (can delete project or task) and update positions
+ * Returns array of affected task IDs that had their positions updated
  */
-export const deleteAtPath = (projects: ProjectData[], taskPath: string[]): boolean => {
-  if (taskPath.length === 0) return false
+export const deleteAtPath = (projects: ProjectData[], taskPath: string[]): string[] => {
+  if (isProjectList(taskPath)) return []
   
-  if (taskPath.length === 1) {
-    // Delete project
+  if (isProject(taskPath)) {
+    // Delete project - no position updates needed
     const projectIndex = projects.findIndex(p => p.id === taskPath[0])
     if (projectIndex !== -1) {
       projects.splice(projectIndex, 1)
-      return true
+      return []
     }
-    return false
+    return []
   }
-  
-  // Delete task
-  const project = projects.find(p => p.id === taskPath[0])
-  if (!project) return false
-  
-  return deleteTaskFromArray(project.tasks, taskPath.slice(1))
+  else if (isTask(taskPath)) {
+    // Delete task and update positions
+    const project = projects.find(p => p.id === taskPath[0])
+    if (!project) return []
+    
+    return deleteTaskFromArray(project.tasks, taskPath.slice(1))
+  }
+  return []
 }
 
 /**
@@ -262,10 +283,169 @@ export const addTaskToParent = (projects: ProjectData[], parentPath: string[], t
   return taskData
 }
 
+
+
+/**
+ * Insert a task into a new parent at a specific position
+ * Returns array of affected task IDs that had their positions updated
+ */
+export const insertTaskIntoNewParent = (projects: ProjectData[], newParentPath: string[], task: TaskData, position?: number): string[] => {
+  if (newParentPath.length === 0) return []
+  
+  const project = projects.find(p => p.id === newParentPath[0])
+  if (!project) return []
+  
+  let targetTasks: TaskData[]
+  if (newParentPath.length === 1) {
+    // Inserting at project root level
+    targetTasks = project.tasks
+  } else {
+    // Inserting into a subtask
+    const parentTask = findTaskRecursive(project.tasks, newParentPath.slice(1))
+    if (!parentTask) return []
+    targetTasks = parentTask.subtasks
+  }
+  
+  // Update task's modification date
+  task.lastModificationDate = new Date().toISOString()
+  
+  // Insert at specified position or at the end
+  const insertPosition = position !== undefined ? Math.min(position, targetTasks.length) : targetTasks.length
+  targetTasks.splice(insertPosition, 0, task)
+  
+  // Update positions for all tasks in the new parent and collect their IDs
+  const affectedTaskIds: string[] = []
+  targetTasks.forEach((t, index) => {
+    t.position = index
+    t.lastModificationDate = new Date().toISOString()
+    affectedTaskIds.push(t.id)
+  })
+  
+  return affectedTaskIds
+}
+
+/**
+ * Move a task (and all its subtasks) from one parent to another
+ * Returns object with success status and arrays of affected task IDs for sync
+ */
+export const moveTaskToNewParent = (projects: ProjectData[], taskPath: string[], newParentPath: string[], newPosition?: number): {
+  success: boolean
+  sourceAffectedTaskIds: string[]
+  destinationAffectedTaskIds: string[]
+} => {
+  // Validate paths
+  if (taskPath.length <= 1 || newParentPath.length === 0) {
+    return { success: false, sourceAffectedTaskIds: [], destinationAffectedTaskIds: [] }
+  }
+  
+  // Don't allow moving a task into itself or its own subtasks
+  if (isTaskDescendantOf(taskPath, newParentPath)) {
+    return { success: false, sourceAffectedTaskIds: [], destinationAffectedTaskIds: [] }
+  }
+  
+  // Don't allow moving to the same parent (use reorderTasks for that)
+  const currentParentPath = taskPath.slice(0, -1)
+  if (arePathsEqual(currentParentPath, newParentPath)) {
+    return { success: false, sourceAffectedTaskIds: [], destinationAffectedTaskIds: [] }
+  }
+  
+  // Get the task to move first
+  const task = findTaskAtPath(projects, taskPath)
+  if (!task) {
+    return { success: false, sourceAffectedTaskIds: [], destinationAffectedTaskIds: [] }
+  }
+  
+  // Remove task from current parent (this also updates positions)
+  const sourceAffectedTaskIds = deleteAtPath(projects, taskPath)
+  
+  // Insert task into new parent
+  const destinationAffectedTaskIds = insertTaskIntoNewParent(projects, newParentPath, task, newPosition)
+  
+  return {
+    success: destinationAffectedTaskIds.length > 0,
+    sourceAffectedTaskIds,
+    destinationAffectedTaskIds
+  }
+}
+
+/**
+ * Check if a task path is a descendant of another path
+ * Used to prevent dropping a task into its own subtasks
+ */
+export const isTaskDescendantOf = (taskPath: string[], ancestorPath: string[]): boolean => {
+  if (ancestorPath.length >= taskPath.length) return false
+  
+  for (let i = 0; i < ancestorPath.length; i++) {
+    if (taskPath[i] !== ancestorPath[i]) return false
+  }
+  
+  return true
+}
+
+/**
+ * Check if two paths are equal
+ */
+export const arePathsEqual = (path1: string[], path2: string[]): boolean => {
+  if (path1.length !== path2.length) return false
+  return path1.every((segment, index) => segment === path2[index])
+}
+
+/**
+ * Get all valid drop targets for a given task
+ * Returns array of paths where the task can be dropped
+ */
+export const getValidDropTargets = (projects: ProjectData[], taskPath: string[]): string[][] => {
+  const validTargets: string[][] = []
+  
+  // Add project roots as valid targets
+  projects.forEach(project => {
+    validTargets.push([project.id])
+  })
+  
+  // Add all tasks as valid targets (except the task itself and its descendants)
+  const addTaskTargets = (tasks: TaskData[], currentPath: string[]) => {
+    tasks.forEach(task => {
+      const taskTargetPath = [...currentPath, task.id]
+      
+      // Don't allow dropping into the task itself or its descendants
+      if (!arePathsEqual(taskTargetPath, taskPath) && !isTaskDescendantOf(taskTargetPath, taskPath)) {
+        validTargets.push(taskTargetPath)
+        
+        // Recursively add subtasks as targets
+        if (task.subtasks.length > 0) {
+          addTaskTargets(task.subtasks, taskTargetPath)
+        }
+      }
+    })
+  }
+  
+  projects.forEach(project => {
+    addTaskTargets(project.tasks, [project.id])
+  })
+  
+  return validTargets
+}
+
+/**
+ * Get the display name for a path (for debugging/UI purposes)
+ */
+export const getPathDisplayName = (projects: ProjectData[], path: string[]): string => {
+  if (path.length === 0) return "Project List"
+  
+  const project = projects.find(p => p.id === path[0])
+  if (!project) return "Unknown Project"
+  
+  if (path.length === 1) return project.name
+  
+  const task = findTaskAtPath(projects, path)
+  return task ? task.name : "Unknown Task"
+}
+
 // Helper functions for unified paths
 export const getProjectId = (taskPath: string[]): string | null => {
   if (taskPath.length === 0) return null
   return taskPath[0] || null
 }
 export const isProject = (taskPath: string[]): boolean => taskPath.length === 1
+export const isTask = (taskPath: string[]): boolean => taskPath.length > 1
 export const isProjectList = (taskPath: string[]): boolean => taskPath.length === 0 

@@ -15,6 +15,9 @@ import {
   isProject,
   isProjectList,
   fillMissingPositionsForProjects,
+  moveTaskToNewParent,
+  getValidDropTargets,
+  getPathDisplayName,
 } from "@/lib/task-utils"
 import { 
   trackProjectCreated, 
@@ -47,6 +50,8 @@ interface AppState {
   updateTaskName: (taskPath: string[], newName: string) => void
   addProject: (projectName: string) => void
   reorderTasks: (parentPath: string[], fromIndex: number, toIndex: number) => void
+  moveTaskToNewParent: (taskPath: string[], newParentPath: string[], newPosition?: number) => void
+  getValidDropTargets: (taskPath: string[]) => string[][]
   clearLocalState: () => void
 }
 
@@ -109,19 +114,12 @@ export const useAppStore = create<AppState>()(
   },
 
   deleteAtPath: (itemPath) => {
+    let affectedTaskIds: string[] = []
     
-    // Track deletion before actually deleting
-    if (itemPath.length === 1) {
-      // Deleting a project
-      trackProjectDeleted(itemPath[0])
-    } else {
-      // Deleting a task
-      trackTaskDeleted(itemPath)
-    }
-
     set(
       produce((draft: AppState) => {
-        deleteAtPath(draft.projects, itemPath)
+        // Delete and get affected task IDs
+        affectedTaskIds = deleteAtPath(draft.projects, itemPath)
 
         // If the current path is no longer valid, navigate up appropriately
         if (!findTaskAtPath(draft.projects, draft.currentPath) && !findProjectAtPath(draft.projects, draft.currentPath)) {
@@ -129,6 +127,22 @@ export const useAppStore = create<AppState>()(
         }
       }),
     )
+
+    // Track deletion and position updates for sync
+    if (isProject(itemPath)) {
+      // Deleting a project
+      trackProjectDeleted(itemPath[0])
+    } else {
+      // Deleting a task
+      trackTaskDeleted(itemPath)
+      
+      // Track position updates for affected sibling tasks
+      const parentPath = itemPath.slice(0, -1)
+      affectedTaskIds.forEach(taskId => {
+        const affectedTaskPath = [...parentPath, taskId]
+        trackTaskUpdated(affectedTaskPath)
+      })
+    }
   },
 
   toggleShowCompleted: () => set((state) => ({ showCompleted: !state.showCompleted })),
@@ -296,6 +310,43 @@ export const useAppStore = create<AppState>()(
       const taskPath = [...parentPath, taskId]
       trackTaskUpdated(taskPath)
     })
+  },
+
+  moveTaskToNewParent: (taskPath, newParentPath, newPosition) => {
+    let result: { success: boolean; sourceAffectedTaskIds: string[]; destinationAffectedTaskIds: string[] } = { 
+      success: false, 
+      sourceAffectedTaskIds: [], 
+      destinationAffectedTaskIds: [] 
+    }
+    
+    set(
+      produce((draft: AppState) => {
+        result = moveTaskToNewParent(draft.projects, taskPath, newParentPath, newPosition)
+      }),
+    )
+
+    if (result.success) {
+      // Track the moved task in its new location
+      const newTaskPath = [...newParentPath, taskPath[taskPath.length - 1]]
+      trackTaskUpdated(newTaskPath)
+      
+      // Track position updates for affected tasks in source parent
+      const sourceParentPath = taskPath.slice(0, -1)
+      result.sourceAffectedTaskIds.forEach(taskId => {
+        const affectedTaskPath = [...sourceParentPath, taskId]
+        trackTaskUpdated(affectedTaskPath)
+      })
+      
+      // Track position updates for affected tasks in destination parent
+      result.destinationAffectedTaskIds.forEach(taskId => {
+        const affectedTaskPath = [...newParentPath, taskId]
+        trackTaskUpdated(affectedTaskPath)
+      })
+    }
+  },
+
+  getValidDropTargets: (taskPath) => {
+    return getValidDropTargets(get().projects, taskPath)
   },
 
   clearLocalState: () => set({
