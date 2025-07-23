@@ -119,9 +119,9 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
 
   const getMoveToText = () => {
     if (isProjectList(currentNavigationPath)) {
-      return "Move to Projects"
+      return "Move to \"Projects\""
     }
-    return `Move to ${getCurrentTitle()}`
+    return `Move to "${getCurrentTitle()}"`
   }
 
   const navigationItems = getNavigationItems()
@@ -132,20 +132,22 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg h-[600px] flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-center">Move &quot;{taskName}&quot;</DialogTitle>
+          <DialogTitle className="text-center truncate px-4">Move &quot;{taskName}&quot;</DialogTitle>
         </DialogHeader>
 
         {/* Navigation Header */}
         <div className="flex items-center justify-between pb-4 border-b">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0 flex-1">
             {!isProjectList(currentNavigationPath) && (
-              <Button variant="ghost" size="sm" onClick={handleNavigateBack}>
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                {getBackButtonText()}
+              <Button variant="ghost" size="sm" onClick={handleNavigateBack} className="truncate max-w-[calc(100%-1rem)]">
+                <ArrowLeft className="h-4 w-4 mr-2 flex-shrink-0" />
+                <span className="truncate">
+                  {getBackButtonText()}
+                </span>
               </Button>
             )}
             {isProjectList(currentNavigationPath) && (
-              <h3 className="font-medium">{getCurrentTitle()}</h3>
+              <h3 className="font-medium truncate">{getCurrentTitle()}</h3>
             )}
           </div>
         </div>
@@ -206,12 +208,14 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
         {/* Footer with Move Button */}
         <div className="pt-4 border-t">
           <Button 
-            className="w-full" 
+            className="w-full truncate" 
             onClick={handleMoveHere}
             disabled={isMoving || !canMoveHere || isCurrentLocation}
             variant={(!canMoveHere || isCurrentLocation) ? "secondary" : "default"}
           >
-            {isMoving ? "Moving..." : getMoveToText()}
+            <span className="truncate">
+              {isMoving ? "Moving..." : getMoveToText()}
+            </span>
           </Button>
           {isCurrentLocation && (
             <p className="text-xs text-muted-foreground text-center mt-2">
