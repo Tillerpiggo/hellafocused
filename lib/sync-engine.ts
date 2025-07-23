@@ -680,7 +680,7 @@ class SyncEngine {
   private async updateTask(taskId: string, task: TaskData, projectId?: string, parentId?: string) {
     const userId = await this.getCurrentUserId()
     
-    const updateData: any = {
+    const updateData: Record<string, unknown> = {
       name: task.name,
       completed: task.completed,
       completion_date: task.completionDate || null,

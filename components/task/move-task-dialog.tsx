@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, ChevronRight, Folder, FileText } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/store/app-store"
-import type { TaskData, ProjectData } from "@/lib/types"
+import type { TaskData } from "@/lib/types"
 import { 
   getValidDropTargets, 
   getPathDisplayName, 
@@ -132,7 +132,7 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-lg h-[600px] flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-center">Move "{taskName}"</DialogTitle>
+          <DialogTitle className="text-center">Move &quot;{taskName}&quot;</DialogTitle>
         </DialogHeader>
 
         {/* Navigation Header */}
@@ -215,7 +215,7 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
           </Button>
           {isCurrentLocation && (
             <p className="text-xs text-muted-foreground text-center mt-2">
-              This is the task's current location
+              This is the task&apos;s current location
             </p>
           )}
         </div>
