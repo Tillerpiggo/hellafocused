@@ -30,33 +30,31 @@ export const findTaskRecursive = (tasks: TaskData[], path: string[]): TaskData |
 
 /**
  * Delete a task from an array at a task path and update positions
- * Returns array of affected task IDs that had their positions updated
+ * Returns array of affected task paths that had their positions updated
  */
-export const deleteTaskFromArray = (tasks: TaskData[], path: string[]): string[] => {
-  if (isTask(path)) {
+export const deleteTaskFromArray = (tasks: TaskData[], path: string[], fullPath: string[]): string[][] => {
+  if (!path.length) return []
+
+  if (path.length === 1) {
     const index = tasks.findIndex((t) => t.id === path[0])
     if (index !== -1) {
+      const deletedTask = tasks[index]
+      const deletedPosition = deletedTask.position ?? index
+      
       tasks.splice(index, 1)
       
-      // Update positions for remaining tasks and collect their IDs
-      const affectedTaskIds: string[] = []
-      tasks
-        .sort((a, b) => {
-          // Sort by position if possible, or fallback to lastModificationDate
-          if (a.position !== undefined && b.position !== undefined) {
-            return a.position - b.position
-          }
-          if (a.position !== undefined && b.position === undefined) return -1
-          if (a.position === undefined && b.position !== undefined) return 1
-          return a.lastModificationDate.localeCompare(b.lastModificationDate)
-        })
-        .forEach((task, index) => {
-          task.position = index
+      // Only update tasks with position > deletedPosition
+      const affectedTaskPaths: string[][] = []
+              tasks.forEach((task) => {
+        if (task.position !== undefined && task.position > deletedPosition) {
+          task.position = task.position - 1
           task.lastModificationDate = new Date().toISOString()
-          affectedTaskIds.push(task.id)
-        })
+          const parentPath = fullPath.slice(0, fullPath.length - path.length)
+          affectedTaskPaths.push([...parentPath, task.id])
+        }
+      })
       
-      return affectedTaskIds
+      return affectedTaskPaths
     }
     return []
   }
@@ -65,7 +63,7 @@ export const deleteTaskFromArray = (tasks: TaskData[], path: string[]): string[]
   const task = tasks.find((t) => t.id === currentId)
   if (!task) return []
 
-  return deleteTaskFromArray(task.subtasks, path.slice(1))
+  return deleteTaskFromArray(task.subtasks, path.slice(1), fullPath)
 }
 
 /**
@@ -237,9 +235,9 @@ export const updateTaskAtPath = (projects: ProjectData[], taskPath: string[], up
 
 /**
  * Delete by unified path (can delete project or task) and update positions
- * Returns array of affected task IDs that had their positions updated
+ * Returns array of affected task paths that had their positions updated
  */
-export const deleteAtPath = (projects: ProjectData[], taskPath: string[]): string[] => {
+export const deleteAtPath = (projects: ProjectData[], taskPath: string[]): string[][] => {
   if (isProjectList(taskPath)) return []
   
   if (isProject(taskPath)) {
@@ -256,7 +254,7 @@ export const deleteAtPath = (projects: ProjectData[], taskPath: string[]): strin
     const project = projects.find(p => p.id === taskPath[0])
     if (!project) return []
     
-    return deleteTaskFromArray(project.tasks, taskPath.slice(1))
+    return deleteTaskFromArray(project.tasks, taskPath.slice(1), taskPath)
   }
   return []
 }
@@ -287,9 +285,9 @@ export const addTaskToParent = (projects: ProjectData[], parentPath: string[], t
 
 /**
  * Insert a task into a new parent at a specific position
- * Returns array of affected task IDs that had their positions updated
+ * Returns array of affected task paths that had their positions updated
  */
-export const insertTaskIntoNewParent = (projects: ProjectData[], newParentPath: string[], task: TaskData, position?: number): string[] => {
+export const insertTaskIntoNewParent = (projects: ProjectData[], newParentPath: string[], task: TaskData, position?: number): string[][] => {
   if (newParentPath.length === 0) return []
   
   const project = projects.find(p => p.id === newParentPath[0])
@@ -311,60 +309,70 @@ export const insertTaskIntoNewParent = (projects: ProjectData[], newParentPath: 
   
   // Insert at specified position or at the end
   const insertPosition = position !== undefined ? Math.min(position, targetTasks.length) : targetTasks.length
-  targetTasks.splice(insertPosition, 0, task)
   
-  // Update positions for all tasks in the new parent and collect their IDs
-  const affectedTaskIds: string[] = []
-  targetTasks.forEach((t, index) => {
-    t.position = index
-    t.lastModificationDate = new Date().toISOString()
-    affectedTaskIds.push(t.id)
+  // First update positions of existing tasks that will be shifted (position >= insertPosition)
+  const affectedTaskPaths: string[][] = []
+  targetTasks.forEach((t) => {
+    if (t.position !== undefined && t.position >= insertPosition) {
+      t.position = t.position + 1
+      t.lastModificationDate = new Date().toISOString()
+      affectedTaskPaths.push([...newParentPath, t.id])
+    }
   })
   
-  return affectedTaskIds
+  // Set position for the new task
+  task.position = insertPosition
+  
+  // Insert the task
+  targetTasks.splice(insertPosition, 0, task)
+  
+  // Add the inserted task to affected paths
+  affectedTaskPaths.push([...newParentPath, task.id])
+  
+  return affectedTaskPaths
 }
 
 /**
  * Move a task (and all its subtasks) from one parent to another
- * Returns object with success status and arrays of affected task IDs for sync
+ * Returns object with success status and arrays of affected task paths for sync
  */
 export const moveTaskToNewParent = (projects: ProjectData[], taskPath: string[], newParentPath: string[], newPosition?: number): {
   success: boolean
-  sourceAffectedTaskIds: string[]
-  destinationAffectedTaskIds: string[]
+  sourceAffectedTaskPaths: string[][]
+  destinationAffectedTaskPaths: string[][]
 } => {
   // Validate paths
   if (taskPath.length <= 1 || newParentPath.length === 0) {
-    return { success: false, sourceAffectedTaskIds: [], destinationAffectedTaskIds: [] }
+    return { success: false, sourceAffectedTaskPaths: [], destinationAffectedTaskPaths: [] }
   }
   
   // Don't allow moving a task into itself or its own subtasks
   if (isTaskDescendantOf(taskPath, newParentPath)) {
-    return { success: false, sourceAffectedTaskIds: [], destinationAffectedTaskIds: [] }
+    return { success: false, sourceAffectedTaskPaths: [], destinationAffectedTaskPaths: [] }
   }
   
   // Don't allow moving to the same parent (use reorderTasks for that)
   const currentParentPath = taskPath.slice(0, -1)
   if (arePathsEqual(currentParentPath, newParentPath)) {
-    return { success: false, sourceAffectedTaskIds: [], destinationAffectedTaskIds: [] }
+    return { success: false, sourceAffectedTaskPaths: [], destinationAffectedTaskPaths: [] }
   }
   
   // Get the task to move first
   const task = findTaskAtPath(projects, taskPath)
   if (!task) {
-    return { success: false, sourceAffectedTaskIds: [], destinationAffectedTaskIds: [] }
+    return { success: false, sourceAffectedTaskPaths: [], destinationAffectedTaskPaths: [] }
   }
   
   // Remove task from current parent (this also updates positions)
-  const sourceAffectedTaskIds = deleteAtPath(projects, taskPath)
+  const sourceAffectedTaskPaths = deleteAtPath(projects, taskPath)
   
   // Insert task into new parent
-  const destinationAffectedTaskIds = insertTaskIntoNewParent(projects, newParentPath, task, newPosition)
+  const destinationAffectedTaskPaths = insertTaskIntoNewParent(projects, newParentPath, task, newPosition)
   
   return {
-    success: destinationAffectedTaskIds.length > 0,
-    sourceAffectedTaskIds,
-    destinationAffectedTaskIds
+    success: destinationAffectedTaskPaths.length > 0,
+    sourceAffectedTaskPaths,
+    destinationAffectedTaskPaths
   }
 }
 

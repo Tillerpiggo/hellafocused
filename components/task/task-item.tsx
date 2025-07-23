@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { CheckCircle, Circle, ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TaskContextMenu } from "./task-context-menu"
+import { MoveTaskDialog } from "./move-task-dialog"
 import { EditableTitle, type EditableTitleRef } from "@/components/editable-title"
 import { useState, useRef } from "react"
 
@@ -23,6 +24,7 @@ export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProp
   const attemptTaskCompletion = useUIStore((state) => state.attemptTaskCompletion)
   const attemptDeletion = useUIStore((state) => state.attemptDeletion)
   const [isEditing, setIsEditing] = useState(false)
+  const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false)
   const editableTitleRef = useRef<EditableTitleRef>(null)
 
   const taskPath = [...currentPath, task.id]
@@ -106,17 +108,27 @@ export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProp
   }
 
   return (
-    <TaskContextMenu
-      onEdit={() => {
-        setIsEditing(true)
-        // Focus the editable title after state updates
-        setTimeout(() => editableTitleRef.current?.focus(), 0)
-      }}
-      onToggleComplete={() => attemptTaskCompletion(taskPath)}
-      onDelete={() => attemptDeletion(taskPath)}
-      isCompleted={task.completed}
-    >
-      {taskContent}
-    </TaskContextMenu>
+    <>
+      <TaskContextMenu
+        onEdit={() => {
+          setIsEditing(true)
+          // Focus the editable title after state updates
+          setTimeout(() => editableTitleRef.current?.focus(), 0)
+        }}
+        onToggleComplete={() => attemptTaskCompletion(taskPath)}
+        onDelete={() => attemptDeletion(taskPath)}
+        onMove={() => setIsMoveDialogOpen(true)}
+        isCompleted={task.completed}
+      >
+        {taskContent}
+      </TaskContextMenu>
+      
+      <MoveTaskDialog
+        isOpen={isMoveDialogOpen}
+        onClose={() => setIsMoveDialogOpen(false)}
+        taskPath={taskPath}
+        taskName={task.name}
+      />
+    </>
   )
 }

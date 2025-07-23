@@ -114,12 +114,11 @@ export const useAppStore = create<AppState>()(
   },
 
   deleteAtPath: (itemPath) => {
-    let affectedTaskIds: string[] = []
+    let affectedTaskPaths: string[][] = []
     
     set(
       produce((draft: AppState) => {
-        // Delete and get affected task IDs
-        affectedTaskIds = deleteAtPath(draft.projects, itemPath)
+        affectedTaskPaths = deleteAtPath(draft.projects, itemPath)
 
         // If the current path is no longer valid, navigate up appropriately
         if (!findTaskAtPath(draft.projects, draft.currentPath) && !findProjectAtPath(draft.projects, draft.currentPath)) {
@@ -137,9 +136,7 @@ export const useAppStore = create<AppState>()(
       trackTaskDeleted(itemPath)
       
       // Track position updates for affected sibling tasks
-      const parentPath = itemPath.slice(0, -1)
-      affectedTaskIds.forEach(taskId => {
-        const affectedTaskPath = [...parentPath, taskId]
+      affectedTaskPaths.forEach(affectedTaskPath => {
         trackTaskUpdated(affectedTaskPath)
       })
     }
@@ -313,10 +310,10 @@ export const useAppStore = create<AppState>()(
   },
 
   moveTaskToNewParent: (taskPath, newParentPath, newPosition) => {
-    let result: { success: boolean; sourceAffectedTaskIds: string[]; destinationAffectedTaskIds: string[] } = { 
+    let result: { success: boolean; sourceAffectedTaskPaths: string[][]; destinationAffectedTaskPaths: string[][] } = { 
       success: false, 
-      sourceAffectedTaskIds: [], 
-      destinationAffectedTaskIds: [] 
+      sourceAffectedTaskPaths: [], 
+      destinationAffectedTaskPaths: [] 
     }
     
     set(
@@ -326,20 +323,14 @@ export const useAppStore = create<AppState>()(
     )
 
     if (result.success) {
-      // Track the moved task in its new location
-      const newTaskPath = [...newParentPath, taskPath[taskPath.length - 1]]
-      trackTaskUpdated(newTaskPath)
-      
       // Track position updates for affected tasks in source parent
-      const sourceParentPath = taskPath.slice(0, -1)
-      result.sourceAffectedTaskIds.forEach(taskId => {
-        const affectedTaskPath = [...sourceParentPath, taskId]
+      result.sourceAffectedTaskPaths.forEach(affectedTaskPath => {
         trackTaskUpdated(affectedTaskPath)
       })
       
       // Track position updates for affected tasks in destination parent
-      result.destinationAffectedTaskIds.forEach(taskId => {
-        const affectedTaskPath = [...newParentPath, taskId]
+      // (The destinationAffectedTaskPaths already includes the moved task with its NEW path)
+      result.destinationAffectedTaskPaths.forEach(affectedTaskPath => {
         trackTaskUpdated(affectedTaskPath)
       })
     }

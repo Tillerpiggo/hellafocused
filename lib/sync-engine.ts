@@ -174,7 +174,7 @@ class SyncEngine {
           if (change.entityType === 'project') {
             await this.updateProject(change.entityId, change.data as ProjectData)
           } else if (change.entityType === 'task') {
-            await this.updateTask(change.entityId, change.data as TaskData)
+            await this.updateTask(change.entityId, change.data as TaskData, change.projectId, change.parentId)
           }
           break
         case 'delete':
@@ -677,19 +677,29 @@ class SyncEngine {
     }
   }
 
-  private async updateTask(taskId: string, task: TaskData) {
+  private async updateTask(taskId: string, task: TaskData, projectId?: string, parentId?: string) {
     const userId = await this.getCurrentUserId()
+    
+    const updateData: any = {
+      name: task.name,
+      completed: task.completed,
+      completion_date: task.completionDate || null,
+      position: task.position ?? 0,
+      updated_at: task.lastModificationDate,
+      device_id: this.instanceId,
+    }
+    
+    // Include project_id and parent_id if provided (for move operations)
+    if (projectId !== undefined) {
+      updateData.project_id = projectId
+    }
+    if (parentId !== undefined) {
+      updateData.parent_id = parentId
+    }
     
     const { error } = await supabase
       .from('tasks')
-      .update({
-        name: task.name,
-        completed: task.completed,
-        completion_date: task.completionDate || null,
-        position: task.position ?? 0,
-        updated_at: task.lastModificationDate,
-        device_id: this.instanceId,
-      })
+      .update(updateData)
       .eq('id', taskId)
       .eq('user_id', userId)
 
