@@ -347,7 +347,7 @@ export const moveTaskToNewParent = (projects: ProjectData[], taskPath: string[],
   }
   
   // Don't allow moving a task into itself or its own subtasks
-  if (isTaskDescendantOf(taskPath, newParentPath)) {
+  if (isTaskDescendantOf(newParentPath, taskPath)) {
     return { success: false, sourceAffectedTaskPaths: [], destinationAffectedTaskPaths: [] }
   }
   
