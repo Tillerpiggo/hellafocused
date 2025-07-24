@@ -36,6 +36,8 @@ export function FocusView({ startPath }: FocusViewProps) {
   const handleExitFocusMode = useCallback(() => {
     setIsExiting(true)
     setTimeout(() => {
+      // Clear celebration state when exiting focus mode
+      useFocusStore.setState({ showSubtaskCelebration: false })
       resetFocus()
       setFocusMode(false)
     }, 500) // Increased from 300ms to 500ms for gentler exit
