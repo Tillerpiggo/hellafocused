@@ -70,7 +70,7 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
       setIsDismissing(true)
       setIsAnimating(false)
     }
-  }, [isVisible, shouldRender, isDismissing, globalCurrentPath, currentFocusTask, projects])
+  }, [isVisible, shouldRender, isDismissing, globalCurrentPath, currentFocusTask]) // Note: projects removed from deps to prevent dismissal when tasks are added
 
   // Handle dismissal animation completion
   useEffect(() => {

@@ -51,7 +51,7 @@ export function FocusView({ startPath }: FocusViewProps) {
     return () => {
       resetFocus()
     }
-  }, [initializeFocus, resetFocus, startPath, projects])
+  }, [initializeFocus, resetFocus, startPath]) // Note: projects removed from deps to prevent re-initialization when tasks are added
 
   // Handle initial load animation
   useEffect(() => {
