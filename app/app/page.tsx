@@ -57,8 +57,8 @@ export default function HomePage() {
     cancelDeletion,
     isFocusMode,
     setFocusMode,
+    focusStartPath,
   } = uiStore
-
   const titleRef = useRef<EditableTitleRef>(null)
 
   // Show loading until authentication is complete
@@ -112,7 +112,7 @@ export default function HomePage() {
   if (isFocusMode) {
     return (
       <div className="bg-background text-foreground">
-        <FocusView startPath={currentPath} />
+        <FocusView startPath={focusStartPath!} />
       </div>
     )
   }
@@ -225,7 +225,7 @@ export default function HomePage() {
           backButtonText={getBackButtonText()}
           onBackClick={handleBackClick}
           isFocusMode={isFocusMode}
-          onFocusClick={() => setFocusMode(!isFocusMode)}
+          onFocusClick={() => setFocusMode(!isFocusMode, currentPath)}
         />
 
         {/* Title and Action Buttons */}
@@ -248,6 +248,7 @@ export default function HomePage() {
             onRename={handleRename}
             onDelete={handleDelete}
             onToggleDefer={() => toggleTaskDefer(currentPath)}
+            onFocus={() => setFocusMode(true, currentPath)}
             showCompleted={showCompleted}
             shouldShowCompleteButton={shouldShowCompleteButton()}
             onComplete={() => attemptTaskCompletion(currentPath)}

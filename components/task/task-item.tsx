@@ -24,6 +24,7 @@ export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProp
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
   const attemptTaskCompletion = useUIStore((state) => state.attemptTaskCompletion)
   const attemptDeletion = useUIStore((state) => state.attemptDeletion)
+  const setFocusMode = useUIStore((state) => state.setFocusMode)
   const [isEditing, setIsEditing] = useState(false)
   const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false)
   const editableTitleRef = useRef<EditableTitleRef>(null)
@@ -130,6 +131,7 @@ export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProp
         onToggleDefer={() => toggleTaskDefer(taskPath)}
         onDelete={() => attemptDeletion(taskPath)}
         onMove={() => setIsMoveDialogOpen(true)}
+        onFocus={() => setFocusMode(true, taskPath)}
         isCompleted={task.completed}
         isDeferred={task.priority === -1}
       >

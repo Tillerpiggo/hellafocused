@@ -1,7 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Edit, Trash2, Eye, EyeOff, Clock, ArrowUp } from "lucide-react"
+import { MoreHorizontal, Edit, Trash2, Eye, EyeOff, Clock, ArrowUp, Focus } from "lucide-react"
 import { useAppStore } from "@/store/app-store"
 import { useRef, useState } from "react"
 
@@ -9,11 +9,12 @@ interface TaskOptionsMenuProps {
   onRename: () => void
   onDelete: () => void
   onToggleDefer: () => void
+  onFocus: () => void
   showCompleted: boolean
   isDeferred: boolean
 }
 
-export function TaskOptionsMenu({ onRename, onDelete, onToggleDefer, showCompleted, isDeferred }: TaskOptionsMenuProps) {
+export function TaskOptionsMenu({ onRename, onDelete, onToggleDefer, onFocus, showCompleted, isDeferred }: TaskOptionsMenuProps) {
   const toggleShowCompleted = useAppStore((state) => state.toggleShowCompleted)
   const [isOpen, setIsOpen] = useState(false)
   const shouldPreventAutofocus = useRef(false)
@@ -48,6 +49,10 @@ export function TaskOptionsMenu({ onRename, onDelete, onToggleDefer, showComplet
         <DropdownMenuItem onClick={handleRename}>
           <Edit className="menu-icon" />
           Rename Task
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onFocus}>
+          <Focus className="menu-icon" />
+          Focus on Task
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onToggleDefer}>
           {isDeferred ? (

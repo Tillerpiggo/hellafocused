@@ -8,6 +8,7 @@ interface UIDialogState {
   showDeleteConfirmationDialog: boolean
   pendingDeletion: string[] | null
   isFocusMode: boolean
+  focusStartPath: string[] | null
 }
 
 interface UIActions {
@@ -19,7 +20,7 @@ interface UIActions {
   confirmDeletion: () => void
   cancelDeletion: () => void
 
-  setFocusMode: (isFocusMode: boolean) => void
+  setFocusMode: (isFocusMode: boolean, startPath?: string[]) => void
 }
 
 export type UIState = UIDialogState & UIActions
@@ -31,6 +32,7 @@ export const useUIStore = create<UIState>((set, get) => ({
   showDeleteConfirmationDialog: false,
   pendingDeletion: null,
   isFocusMode: false,
+  focusStartPath: null,
 
   // Actions
   attemptTaskCompletion: (taskPath) => {
@@ -121,5 +123,8 @@ export const useUIStore = create<UIState>((set, get) => ({
     pendingDeletion: null,
   }),
 
-  setFocusMode: (isFocusMode) => set({ isFocusMode }),
+  setFocusMode: (isFocusMode, startPath) => set({ 
+    isFocusMode,
+    focusStartPath: isFocusMode ? startPath : null
+  }),
 })) 

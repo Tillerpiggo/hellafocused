@@ -13,6 +13,7 @@ interface TaskPageHeaderProps {
   onRename: () => void
   onDelete: () => void
   onToggleDefer: () => void
+  onFocus: () => void
   showCompleted: boolean
   shouldShowCompleteButton: boolean
   onComplete: () => void
@@ -27,6 +28,7 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
   onRename,
   onDelete,
   onToggleDefer,
+  onFocus,
   showCompleted,
   shouldShowCompleteButton,
   onComplete,
@@ -70,6 +72,7 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
           onRename={onRename}
           onDelete={onDelete}
           onToggleDefer={onToggleDefer}
+          onFocus={onFocus}
           showCompleted={showCompleted}
           isDeferred={isDeferred}
         />
