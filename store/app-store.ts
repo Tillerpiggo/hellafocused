@@ -283,11 +283,15 @@ export const useAppStore = create<AppState>()(
         }
 
         // Only reorder incomplete tasks (since that's what's displayed)
-        // Sort by position to match what's displayed in TaskListView
+        // Sort by priority+position to match what's displayed in TaskListView
         const incompleteTasks = tasks
           .filter(task => !task.completed)
           .sort((a, b) => {
-            // Sort by position, with fallback to creation date for missing positions
+            // First sort by priority (descending: normal=0 first, then deferred=-1) 
+            if (a.priority !== b.priority) {
+              return b.priority - a.priority
+            }
+            // Within same priority group, sort by position
             if (a.position !== undefined && b.position !== undefined) {
               return a.position - b.position
             }
@@ -298,17 +302,29 @@ export const useAppStore = create<AppState>()(
         
         if (fromIndex >= incompleteTasks.length || toIndex >= incompleteTasks.length) return
 
-
+        // Get the task being moved and check if reordering within same priority group
+        const movedTask = incompleteTasks[fromIndex]
+        const targetTask = incompleteTasks[toIndex]
+        
+        // Only allow reordering within the same priority group
+        if (movedTask.priority !== targetTask.priority) {
+          return // Prevent cross-priority dragging
+        }
 
         // Remove the task from the old position and insert at new position
-        const [movedTask] = incompleteTasks.splice(fromIndex, 1)
+        incompleteTasks.splice(fromIndex, 1)
         incompleteTasks.splice(toIndex, 0, movedTask)
 
-        // Update positions for all affected tasks and collect their IDs for sync
-        incompleteTasks.forEach((task, index) => {
-          task.position = index
-          task.lastModificationDate = new Date().toISOString()
-          updatedTaskIds.push(task.id)
+        // Update positions only for tasks in the same priority group as the moved task
+        const samePriorityTasks = incompleteTasks.filter(task => task.priority === movedTask.priority)
+        let positionCounter = 0
+        
+        incompleteTasks.forEach(task => {
+          if (task.priority === movedTask.priority) {
+            task.position = positionCounter++
+            task.lastModificationDate = new Date().toISOString()
+            updatedTaskIds.push(task.id)
+          }
         })
 
 
@@ -402,9 +418,9 @@ export const getCurrentTasksForView = (store: AppState): TaskData[] => {
   // Helper function to sort tasks by priority first, then position, with fallback to creation date
   const sortByPriorityAndPosition = (tasks: TaskData[]) => {
     return tasks.sort((a, b) => {
-      // First sort by priority (ascending: normal=0 first, then deferred=-1)
+      // First sort by priority (descending: normal=0 first, then deferred=-1)
       if (a.priority !== b.priority) {
-        return a.priority - b.priority
+        return b.priority - a.priority
       }
       
       // Within same priority group, sort by position

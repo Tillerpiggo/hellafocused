@@ -178,15 +178,10 @@ export const toggleTaskDefer = (projects: ProjectData[], taskPath: string[]): vo
   task.lastModificationDate = new Date().toISOString()
 
   if (newPriority === -1) {
-    // Deferring: Move to position 0 (top of deferred pile)
-    task.position = 0
-    
-    // Increment positions of other deferred tasks
-    parentTasks.forEach(otherTask => {
-      if (otherTask.id !== task.id && otherTask.priority === -1 && otherTask.position !== undefined) {
-        otherTask.position += 1
-      }
-    })
+    // Deferring: Move to end of deferred group (maintain original order)
+    const deferredTasks = parentTasks.filter(t => t.priority === -1)
+    const maxDeferredPosition = Math.max(-1, ...deferredTasks.map(t => t.position ?? -1))
+    task.position = maxDeferredPosition + 1
   } else {
     // Undeferring: Move to end of normal priority tasks
     const normalTasks = parentTasks.filter(t => t.priority === 0)
