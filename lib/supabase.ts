@@ -64,6 +64,7 @@ export interface DatabaseTask {
   completed: boolean
   completion_date?: string
   position: number
+  priority: number
   user_id: string
   created_at: string
   updated_at: string

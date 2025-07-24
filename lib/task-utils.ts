@@ -124,6 +124,78 @@ export const fillMissingPositionsForProjects = (projects: ProjectData[]): void =
 }
 
 /**
+ * Fill missing priority for tasks (default to 0 for normal priority)
+ */
+export const fillMissingPriorities = (tasks: TaskData[]): void => {
+  tasks.forEach(task => {
+    if (task.priority === undefined) {
+      task.priority = 0 // Default to normal priority
+    }
+    if (task.subtasks && task.subtasks.length > 0) {
+      fillMissingPriorities(task.subtasks)
+    }
+  })
+}
+
+/**
+ * Fill missing priorities for all projects
+ */
+export const fillMissingPrioritiesForProjects = (projects: ProjectData[]): void => {
+  projects.forEach(project => {
+    fillMissingPriorities(project.tasks)
+  })
+}
+
+/**
+ * Toggle task defer status with pile-up behavior
+ * Deferred tasks go to position 0, normal tasks go to end of normal group
+ */
+export const toggleTaskDefer = (projects: ProjectData[], taskPath: string[]): void => {
+  const task = findTaskAtPath(projects, taskPath)
+  if (!task) return
+
+  // Determine parent task array
+  const parentPath = taskPath.slice(0, -1)
+  let parentTasks: TaskData[]
+  
+  if (parentPath.length === 1) {
+    // Top-level task in project
+    const project = findProjectAtPath(projects, parentPath)
+    if (!project) return
+    parentTasks = project.tasks
+  } else {
+    // Subtask
+    const parentTask = findTaskAtPath(projects, parentPath)
+    if (!parentTask) return
+    parentTasks = parentTask.subtasks
+  }
+
+  const isCurrentlyDeferred = task.priority === -1
+  const newPriority = isCurrentlyDeferred ? 0 : -1
+  
+  // Update task priority and timestamp
+  task.priority = newPriority
+  task.lastModificationDate = new Date().toISOString()
+
+  if (newPriority === -1) {
+    // Deferring: Move to position 0 (top of deferred pile)
+    task.position = 0
+    
+    // Increment positions of other deferred tasks
+    parentTasks.forEach(otherTask => {
+      if (otherTask.id !== task.id && otherTask.priority === -1 && otherTask.position !== undefined) {
+        otherTask.position += 1
+      }
+    })
+  } else {
+    // Undeferring: Move to end of normal priority tasks
+    const normalTasks = parentTasks.filter(t => t.priority === 0)
+    const maxNormalPosition = Math.max(0, ...normalTasks.map(t => t.position ?? 0))
+    task.position = maxNormalPosition + 1
+  }
+}
+
+/**
  * Find the path to a specific task by task id
  */
 export const findTaskPath = (tasks: TaskData[], targetId: string, currentPath: string[] = []): string[] | null => {

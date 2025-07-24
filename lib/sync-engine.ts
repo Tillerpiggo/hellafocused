@@ -665,6 +665,7 @@ class SyncEngine {
       completed: task.completed,
       completion_date: task.completionDate || null,
       position: position,
+      priority: task.priority,
       user_id: userId,
       device_id: this.instanceId,
       is_deleted: false,
@@ -685,6 +686,7 @@ class SyncEngine {
       completed: task.completed,
       completion_date: task.completionDate || null,
       position: task.position ?? 0,
+      priority: task.priority,
       updated_at: task.lastModificationDate,
       device_id: this.instanceId,
     }

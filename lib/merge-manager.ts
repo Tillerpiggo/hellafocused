@@ -98,6 +98,7 @@ export class MergeManager {
       completionDate: cloudTask.completion_date || undefined,
       lastModificationDate: cloudTask.updated_at,
       position: cloudTask.position,
+      priority: cloudTask.priority,
       subtasks,
     }
   }
@@ -190,6 +191,7 @@ export class MergeManager {
       completionDate: useCloudTask ? (cloudTask.completion_date || undefined) : localTask.completionDate,
       lastModificationDate: useCloudTask ? cloudUpdateDate : localTask.lastModificationDate,
       position: useCloudTask ? cloudTask.position : localTask.position,
+      priority: useCloudTask ? cloudTask.priority : localTask.priority,
       subtasks: this.mergeTaskSubtasks(localTask, cloudTask, allCloudTasks, pendingChanges)
     }
   }

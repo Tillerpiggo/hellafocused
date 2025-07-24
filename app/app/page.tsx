@@ -5,7 +5,8 @@ import { TaskListView } from "@/components/task/task-list-view"
 import { FocusView } from "@/components/focus/focus-view"
 import { TaskCompletionDialog } from "@/components/task/task-completion-dialog"
 import { DeleteConfirmationDialog } from "@/components/task/delete-confirmation-dialog"
-import { PageHeader } from "@/components/page/page-header"
+import { ProjectPageHeader } from "@/components/project/project-page-header"
+import { TaskPageHeader } from "@/components/task/task-page-header"
 import { PageNavigation } from "@/components/page/page-navigation"
 
 import { TopBar } from "@/components/top-bar"
@@ -33,6 +34,7 @@ export default function HomePage() {
     updateProjectName,
     updateTaskName,
     toggleTaskCompletion, // Still needed for uncompleting tasks (no confirmation needed)
+    toggleTaskDefer,
     addProject,
     showCompleted,
     searchQuery,
@@ -165,6 +167,10 @@ export default function HomePage() {
     }
   }
 
+  const handleRename = () => {
+    setTimeout(() => titleRef.current?.focus(), 0)
+  }
+
   const handleNavigateToSearchResult = (result: { path: string[] }) => {
     // Clear search query when navigating to a result
     setSearchQuery("")
@@ -223,21 +229,31 @@ export default function HomePage() {
         />
 
         {/* Title and Action Buttons */}
-        <PageHeader
-          ref={titleRef}
-          title={
-            isProject(currentPath) ? currentProject?.name || "" : taskChain[taskChain.length - 1]?.name || ""
-          }
-          onTitleChange={handleTitleChange}
-          isCompleted={isCurrentTaskCompleted}
-          onRename={() => setTimeout(() => titleRef.current?.focus(), 0)}
-          onDelete={handleDelete}
-          showCompleted={showCompleted}
-          isProject={isProject(currentPath)}
-          shouldShowCompleteButton={shouldShowCompleteButton()}
-          onComplete={() => attemptTaskCompletion(currentPath)}
-          onUncomplete={() => toggleTaskCompletion(currentPath)}
-        />
+        {isProject(currentPath) ? (
+          <ProjectPageHeader
+            ref={titleRef}
+            title={currentProject?.name || ""}
+            onTitleChange={handleTitleChange}
+            onRename={handleRename}
+            onDelete={handleDelete}
+            showCompleted={showCompleted}
+          />
+        ) : (
+          <TaskPageHeader
+            ref={titleRef}
+            title={taskChain[taskChain.length - 1]?.name || ""}
+            onTitleChange={handleTitleChange}
+            isCompleted={isCurrentTaskCompleted}
+            isDeferred={taskChain[taskChain.length - 1]?.priority === -1}
+            onRename={handleRename}
+            onDelete={handleDelete}
+            onToggleDefer={() => toggleTaskDefer(currentPath)}
+            showCompleted={showCompleted}
+            shouldShowCompleteButton={shouldShowCompleteButton()}
+            onComplete={() => attemptTaskCompletion(currentPath)}
+            onUncomplete={() => toggleTaskCompletion(currentPath)}
+          />
+        )}
 
         {/* Search Input */}
         <SearchInput

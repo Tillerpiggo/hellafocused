@@ -2,6 +2,7 @@
 import { useAppStore } from "@/store/app-store"
 import { useUIStore } from "@/store/ui-store"
 import { useFocusStore } from "@/store/focus-store"
+import { findTaskPath, getProjectId } from "@/lib/task-utils"
 import { useEffect, useState, useCallback } from "react"
 import { AddTasksView } from "./add-tasks-view"
 import { AllTasksCompletedView } from "./all-tasks-completed-view"
@@ -16,6 +17,7 @@ interface FocusViewProps {
 export function FocusView({ startPath }: FocusViewProps) {
   // App store for projects data and app state updates
   const projects = useAppStore((state) => state.projects)
+  const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
   const setFocusMode = useUIStore((state) => state.setFocusMode)
 
   // Focus store for focus-specific state
@@ -42,6 +44,23 @@ export function FocusView({ startPath }: FocusViewProps) {
       setFocusMode(false)
     }, 500) // Increased from 300ms to 500ms for gentler exit
   }, [resetFocus, setFocusMode])
+
+  const handleToggleDefer = useCallback(() => {
+    if (!currentFocusTask) return
+    
+    const currentProjectId = getProjectId(startPath)
+    if (!currentProjectId) return
+
+    const projects = useAppStore.getState().projects
+    const project = projects.find((p) => p.id === currentProjectId)
+    if (project) {
+      const taskPathInProject = findTaskPath(project.tasks, currentFocusTask.id)
+      if (taskPathInProject) {
+        const fullTaskPath = [currentProjectId, ...taskPathInProject]
+        toggleTaskDefer(fullTaskPath)
+      }
+    }
+  }, [currentFocusTask, startPath, toggleTaskDefer])
 
   // Initialize focus store when component mounts
   useEffect(() => {
@@ -90,6 +109,7 @@ export function FocusView({ startPath }: FocusViewProps) {
           currentTask={currentFocusTask}
           completeFocusTask={completeFocusTask}
           getNextFocusTask={getNextFocusTask}
+          onToggleDefer={handleToggleDefer}
         />
       )
     }

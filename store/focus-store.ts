@@ -107,26 +107,19 @@ export const useFocusStore = create<FocusState>((set, get) => ({
   }),
 
   getNextFocusTask: () => {
-    console.log('🎯 getNextFocusTask called')
-    // IMPORTANT: DO NOT call updateFocusLeaves here! It causes visual stuttering by calculating next task twice.
-    // completeFocusTask already updates leaves, so we just pick from current leaves.
     set((state) => {
       const availableLeaves = state.focusModeProjectLeaves.filter(
         (leaf) => leaf.id !== state.currentFocusTask?.id && !leaf.completed,
       )
-      console.log('🎲 Available leaves for next task:', availableLeaves.map(l => l.name))
       
-      // Pick a random task from the available leaves
-      if (availableLeaves.length > 0) {
-        const nextTask = randomFrom(availableLeaves)
-        console.log('✨ Selected next task:', nextTask?.name)
-        return { currentFocusTask: nextTask }
-      }
-      // If current task was the last one, or all are completed
-      const allLeaves = state.focusModeProjectLeaves.filter((leaf) => !leaf.completed)
-      console.log('🔄 No other available leaves, picking from all incomplete:', allLeaves.map(l => l.name))
-      const nextTask = randomFrom(allLeaves)
-      console.log('✨ Selected next task (from all):', nextTask?.name)
+      // Try normal priority tasks first, then deferred
+      const normalTasks = availableLeaves.filter(leaf => leaf.priority === 0)
+      const deferredTasks = availableLeaves.filter(leaf => leaf.priority === -1)
+      
+      const nextTask = randomFrom(normalTasks) || 
+                      randomFrom(deferredTasks) || 
+                      randomFrom(state.focusModeProjectLeaves.filter(leaf => !leaf.completed))
+      
       return { currentFocusTask: nextTask }
     })
   },

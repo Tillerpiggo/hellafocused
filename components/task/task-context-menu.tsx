@@ -1,18 +1,20 @@
 "use client"
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu"
-import { Edit, Check, X, Trash2, Move } from "lucide-react"
+import { Edit, Check, X, Trash2, Move, Clock, ArrowUp } from "lucide-react"
 import type React from "react"
 
 interface TaskContextMenuProps {
   children: React.ReactNode
   onEdit: () => void
   onToggleComplete: () => void
+  onToggleDefer: () => void
   onDelete: () => void
   onMove: () => void
   isCompleted: boolean
+  isDeferred: boolean
 }
 
-export function TaskContextMenu({ children, onEdit, onToggleComplete, onDelete, onMove, isCompleted }: TaskContextMenuProps) {
+export function TaskContextMenu({ children, onEdit, onToggleComplete, onToggleDefer, onDelete, onMove, isCompleted, isDeferred }: TaskContextMenuProps) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
@@ -24,6 +26,19 @@ export function TaskContextMenu({ children, onEdit, onToggleComplete, onDelete, 
         <ContextMenuItem onClick={onMove} className="gap-2 transition-colors">
           <Move className="menu-icon" />
           Move Task
+        </ContextMenuItem>
+        <ContextMenuItem onClick={onToggleDefer} className="gap-2 transition-colors">
+          {isDeferred ? (
+            <>
+              <ArrowUp className="menu-icon" />
+              Undefer Task
+            </>
+          ) : (
+            <>
+              <Clock className="menu-icon" />
+              Defer Task
+            </>
+          )}
         </ContextMenuItem>
         <ContextMenuItem onClick={onToggleComplete} className="gap-2 transition-colors">
           {isCompleted ? (

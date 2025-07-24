@@ -15,6 +15,8 @@ import {
   isProject,
   isProjectList,
   fillMissingPositionsForProjects,
+  fillMissingPrioritiesForProjects,
+  toggleTaskDefer,
   moveTaskToNewParent,
   getValidDropTargets,
   getPathDisplayName,
@@ -40,6 +42,7 @@ interface AppState {
   navigateBack: () => void // Navigates one level up in task hierarchy or to project list
 
   toggleTaskCompletion: (taskPath: string[]) => void
+  toggleTaskDefer: (taskPath: string[]) => void
   deleteAtPath: (itemPath: string[]) => void
 
   toggleShowCompleted: () => void
@@ -113,6 +116,15 @@ export const useAppStore = create<AppState>()(
     trackTaskUpdated(taskPath)
   },
 
+  toggleTaskDefer: (taskPath) => {
+    set(
+      produce((draft: AppState) => {
+        toggleTaskDefer(draft.projects, taskPath)
+      }),
+    )
+    trackTaskUpdated(taskPath)
+  },
+
   deleteAtPath: (itemPath) => {
     let affectedTaskPaths: string[][] = []
     
@@ -177,6 +189,7 @@ export const useAppStore = create<AppState>()(
           completed: false,
           lastModificationDate: new Date().toISOString(),
           position: position,
+          priority: 0,
           subtasks: [],
         }
 
@@ -356,9 +369,10 @@ export const useAppStore = create<AppState>()(
         searchQuery: state.searchQuery,
       }),
       onRehydrateStorage: () => (state) => {
-        // Fill missing positions for any existing tasks when loading from storage
+        // Fill missing positions and priorities for any existing tasks when loading from storage
         if (state?.projects) {
           fillMissingPositionsForProjects(state.projects)
+          fillMissingPrioritiesForProjects(state.projects)
         }
       },
     }
@@ -385,10 +399,15 @@ export const getCurrentTasksForView = (store: AppState): TaskData[] => {
     tasksToShow = currentTask.subtasks
   }
 
-  // Helper function to sort tasks by position, with fallback to creation date for missing positions
-  const sortByPosition = (tasks: TaskData[]) => {
+  // Helper function to sort tasks by priority first, then position, with fallback to creation date
+  const sortByPriorityAndPosition = (tasks: TaskData[]) => {
     return tasks.sort((a, b) => {
-      // If both tasks have positions, sort by position
+      // First sort by priority (ascending: normal=0 first, then deferred=-1)
+      if (a.priority !== b.priority) {
+        return a.priority - b.priority
+      }
+      
+      // Within same priority group, sort by position
       if (a.position !== undefined && b.position !== undefined) {
         return a.position - b.position
       }
@@ -411,7 +430,7 @@ export const getCurrentTasksForView = (store: AppState): TaskData[] => {
   // Filter and sort tasks based on showCompleted setting
   if (store.showCompleted) {
     // Show all tasks, with completed tasks sorted by completion date (most recent at bottom)
-    const incompleteTasks = sortByPosition(tasksToShow.filter((task) => !task.completed))
+    const incompleteTasks = sortByPriorityAndPosition(tasksToShow.filter((task) => !task.completed))
     const completedTasks = tasksToShow
       .filter((task) => task.completed)
       .sort((a, b) => {
@@ -424,7 +443,7 @@ export const getCurrentTasksForView = (store: AppState): TaskData[] => {
     return [...completedTasks, ...incompleteTasks]
   } else {
     // Show only incomplete tasks, sorted by position
-    return sortByPosition(tasksToShow.filter((task) => !task.completed))
+    return sortByPriorityAndPosition(tasksToShow.filter((task) => !task.completed))
   }
 }
 

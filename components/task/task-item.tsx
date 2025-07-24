@@ -21,6 +21,7 @@ interface TaskItemProps {
 export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProps) {
   const navigateToTask = useAppStore((state) => state.navigateToTask)
   const updateTaskName = useAppStore((state) => state.updateTaskName)
+  const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
   const attemptTaskCompletion = useUIStore((state) => state.attemptTaskCompletion)
   const attemptDeletion = useUIStore((state) => state.attemptDeletion)
   const [isEditing, setIsEditing] = useState(false)
@@ -55,8 +56,10 @@ export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProp
           ? "bg-accent/80 border-primary/30 opacity-80 scale-95"
           : [
               "bg-background",
-        task.completed
+              task.completed
                 ? "bg-muted/50 opacity-60 border-border/30"
+                : task.priority === -1
+                ? "bg-muted/20 opacity-70 border-border/20 hover:bg-muted/30 hover:border-border/30"
                 : "hover:bg-accent/80 hover:border-primary/30 border-border/50",
               isEditing && "bg-accent border-primary/50",
             ],
@@ -85,12 +88,20 @@ export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProp
               ref={editableTitleRef}
               value={task.name}
               onChange={handleTaskNameChange}
-              className={cn("text-base font-medium", task.completed && "line-through text-muted-foreground")}
+              className={cn(
+                "text-base font-medium", 
+                task.completed && "line-through text-muted-foreground",
+                task.priority === -1 && !task.completed && "text-muted-foreground"
+              )}
               isCompleted={task.completed}
             />
           ) : (
             <span
-              className={cn("text-base font-medium break-words", task.completed && "line-through text-muted-foreground")}
+              className={cn(
+                "text-base font-medium break-words", 
+                task.completed && "line-through text-muted-foreground",
+                task.priority === -1 && !task.completed && "text-muted-foreground"
+              )}
             >
               {task.name}
             </span>
@@ -116,9 +127,11 @@ export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProp
           setTimeout(() => editableTitleRef.current?.focus(), 0)
         }}
         onToggleComplete={() => attemptTaskCompletion(taskPath)}
+        onToggleDefer={() => toggleTaskDefer(taskPath)}
         onDelete={() => attemptDeletion(taskPath)}
         onMove={() => setIsMoveDialogOpen(true)}
         isCompleted={task.completed}
+        isDeferred={task.priority === -1}
       >
         {taskContent}
       </TaskContextMenu>

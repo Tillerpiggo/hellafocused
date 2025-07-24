@@ -2,17 +2,20 @@ import { Button } from "@/components/ui/button"
 import { Check, Shuffle } from "lucide-react"
 import { useEffect, useState } from "react"
 import { triggerConfetti } from "@/lib/confetti"
+import { FocusContextMenu } from "./focus-context-menu"
 
 interface FocusTaskViewProps {
-  currentTask: { id: string; name: string } | null
+  currentTask: { id: string; name: string; priority: number } | null
   completeFocusTask: () => void
   getNextFocusTask: () => void
+  onToggleDefer: () => void
 }
 
 export function FocusTaskView({
   currentTask,
   completeFocusTask,
-  getNextFocusTask
+  getNextFocusTask,
+  onToggleDefer
 }: FocusTaskViewProps) {
   const [isCompleting, setIsCompleting] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
@@ -62,18 +65,25 @@ export function FocusTaskView({
   return (
     <>
       {/* Main content area with task title - centered vertically and horizontally */}
-      <div className="flex-1 flex items-center justify-center p-8 overflow-hidden">
-        <div className="relative max-w-4xl w-full">
-          <h1
-            key={taskKey}
-            className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-foreground text-center leading-relaxed break-words transition-all duration-300 ease-out ${
-              isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"
-            }`}
-          >
-            {displayedTaskName || (currentTask?.name || "")}
-          </h1>
+      <FocusContextMenu
+        onComplete={handleCompleteTask}
+        onNext={handleGetNextTask}
+        onToggleDefer={onToggleDefer}
+        isDeferred={currentTask?.priority === -1}
+      >
+        <div className="flex-1 flex items-center justify-center p-8 overflow-hidden">
+          <div className="relative max-w-4xl w-full">
+            <h1
+              key={taskKey}
+              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-foreground text-center leading-relaxed break-words transition-all duration-300 ease-out ${
+                isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"
+              }`}
+            >
+              {displayedTaskName || (currentTask?.name || "")}
+            </h1>
+          </div>
         </div>
-      </div>
+      </FocusContextMenu>
 
       {/* Bottom action buttons */}
       <div className="flex flex-col sm:flex-row gap-6 p-8 max-w-md mx-auto w-full">
