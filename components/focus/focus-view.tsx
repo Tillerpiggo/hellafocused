@@ -58,9 +58,12 @@ export function FocusView({ startPath }: FocusViewProps) {
       if (taskPathInProject) {
         const fullTaskPath = [currentProjectId, ...taskPathInProject]
         toggleTaskDefer(fullTaskPath)
+        
+        // Automatically pick the next task after deferring
+        getNextFocusTask()
       }
     }
-  }, [currentFocusTask, startPath, toggleTaskDefer])
+  }, [currentFocusTask, startPath, toggleTaskDefer, getNextFocusTask])
 
   // Initialize focus store when component mounts
   useEffect(() => {
