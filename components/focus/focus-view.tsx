@@ -73,7 +73,8 @@ export function FocusView({ startPath }: FocusViewProps) {
     return () => {
       resetFocus()
     }
-  }, [initializeFocus, resetFocus, startPath]) // Note: projects removed from deps to prevent re-initialization when tasks are added
+  }, [initializeFocus, resetFocus, startPath]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Note: projects intentionally excluded to prevent re-initialization when tasks are added
 
   // Handle initial load animation
   useEffect(() => {

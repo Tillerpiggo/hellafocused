@@ -70,7 +70,8 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
       setIsDismissing(true)
       setIsAnimating(false)
     }
-  }, [isVisible, shouldRender, isDismissing, globalCurrentPath, currentFocusTask]) // Note: projects removed from deps to prevent dismissal when tasks are added
+  }, [isVisible, shouldRender, isDismissing, globalCurrentPath, currentFocusTask]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Note: projects intentionally excluded to prevent dismissal when tasks are added
 
   // Handle dismissal animation completion
   useEffect(() => {
