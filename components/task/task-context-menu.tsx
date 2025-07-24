@@ -19,6 +19,19 @@ export function TaskContextMenu({ children, onEdit, onToggleComplete, onToggleDe
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
       <ContextMenuContent className="w-48">
+        <ContextMenuItem onClick={onToggleComplete} className="gap-2 transition-colors">
+          {isCompleted ? (
+            <>
+              <X className="menu-icon" />
+              Mark Incomplete
+            </>
+          ) : (
+            <>
+              <Check className="menu-icon" />
+              Mark Complete
+            </>
+          )}
+        </ContextMenuItem>
         <ContextMenuItem onClick={onEdit} className="gap-2 transition-colors">
           <Edit className="menu-icon" />
           Rename Task
@@ -37,19 +50,6 @@ export function TaskContextMenu({ children, onEdit, onToggleComplete, onToggleDe
             <>
               <Clock className="menu-icon" />
               Defer Task
-            </>
-          )}
-        </ContextMenuItem>
-        <ContextMenuItem onClick={onToggleComplete} className="gap-2 transition-colors">
-          {isCompleted ? (
-            <>
-              <X className="menu-icon" />
-              Mark Incomplete
-            </>
-          ) : (
-            <>
-              <Check className="menu-icon" />
-              Mark Complete
             </>
           )}
         </ContextMenuItem>
