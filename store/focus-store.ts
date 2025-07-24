@@ -17,13 +17,13 @@ interface FocusState {
   currentFocusTask: TaskData | null
   focusStartPath: string[]
   showAddTasksView: boolean
+  showSubtaskCelebration: boolean
   
   // Actions
   initializeFocus: (projects: ProjectData[], startPath: string[]) => void
   resetFocus: () => void
   getNextFocusTask: () => void
   completeFocusTask: () => void
-  keepGoingFocus: (projects: ProjectData[]) => void
   setShowAddTasksView: (show: boolean) => void
   updateFocusLeaves: (projects: ProjectData[]) => void
 }
@@ -34,6 +34,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
   currentFocusTask: null,
   focusStartPath: [],
   showAddTasksView: false,
+  showSubtaskCelebration: false,
 
   updateFocusLeaves: (projects) => {
     const { focusStartPath, currentFocusTask } = get()
@@ -148,6 +149,23 @@ export const useFocusStore = create<FocusState>((set, get) => ({
         if (taskPathInProject) {
           const fullTaskPath = [currentProjectId, ...taskPathInProject]
           
+          // Check if completing this task means all subtasks of parent are complete
+          if (fullTaskPath.length > 2) { // Has a parent (not root level)
+            const parentPath = fullTaskPath.slice(0, -1)
+            const parentTask = findTaskAtPath(projects, parentPath)
+            
+            if (parentTask && parentTask.subtasks) {
+              // Check if all subtasks will be completed after this completion
+              const allSubtasksWillBeCompleted = parentTask.subtasks.every(subtask => 
+                subtask.id === currentFocusTask.id || subtask.completed
+              )
+              
+              if (allSubtasksWillBeCompleted) {
+                set({ showSubtaskCelebration: true })
+              }
+            }
+          }
+          
           console.log('📝 Marking task as completed in app store')
           // Use the app store's toggleTaskCompletion function directly
           useAppStore.getState().toggleTaskCompletion(fullTaskPath)
@@ -171,51 +189,6 @@ export const useFocusStore = create<FocusState>((set, get) => ({
     }
   },
 
-  keepGoingFocus: (projects) => {
-    const { focusStartPath } = get()
-    const currentProjectId = getProjectId(focusStartPath)
-    if (!currentProjectId) return
-
-    const project = projects.find((p) => p.id === currentProjectId)
-    if (!project) return
-
-    // If we were focusing at a specific task level, show the parent task
-    if (focusStartPath.length > 1) {
-      const parentTask = findTaskAtPath(projects, focusStartPath)
-      if (parentTask && !parentTask.completed) {
-        // Show the parent task as the focus task
-        set({
-          currentFocusTask: parentTask,
-          focusModeProjectLeaves: [parentTask],
-        })
-        return
-      }
-
-      // If parent is completed or doesn't exist, go one level up
-      const parentPath = focusStartPath.slice(0, -1)
-      const leaves = getHierarchicalLeafNodes(projects, parentPath)
-
-      set({
-        focusStartPath: parentPath,
-        focusModeProjectLeaves: leaves,
-        currentFocusTask: randomFrom(leaves),
-      })
-    } else {
-      // We were at project level, pick a random project
-      const availableProjects = projects.filter((p) => p.id !== currentProjectId)
-      const randomProject = randomFrom(availableProjects)
-      if (randomProject) {
-        const leaves = getHierarchicalLeafNodes(projects, [randomProject.id])
-
-        set({
-          focusStartPath: [randomProject.id],
-          focusModeProjectLeaves: leaves,
-          currentFocusTask: randomFrom(leaves),
-        })
-      }
-      // If no other projects, we'll let the parent component handle exiting focus mode
-    }
-  },
 
   setShowAddTasksView: (show) => {
     console.log('🎛️ setShowAddTasksView called with:', show)

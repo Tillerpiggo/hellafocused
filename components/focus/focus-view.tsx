@@ -21,13 +21,12 @@ export function FocusView({ startPath }: FocusViewProps) {
   // Focus store for focus-specific state
   const {
     currentFocusTask,
-    focusModeProjectLeaves,
     showAddTasksView,
+    showSubtaskCelebration,
     initializeFocus,
     resetFocus,
     completeFocusTask,
     getNextFocusTask,
-    keepGoingFocus,
     setShowAddTasksView
   } = useFocusStore((state) => state)
 
@@ -76,13 +75,13 @@ export function FocusView({ startPath }: FocusViewProps) {
 
   // Determine the main content based on current state
   const renderMainContent = () => {
+    // Show subtask celebration if flagged
+    if (showSubtaskCelebration) {
+      return <AllTasksCompletedView onKeepGoing={() => useFocusStore.setState({ showSubtaskCelebration: false })} />
+    }
+
     if (!currentFocusTask) {
-      const allTasksInProjectCompleted = focusModeProjectLeaves.every((t) => t.completed)
-      if (allTasksInProjectCompleted && focusModeProjectLeaves.length > 0) {
-        return <AllTasksCompletedView onKeepGoing={() => keepGoingFocus(projects)} />
-      } else {
-        return <NoTasksAvailableView />
-      }
+      return <NoTasksAvailableView />
     } else {
       return (
         <FocusTaskView
