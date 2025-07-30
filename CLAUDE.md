@@ -6,7 +6,9 @@ When the user runs `/commit`:
 2. Fix any build errors that occur
 3. Stage the relevant files with `git add`
 4. Create the commit with an appropriate message
-5. Push to the remote branch with `git push origin main` (or current branch)
+5. Push to the remote branch with `git push origin <current-branch>`
 
 ## General Rule
 Never attribute yourself as co-author in any commit messages.
+
+- Do not attribute yourself as author to commit messages
