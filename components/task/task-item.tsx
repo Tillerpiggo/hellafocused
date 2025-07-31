@@ -51,7 +51,7 @@ export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProp
   const taskContent = (
     <div
       className={cn(
-        "flex items-start justify-between p-4 my-2 rounded-2xl border transition-all duration-300 group",
+        "flex items-start justify-between p-4 my-2 rounded-2xl border group",
         // Dragging state takes highest precedence
         isDragging 
           ? "bg-accent/80 border-primary/30 opacity-80 scale-95"
