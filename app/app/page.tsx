@@ -19,7 +19,7 @@ import { AddTaskForm } from "@/components/task/add-task-form"
 import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
 import { type EditableTitleRef } from "@/components/editable-title"
-import { useRef } from "react"
+import { useRef, useMemo } from "react"
 import { countSubtasksRecursively, findTaskAtPath, findProjectAtPath, getProjectId, isProject, isProjectList } from "@/lib/task-utils"
 import { searchAllTasks, groupSearchResults } from "@/lib/search-utils"
 
@@ -64,7 +64,13 @@ export default function HomePage() {
   // Show loading until authentication is complete
   const shouldShowLoading = !isInitialized
 
-  const tasksToDisplay = getCurrentTasksForView(store)
+  const tasksToDisplay = useMemo(() => getCurrentTasksForView(store), [
+    projects,
+    currentPath,
+    searchQuery,
+    showCompleted
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ])
   const currentProject = findProjectAtPath(projects, currentPath)
   const taskChain = getCurrentTaskChain(store)
   const currentTask = taskChain.length > 0 ? taskChain[taskChain.length - 1] : null
