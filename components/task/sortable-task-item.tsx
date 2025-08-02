@@ -20,11 +20,18 @@ export const SortableTaskItem = memo(function SortableTaskItem({ task, index, cu
       isDragDisabled={disabled}
     >
       {(provided, snapshot) => {
-        // Follow pangea's pattern - let drop animation handle styling during drop
+        // Follow pangea's pattern with custom drop animation timing
         const getStyle = () => {
-          if (snapshot.isDropAnimating) {
-            // During drop animation, only use pangea's provided styles
-            return provided.draggableProps.style;
+          // Nearly instant drop animation to prevent scroll positioning issues
+          if (snapshot.isDropAnimating && snapshot.dropAnimation) {
+            const { moveTo, curve } = snapshot.dropAnimation;
+            const translate = `translate(${moveTo.x}px, ${moveTo.y}px)`;
+            
+            return {
+              ...provided.draggableProps.style,
+              transform: translate,
+              transition: `all ${curve} 0.2s`, // 200ms duration
+            };
           }
           
           // During drag, add our custom z-index
