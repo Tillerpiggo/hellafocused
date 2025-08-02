@@ -16,9 +16,10 @@ interface TaskItemProps {
   task: TaskData
   currentPath: string[] // Unified path to the parent of this task
   isDragging?: boolean
+  previewPriority?: number // For cross-section drag styling preview
 }
 
-export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false }: TaskItemProps) {
+export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false, previewPriority }: TaskItemProps) {
   const navigateToTask = useAppStore((state) => state.navigateToTask)
   const updateTaskName = useAppStore((state) => state.updateTaskName)
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
@@ -30,6 +31,9 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
   const editableTitleRef = useRef<EditableTitleRef>(null)
 
   const taskPath = [...currentPath, task.id]
+
+  // Use preview priority during cross-section drag, otherwise use actual priority
+  const effectivePriority = isDragging && previewPriority !== undefined ? previewPriority : task.priority
 
   const handleToggleCompletion = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -61,7 +65,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
               "bg-background",
               task.completed
                 ? "bg-muted/50 opacity-60 border-border/30"
-                : task.priority === -1
+                : effectivePriority === -1
                 ? "bg-muted/20 opacity-70 border-border/20 hover:bg-muted/30 hover:border-border/30"
                 : "hover:bg-accent/80 hover:border-primary/30 border-border/50",
               isEditing && "bg-accent border-primary/50",
@@ -94,7 +98,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
               className={cn(
                 "text-base font-medium", 
                 task.completed && "line-through text-muted-foreground",
-                task.priority === -1 && !task.completed && "text-muted-foreground"
+                effectivePriority === -1 && !task.completed && "text-muted-foreground"
               )}
               isCompleted={task.completed}
             />
@@ -103,7 +107,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
               className={cn(
                 "text-base font-medium break-words", 
                 task.completed && "line-through text-muted-foreground",
-                task.priority === -1 && !task.completed && "text-muted-foreground"
+                effectivePriority === -1 && !task.completed && "text-muted-foreground"
               )}
             >
               {task.name}
@@ -135,7 +139,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         onMove={() => setIsMoveDialogOpen(true)}
         onFocus={() => setFocusMode(true, taskPath)}
         isCompleted={task.completed}
-        isDeferred={task.priority === -1}
+        isDeferred={effectivePriority === -1}
       >
         {taskContent}
       </TaskContextMenu>

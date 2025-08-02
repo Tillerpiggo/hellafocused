@@ -17,6 +17,7 @@ import {
   fillMissingPositionsForProjects,
   fillMissingPrioritiesForProjects,
   toggleTaskDefer,
+  setTaskPriority,
   moveTaskToNewParent,
   getValidDropTargets,
   getPathDisplayName,
@@ -43,6 +44,7 @@ interface AppState {
 
   toggleTaskCompletion: (taskPath: string[]) => void
   toggleTaskDefer: (taskPath: string[]) => void
+  setTaskPriority: (taskPath: string[], priority: number) => void
   deleteAtPath: (itemPath: string[]) => void
 
   toggleShowCompleted: () => void
@@ -120,6 +122,15 @@ export const useAppStore = create<AppState>()(
     set(
       produce((draft: AppState) => {
         toggleTaskDefer(draft.projects, taskPath)
+      }),
+    )
+    trackTaskUpdated(taskPath)
+  },
+
+  setTaskPriority: (taskPath, priority) => {
+    set(
+      produce((draft: AppState) => {
+        setTaskPriority(draft.projects, taskPath, priority)
       }),
     )
     trackTaskUpdated(taskPath)

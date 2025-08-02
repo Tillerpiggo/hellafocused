@@ -148,6 +148,13 @@ export const fillMissingPrioritiesForProjects = (projects: ProjectData[]): void 
 
 /**
  * Toggle task defer status with pile-up behavior
+ * 
+ * POSITIONING SIDE EFFECTS:
+ * - When deferring (priority = -1): Moves task to END of deferred group, ignores current position
+ * - When undeferring (priority = 0): Moves task to END of normal group, ignores current position
+ * - Always overwrites task.position based on group maximums
+ * - Use setTaskPriority() for priority changes without positioning side effects
+ * 
  * Deferred tasks go to position 0, normal tasks go to end of normal group
  */
 export const toggleTaskDefer = (projects: ProjectData[], taskPath: string[]): void => {
@@ -188,6 +195,22 @@ export const toggleTaskDefer = (projects: ProjectData[], taskPath: string[]): vo
     const maxNormalPosition = Math.max(0, ...normalTasks.map(t => t.position ?? 0))
     task.position = maxNormalPosition + 1
   }
+}
+
+/**
+ * Set task priority without positioning side effects
+ * 
+ * Unlike toggleTaskDefer(), this method only changes the priority value
+ * and does NOT modify the task's position. Use this when you want to
+ * control positioning separately (e.g., during drag operations).
+ */
+export const setTaskPriority = (projects: ProjectData[], taskPath: string[], newPriority: number): void => {
+  const task = findTaskAtPath(projects, taskPath)
+  if (!task) return
+
+  // Only update priority and timestamp, preserve position
+  task.priority = newPriority
+  task.lastModificationDate = new Date().toISOString()
 }
 
 /**
