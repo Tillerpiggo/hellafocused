@@ -1,52 +1,43 @@
 "use client"
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+import { Draggable } from '@hello-pangea/dnd'
 import React from 'react'
 import { TaskItem } from './task-item'
 import type { TaskData } from '@/lib/types'
 
 interface SortableTaskItemProps {
   task: TaskData
+  index: number
   currentPath: string[]
   disabled?: boolean
 }
 
-export function SortableTaskItem({ task, currentPath, disabled }: SortableTaskItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ 
-    id: task.id,
-    disabled: disabled
-  })
-
-
-
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    transition,
-    zIndex: isDragging ? 9999 : 'auto',
-  }
-
+export function SortableTaskItem({ task, index, currentPath, disabled }: SortableTaskItemProps) {
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`
-        ${isDragging ? 'z-50 relative' : ''}
-      `}
-      {...attributes}
-      {...listeners}
+    <Draggable 
+      draggableId={task.id} 
+      index={index}
+      isDragDisabled={disabled}
     >
-      <TaskItem
-        task={task}
-        currentPath={currentPath}
-        isDragging={isDragging}
-      />
-    </div>
+      {(provided, snapshot) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          style={{
+            ...provided.draggableProps.style,
+            zIndex: snapshot.isDragging ? 9999 : 'auto',
+          }}
+          className={`
+            ${snapshot.isDragging ? 'z-50 relative' : ''}
+          `}
+        >
+          <TaskItem
+            task={task}
+            currentPath={currentPath}
+            isDragging={snapshot.isDragging}
+          />
+        </div>
+      )}
+    </Draggable>
   )
 }
