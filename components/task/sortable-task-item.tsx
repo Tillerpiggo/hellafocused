@@ -18,26 +18,39 @@ export const SortableTaskItem = memo(function SortableTaskItem({ task, index, cu
       index={index}
       isDragDisabled={disabled}
     >
-      {(provided, snapshot) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.draggableProps}
-          {...provided.dragHandleProps}
-          style={{
+      {(provided, snapshot) => {
+        // Follow pangea's pattern - let drop animation handle styling during drop
+        const getStyle = () => {
+          if (snapshot.isDropAnimating) {
+            // During drop animation, only use pangea's provided styles
+            return provided.draggableProps.style;
+          }
+          
+          // During drag, add our custom z-index
+          return {
             ...provided.draggableProps.style,
             zIndex: snapshot.isDragging ? 9999 : 'auto',
-          }}
-          className={`
-            ${snapshot.isDragging ? 'z-50 relative' : ''}
-          `}
-        >
-          <TaskItem
-            task={task}
-            currentPath={currentPath}
-            isDragging={snapshot.isDragging}
-          />
-        </div>
-      )}
+          };
+        };
+
+        return (
+          <div
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            {...provided.dragHandleProps}
+            style={getStyle()}
+            className={
+              snapshot.isDragging && !snapshot.isDropAnimating ? 'z-50 relative' : ''
+            }
+          >
+            <TaskItem
+              task={task}
+              currentPath={currentPath}
+              isDragging={snapshot.isDragging && !snapshot.isDropAnimating}
+            />
+          </div>
+        );
+      }}
     </Draggable>
   )
 })

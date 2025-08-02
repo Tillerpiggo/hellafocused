@@ -51,10 +51,12 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
   const taskContent = (
     <div
       className={cn(
-        "flex items-start justify-between p-4 my-2 rounded-2xl border group transition-all duration-200",
-        // Dragging state with scale and opacity
+        "flex items-start justify-between p-4 my-2 rounded-2xl border group",
+        // Only add transitions when not dragging to avoid conflicts with drop animation
+        !isDragging && "transition-all duration-200",
+        // Dragging state - avoid scale transform to prevent conflicts with drop animation
         isDragging 
-          ? "bg-accent/80 border-primary/30 scale-95 opacity-80"
+          ? "bg-accent/80 border-primary/30 opacity-80"
           : [
               "bg-background",
               task.completed
