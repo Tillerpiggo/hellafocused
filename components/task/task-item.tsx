@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils"
 import { TaskContextMenu } from "./task-context-menu"
 import { MoveTaskDialog } from "./move-task-dialog"
 import { EditableTitle, type EditableTitleRef } from "@/components/editable-title"
-import { useState, useRef } from "react"
+import { useState, useRef, memo } from "react"
 
 interface TaskItemProps {
   task: TaskData
@@ -18,7 +18,7 @@ interface TaskItemProps {
   isDragging?: boolean
 }
 
-export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProps) {
+export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false }: TaskItemProps) {
   const navigateToTask = useAppStore((state) => state.navigateToTask)
   const updateTaskName = useAppStore((state) => state.updateTaskName)
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
@@ -51,10 +51,10 @@ export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProp
   const taskContent = (
     <div
       className={cn(
-        "flex items-start justify-between p-4 my-2 rounded-2xl border group",
-        // Dragging state takes highest precedence
+        "flex items-start justify-between p-4 my-2 rounded-2xl border group transition-all duration-200",
+        // Dragging state with scale and opacity
         isDragging 
-          ? "bg-accent/80 border-primary/30 opacity-80 scale-95"
+          ? "bg-accent/80 border-primary/30 scale-95 opacity-80"
           : [
               "bg-background",
               task.completed
@@ -146,4 +146,4 @@ export function TaskItem({ task, currentPath, isDragging = false }: TaskItemProp
       />
     </>
   )
-}
+})

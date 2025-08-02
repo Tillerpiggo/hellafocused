@@ -1,6 +1,6 @@
 "use client"
 import { Draggable } from '@hello-pangea/dnd'
-import React from 'react'
+import React, { memo } from 'react'
 import { TaskItem } from './task-item'
 import type { TaskData } from '@/lib/types'
 
@@ -11,7 +11,7 @@ interface SortableTaskItemProps {
   disabled?: boolean
 }
 
-export function SortableTaskItem({ task, index, currentPath, disabled }: SortableTaskItemProps) {
+export const SortableTaskItem = memo(function SortableTaskItem({ task, index, currentPath, disabled }: SortableTaskItemProps) {
   return (
     <Draggable 
       draggableId={task.id} 
@@ -40,4 +40,4 @@ export function SortableTaskItem({ task, index, currentPath, disabled }: Sortabl
       )}
     </Draggable>
   )
-}
+})
