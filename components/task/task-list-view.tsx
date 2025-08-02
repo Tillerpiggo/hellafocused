@@ -37,7 +37,6 @@ export function TaskListView({ tasks, currentPath }: TaskListViewProps) {
       <Droppable droppableId="task-list">
         {(provided) => (
           <div 
-            className="space-y-1"
             ref={provided.innerRef}
             {...provided.droppableProps}
           >

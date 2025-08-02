@@ -3,6 +3,7 @@ import { Draggable } from '@hello-pangea/dnd'
 import React, { memo } from 'react'
 import { TaskItem } from './task-item'
 import type { TaskData } from '@/lib/types'
+import { cn } from '@/lib/utils'
 
 interface SortableTaskItemProps {
   task: TaskData
@@ -39,9 +40,10 @@ export const SortableTaskItem = memo(function SortableTaskItem({ task, index, cu
             {...provided.draggableProps}
             {...provided.dragHandleProps}
             style={getStyle()}
-            className={
+            className={cn(
+              "mb-2", // 0.5rem spacing between items
               snapshot.isDragging && !snapshot.isDropAnimating ? 'z-50 relative' : ''
-            }
+            )}
           >
             <TaskItem
               task={task}
