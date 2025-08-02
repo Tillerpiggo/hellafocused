@@ -1,18 +1,7 @@
 "use client"
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from '@dnd-kit/core'
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
+import { useEffect, useRef, useCallback, useMemo } from 'react'
+import type { DropTargetRecord } from '@atlaskit/pragmatic-drag-and-drop/types'
+import { monitorForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import type { TaskData } from "@/lib/types"
 import { SortableTaskItem } from "./sortable-task-item"
 import { useAppStore } from "@/store/app-store"
@@ -24,58 +13,70 @@ interface TaskListViewProps {
 
 export function TaskListView({ tasks, currentPath }: TaskListViewProps) {
   const reorderTasks = useAppStore((state) => state.reorderTasks)
-  
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8, // Require 8px movement before drag starts
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  )
+  const monitorRef = useRef<(() => void) | null>(null)
 
   // Create efficient ID to index mapping
-  const taskIdToIndex = new Map(tasks.map((task, index) => [task.id, index]))
+  const taskIdToIndex = useMemo(() => 
+    new Map(tasks.map((task, index) => [task.id, index])), 
+    [tasks]
+  )
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event
-
-    if (over && active.id !== over.id) {
-      const oldIndex = taskIdToIndex.get(active.id as string)
-      const newIndex = taskIdToIndex.get(over.id as string)
+  const handleDrop = useCallback((data: {
+    source: { data: Record<string, unknown> }
+    location: { current: { dropTargets: DropTargetRecord[] } }
+  }) => {
+    const { source, location } = data
+    
+    if (!location.current.dropTargets.length) return
+    
+    const sourceTaskId = source.data.taskId as string
+    const targetTaskId = location.current.dropTargets[0].data.taskId as string
+    
+    if (sourceTaskId && targetTaskId && sourceTaskId !== targetTaskId) {
+      const oldIndex = taskIdToIndex.get(sourceTaskId)
+      const newIndex = taskIdToIndex.get(targetTaskId)
       
       if (oldIndex !== undefined && newIndex !== undefined) {
-        reorderTasks(currentPath, oldIndex, newIndex)
+        // Get source and target tasks to validate same priority group
+        const sourceTask = tasks[oldIndex]
+        const targetTask = tasks[newIndex]
+        
+        // Only allow reordering within the same priority group
+        if (sourceTask && targetTask && sourceTask.priority === targetTask.priority) {
+          reorderTasks(currentPath, oldIndex, newIndex)
+        }
       }
     }
-  }
+  }, [tasks, taskIdToIndex, currentPath, reorderTasks])
 
-  // Only allow dragging of incomplete tasks - use task IDs directly
-  const taskItems = tasks.map(task => task.id)
+  useEffect(() => {
+    // Clean up previous monitor
+    if (monitorRef.current) {
+      monitorRef.current()
+    }
+
+    // Set up new monitor
+    monitorRef.current = monitorForElements({
+      onDrop: handleDrop,
+    })
+
+    return () => {
+      if (monitorRef.current) {
+        monitorRef.current()
+      }
+    }
+  }, [handleDrop])
 
   return (
-    <DndContext 
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragEnd={handleDragEnd}
-    >
-      <SortableContext 
-        items={taskItems}
-        strategy={verticalListSortingStrategy}
-      >
     <div className="space-y-1">
       {tasks.map((task) => (
-            <SortableTaskItem
+        <SortableTaskItem
           key={task.id}
           task={task}
-              currentPath={currentPath}
-              disabled={task.completed}
+          currentPath={currentPath}
+          disabled={task.completed}
         />
       ))}
     </div>
-      </SortableContext>
-    </DndContext>
   )
 }

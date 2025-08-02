@@ -1,7 +1,9 @@
 "use client"
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import React from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { draggable, dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
+import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine'
+import { pointerOutsideOfPreview } from '@atlaskit/pragmatic-drag-and-drop/element/pointer-outside-of-preview'
+import { setCustomNativeDragPreview } from '@atlaskit/pragmatic-drag-and-drop/element/set-custom-native-drag-preview'
 import { TaskItem } from './task-item'
 import type { TaskData } from '@/lib/types'
 
@@ -12,35 +14,57 @@ interface SortableTaskItemProps {
 }
 
 export function SortableTaskItem({ task, currentPath, disabled }: SortableTaskItemProps) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ 
-    id: task.id,
-    disabled: disabled
-  })
+  const ref = useRef<HTMLDivElement>(null)
+  const [isDragging, setIsDragging] = useState(false)
+  const [isDropTarget, setIsDropTarget] = useState(false)
 
+  useEffect(() => {
+    const element = ref.current
+    if (!element || disabled) return
 
-
-  const style = {
-    transform: CSS.Translate.toString(transform),
-    transition,
-    zIndex: isDragging ? 9999 : 'auto',
-  }
+    return combine(
+      draggable({
+        element,
+        getInitialData: () => ({ taskId: task.id }),
+        onGenerateDragPreview: ({ nativeSetDragImage }) => {
+          setCustomNativeDragPreview({
+            nativeSetDragImage,
+            getOffset: pointerOutsideOfPreview({ x: '16px', y: '8px' }),
+            render: ({ container }) => {
+              const clone = element.cloneNode(true) as HTMLElement
+              clone.style.transform = 'rotate(3deg)'
+              clone.style.opacity = '0.8'
+              container.appendChild(clone)
+            },
+          })
+        },
+        onDragStart: () => setIsDragging(true),
+        onDrop: () => setIsDragging(false),
+      }),
+      dropTargetForElements({
+        element,
+        getData: () => ({ taskId: task.id }),
+        canDrop: ({ source }) => {
+          const sourceTaskId = source.data.taskId
+          return sourceTaskId !== task.id
+        },
+        onDragEnter: () => setIsDropTarget(true),
+        onDragLeave: () => setIsDropTarget(false),
+        onDrop: () => setIsDropTarget(false),
+      })
+    )
+  }, [task.id, disabled])
 
   return (
     <div
-      ref={setNodeRef}
-      style={style}
+      ref={ref}
       className={`
-        ${isDragging ? 'z-50 relative' : ''}
+        ${isDragging ? 'z-50 relative opacity-50' : ''}
+        ${isDropTarget ? 'ring-2 ring-primary/30' : ''}
       `}
-      {...attributes}
-      {...listeners}
+      style={{
+        zIndex: isDragging ? 9999 : 'auto',
+      }}
     >
       <TaskItem
         task={task}
