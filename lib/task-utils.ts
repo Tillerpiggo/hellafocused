@@ -302,35 +302,44 @@ export const moveTaskWithPriorityChange = (
     console.log('Moving to deferred section, targetPosition = globalDestinationIndex - normalTasksCount =', globalDestinationIndex, '-', normalTasksCount, '=', targetPosition)
   }
 
-  // Step 4: Remove from source section (fill gap) - use OLD priority
-  console.log('=== STEP 4: Remove from source section (priority', oldPriority, ') ===')
-  parentTasks.forEach(otherTask => {
-    if (otherTask.id !== task.id && otherTask.priority === oldPriority) {
-      if (otherTask.position !== undefined && otherTask.position > task.position!) {
-        console.log('Shifting', otherTask.name, 'from position', otherTask.position, 'to', otherTask.position - 1)
-        otherTask.position -= 1
-        otherTask.lastModificationDate = new Date().toISOString()
-      }
+  // Step 4: Create visual array and perform the move
+  console.log('=== STEP 4: Create visual array and perform move ===')
+  const visualArray = sortedTasks.slice() // Copy the sorted visual array
+  
+  // Find current position of moved task in visual array
+  const currentVisualIndex = visualArray.findIndex(t => t.id === task.id)
+  console.log('Task', task.name, 'found at visual index', currentVisualIndex)
+  
+  // Remove task from current visual position
+  if (currentVisualIndex !== -1) {
+    visualArray.splice(currentVisualIndex, 1)
+  }
+  
+  // Insert task at target visual position
+  visualArray.splice(globalDestinationIndex, 0, task)
+  console.log('Inserted task at visual index', globalDestinationIndex)
+  
+  // Step 5: Reassign all positions based on final visual array order
+  console.log('=== STEP 5: Reassign positions using visual array 0-indexing ===')
+  let normalPosition = 0
+  let deferredPosition = 0
+  
+  console.log('Visual array elements in order:')
+  visualArray.forEach((t, visualIndex) => {
+    console.log(`  [${visualIndex}] ${t.name} (priority: ${t.priority})`)
+  })
+  
+  visualArray.forEach((t) => {
+    if (t.priority === 0) {
+      console.log(`Setting ${t.name} (normal) position to ${normalPosition}`)
+      t.position = normalPosition++
+      t.lastModificationDate = new Date().toISOString()
+    } else if (t.priority === -1) {
+      console.log(`Setting ${t.name} (deferred) position to ${deferredPosition}`)
+      t.position = deferredPosition++
+      t.lastModificationDate = new Date().toISOString()
     }
   })
-
-  // Step 5: Insert into target section (make room) - use NEW priority
-  console.log('=== STEP 5: Insert into target section (priority', newPriority, ') ===')
-  console.log('Making room at position', targetPosition)
-  parentTasks.forEach(otherTask => {
-    if (otherTask.id !== task.id && otherTask.priority === newPriority) {
-      if (otherTask.position !== undefined && otherTask.position >= targetPosition) {
-        console.log('Making room: shifting', otherTask.name, 'from position', otherTask.position, 'to', otherTask.position + 1)
-        otherTask.position += 1
-        otherTask.lastModificationDate = new Date().toISOString()
-      }
-    }
-  })
-
-  // Step 6: Set moved task's position
-  console.log('=== STEP 6: Set moved task position ===')
-  console.log('Setting', task.name, 'position to', targetPosition)
-  task.position = targetPosition
   
   console.log('=== ALL TASK POSITIONS AFTER MOVE ===')
   parentTasks.forEach(t => {
