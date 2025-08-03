@@ -283,6 +283,9 @@ export const useAppStore = create<AppState>()(
   reorderTasks: (parentPath, fromIndex, toIndex) => {
     if (fromIndex === toIndex) return
 
+    console.log('=== reorderTasks DEBUG ===')
+    console.log('fromIndex:', fromIndex, 'toIndex:', toIndex)
+
     // Store task IDs for sync tracking after state update
     let updatedTaskIds: string[] = []
 
@@ -325,11 +328,20 @@ export const useAppStore = create<AppState>()(
         if (fromIndex >= incompleteTasks.length || toIndex >= incompleteTasks.length) return
 
         // Get the task being moved and check if reordering within same priority group
+        console.log('=== ALL TASK POSITIONS BEFORE REORDER ===')
+        tasks.forEach(t => {
+          console.log(`${t.name}: priority=${t.priority}, position=${t.position}`)
+        })
+        console.log('==========================================')
+
         const movedTask = incompleteTasks[fromIndex]
         const targetTask = incompleteTasks[toIndex]
         
+        console.log('Moving task:', movedTask.name, 'to position of:', targetTask.name)
+        
         // Only allow reordering within the same priority group
         if (movedTask.priority !== targetTask.priority) {
+          console.log('Cross-priority move blocked')
           return // Prevent cross-priority dragging
         }
 
@@ -337,17 +349,33 @@ export const useAppStore = create<AppState>()(
         incompleteTasks.splice(fromIndex, 1)
         incompleteTasks.splice(toIndex, 0, movedTask)
 
-        // Update positions only for tasks in the same priority group as the moved task
-        const samePriorityTasks = incompleteTasks.filter(task => task.priority === movedTask.priority)
-        let positionCounter = 0
+        // NEW APPROACH: Use visual array to assign clean 0-indexed positions
+        // Walk through the visual array and assign positions 0,1,2,3... within each priority section
+        let normalPosition = 0
+        let deferredPosition = 0
         
-        incompleteTasks.forEach(task => {
-          if (task.priority === movedTask.priority) {
-            task.position = positionCounter++
+        console.log('Reassigning all positions based on visual array order:')
+        incompleteTasks.forEach((task, visualIndex) => {
+          if (task.priority === 0) {
+            // Normal priority section: 0,1,2,3...
+            console.log(`Setting ${task.name} (normal) position to ${normalPosition}`)
+            task.position = normalPosition++
+            task.lastModificationDate = new Date().toISOString()
+            updatedTaskIds.push(task.id)
+          } else if (task.priority === -1) {
+            // Deferred priority section: reset to 0,1,2,3...
+            console.log(`Setting ${task.name} (deferred) position to ${deferredPosition}`)
+            task.position = deferredPosition++
             task.lastModificationDate = new Date().toISOString()
             updatedTaskIds.push(task.id)
           }
         })
+
+        console.log('=== ALL TASK POSITIONS AFTER REORDER ===')
+        tasks.forEach(t => {
+          console.log(`${t.name}: priority=${t.priority}, position=${t.position}`)
+        })
+        console.log('=========================================')
 
 
       }),

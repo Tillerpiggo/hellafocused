@@ -180,6 +180,15 @@ export const toggleTaskDefer = (projects: ProjectData[], taskPath: string[]): vo
   const isCurrentlyDeferred = task.priority === -1
   const newPriority = isCurrentlyDeferred ? 0 : -1
   
+  console.log('=== toggleTaskDefer DEBUG ===')
+  console.log('Task:', task.name, 'changing from priority', task.priority, 'to', newPriority)
+  
+  console.log('=== ALL TASK POSITIONS BEFORE DEFER/UNDEFER ===')
+  parentTasks.forEach(t => {
+    console.log(`${t.name}: priority=${t.priority}, position=${t.position}`)
+  })
+  console.log('==============================================')
+
   // Update task priority and timestamp
   task.priority = newPriority
   task.lastModificationDate = new Date().toISOString()
@@ -189,22 +198,42 @@ export const toggleTaskDefer = (projects: ProjectData[], taskPath: string[]): vo
     const deferredTasks = parentTasks.filter(t => t.priority === -1)
     const maxDeferredPosition = Math.max(-1, ...deferredTasks.map(t => t.position ?? -1))
     task.position = maxDeferredPosition + 1
+    console.log('Deferring task. Deferred tasks count:', deferredTasks.length)
+    console.log('Max deferred position:', maxDeferredPosition)
+    console.log('Setting task position to:', task.position)
   } else {
     // Undeferring: Move to end of normal priority tasks
     const normalTasks = parentTasks.filter(t => t.priority === 0)
     const maxNormalPosition = Math.max(0, ...normalTasks.map(t => t.position ?? 0))
     task.position = maxNormalPosition + 1
+    console.log('Undeferring task. Normal tasks count:', normalTasks.length)
+    console.log('Max normal position:', maxNormalPosition)
+    console.log('Setting task position to:', task.position)
   }
+  
+  console.log('=== ALL TASK POSITIONS AFTER DEFER/UNDEFER ===')
+  // Sort by priority then position to show proper order
+  const sortedTasks = [...parentTasks]
+    .sort((a, b) => {
+      if (a.priority !== b.priority) return b.priority - a.priority
+      return (a.position ?? 0) - (b.position ?? 0)
+    })
+  
+  console.log('Tasks in visual order:')
+  sortedTasks.forEach(t => {
+    console.log(`${t.name}: priority=${t.priority}, position=${t.position}`)
+  })
+  console.log('=============================================')
 }
 
 /**
  * Move task with priority change in a single atomic operation
  * 
- * Simple 4-step approach:
- * 1. Change priority
- * 2. Count items in each section after priority change  
- * 3. Calculate final index with simple conditional subtraction
- * 4. Move item to that position
+ * 4-step approach that preserves multi-0-indexing:
+ * 1. Convert visual destination index to section-local position
+ * 2. Remove from source section (fill position gaps)
+ * 3. Insert into target section (make room at target position)
+ * 4. Set moved task's new position and priority
  */
 export const moveTaskWithPriorityChange = (
   projects: ProjectData[], 
@@ -216,7 +245,7 @@ export const moveTaskWithPriorityChange = (
   const task = findTaskAtPath(projects, taskPath)
   if (!task) return
 
-  // Determine parent task array
+  // Get parent tasks array
   const parentPath = taskPath.slice(0, -1)
   let parentTasks: TaskData[]
   
@@ -231,51 +260,87 @@ export const moveTaskWithPriorityChange = (
   }
 
   console.log('=== moveTaskWithPriorityChange DEBUG ===')
-  console.log('Task:', task.name, 'from priority:', task.priority, 'to priority:', newPriority)
+  console.log('Moving task:', task.name)
+  console.log('From priority:', task.priority, 'position:', task.position)
+  console.log('To priority:', newPriority)
   console.log('globalSourceIndex:', globalSourceIndex, 'globalDestinationIndex:', globalDestinationIndex)
   
-  // Step 1: Change priority
+  console.log('=== ALL TASK POSITIONS BEFORE MOVE ===')
+  parentTasks.forEach(t => {
+    console.log(`${t.name}: priority=${t.priority}, position=${t.position}`)
+  })
+  console.log('===========================================')
+
+  // Step 1: Change priority FIRST
+  const oldPriority = task.priority
   task.priority = newPriority
   task.lastModificationDate = new Date().toISOString()
-  console.log('After priority change, task.priority =', task.priority)
+  console.log('Changed priority from', oldPriority, 'to', newPriority)
 
-  // Step 2: Count items in each section after priority change
-  const regularCount = parentTasks.filter(t => t.priority !== -1).length
-  const deferredCount = parentTasks.filter(t => t.priority === -1).length
-  console.log('Section counts after priority change - regular:', regularCount, 'deferred:', deferredCount)
-
-  // Step 3: Calculate final index with simple conditional subtraction
-  let finalIndex: number
-  if (globalDestinationIndex < regularCount) {
-    // Destination is in regular section
-    finalIndex = globalDestinationIndex
-    console.log('Destination in regular section, finalIndex =', finalIndex)
+  // Step 2: NOW compute section counts with correct priorities
+  const sortedTasks = parentTasks
+    .filter(t => !t.completed)
+    .sort((a, b) => {
+      if (a.priority !== b.priority) return b.priority - a.priority
+      if (a.position !== undefined && b.position !== undefined) return a.position - b.position
+      return a.lastModificationDate.localeCompare(b.lastModificationDate)
+    })
+  
+  const normalTasksCount = sortedTasks.filter(t => t.priority === 0).length
+  console.log('sortedTasks after priority change:', sortedTasks.map(t => `${t.name}(${t.priority}:${t.position})`))
+  console.log('normalTasksCount:', normalTasksCount)
+  
+  // Step 3: Convert visual destination to section-local position
+  let targetPosition: number
+  if (newPriority === 0) {
+    // Moving to normal section - visual index IS the position 
+    targetPosition = globalDestinationIndex
+    console.log('Moving to normal section, targetPosition =', targetPosition)
   } else {
-    // Destination is in deferred section  
-    finalIndex = regularCount + (globalDestinationIndex - regularCount)
-    console.log('Destination in deferred section, finalIndex = regularCount + (globalDestinationIndex - regularCount) =', regularCount, '+', '(', globalDestinationIndex, '-', regularCount, ') =', finalIndex)
+    // Moving to deferred section - subtract normal tasks count
+    targetPosition = globalDestinationIndex - normalTasksCount
+    console.log('Moving to deferred section, targetPosition = globalDestinationIndex - normalTasksCount =', globalDestinationIndex, '-', normalTasksCount, '=', targetPosition)
   }
 
-  // Step 4: Move item to that position manually
-  // Remove task from current position
-  const currentIndex = parentTasks.findIndex(t => t.id === task.id)
-  console.log('Current index of task in array:', currentIndex)
-  if (currentIndex === -1) return
-  
-  const [movedTask] = parentTasks.splice(currentIndex, 1)
-  console.log('After removal, array length:', parentTasks.length)
-  
-  // Insert at final position
-  console.log('Inserting at finalIndex:', finalIndex)
-  parentTasks.splice(finalIndex, 0, movedTask)
-  console.log('After insertion, array length:', parentTasks.length)
-  
-  // Update all position values
-  parentTasks.forEach((t, index) => {
-    t.position = index
+  // Step 4: Remove from source section (fill gap) - use OLD priority
+  console.log('=== STEP 4: Remove from source section (priority', oldPriority, ') ===')
+  parentTasks.forEach(otherTask => {
+    if (otherTask.id !== task.id && otherTask.priority === oldPriority) {
+      if (otherTask.position !== undefined && otherTask.position > task.position!) {
+        console.log('Shifting', otherTask.name, 'from position', otherTask.position, 'to', otherTask.position - 1)
+        otherTask.position -= 1
+        otherTask.lastModificationDate = new Date().toISOString()
+      }
+    }
   })
-  console.log('Final task order:', parentTasks.map(t => `${t.name}(${t.priority})`))
-  console.log('=== END DEBUG ===')
+
+  // Step 5: Insert into target section (make room) - use NEW priority
+  console.log('=== STEP 5: Insert into target section (priority', newPriority, ') ===')
+  console.log('Making room at position', targetPosition)
+  parentTasks.forEach(otherTask => {
+    if (otherTask.id !== task.id && otherTask.priority === newPriority) {
+      if (otherTask.position !== undefined && otherTask.position >= targetPosition) {
+        console.log('Making room: shifting', otherTask.name, 'from position', otherTask.position, 'to', otherTask.position + 1)
+        otherTask.position += 1
+        otherTask.lastModificationDate = new Date().toISOString()
+      }
+    }
+  })
+
+  // Step 6: Set moved task's position
+  console.log('=== STEP 6: Set moved task position ===')
+  console.log('Setting', task.name, 'position to', targetPosition)
+  task.position = targetPosition
+  
+  console.log('=== ALL TASK POSITIONS AFTER MOVE ===')
+  parentTasks.forEach(t => {
+    console.log(`${t.name}: priority=${t.priority}, position=${t.position}`)
+  })
+  console.log('=========================================')
+  
+  console.log('=== FINAL RESULT ===')
+  console.log('All tasks after move:', parentTasks.map(t => `${t.name}(${t.priority}:${t.position})`))
+  console.log('==========================')
 }
 
 /**
