@@ -198,6 +198,87 @@ export const toggleTaskDefer = (projects: ProjectData[], taskPath: string[]): vo
 }
 
 /**
+ * Move task with priority change in a single atomic operation
+ * 
+ * Simple 4-step approach:
+ * 1. Change priority
+ * 2. Count items in each section after priority change  
+ * 3. Calculate final index with simple conditional subtraction
+ * 4. Move item to that position
+ */
+export const moveTaskWithPriorityChange = (
+  projects: ProjectData[], 
+  taskPath: string[], 
+  globalSourceIndex: number,
+  globalDestinationIndex: number,
+  newPriority: number
+): void => {
+  const task = findTaskAtPath(projects, taskPath)
+  if (!task) return
+
+  // Determine parent task array
+  const parentPath = taskPath.slice(0, -1)
+  let parentTasks: TaskData[]
+  
+  if (parentPath.length === 1) {
+    const project = findProjectAtPath(projects, parentPath)
+    if (!project) return
+    parentTasks = project.tasks
+  } else {
+    const parentTask = findTaskAtPath(projects, parentPath)
+    if (!parentTask) return
+    parentTasks = parentTask.subtasks
+  }
+
+  console.log('=== moveTaskWithPriorityChange DEBUG ===')
+  console.log('Task:', task.name, 'from priority:', task.priority, 'to priority:', newPriority)
+  console.log('globalSourceIndex:', globalSourceIndex, 'globalDestinationIndex:', globalDestinationIndex)
+  
+  // Step 1: Change priority
+  task.priority = newPriority
+  task.lastModificationDate = new Date().toISOString()
+  console.log('After priority change, task.priority =', task.priority)
+
+  // Step 2: Count items in each section after priority change
+  const regularCount = parentTasks.filter(t => t.priority !== -1).length
+  const deferredCount = parentTasks.filter(t => t.priority === -1).length
+  console.log('Section counts after priority change - regular:', regularCount, 'deferred:', deferredCount)
+
+  // Step 3: Calculate final index with simple conditional subtraction
+  let finalIndex: number
+  if (globalDestinationIndex < regularCount) {
+    // Destination is in regular section
+    finalIndex = globalDestinationIndex
+    console.log('Destination in regular section, finalIndex =', finalIndex)
+  } else {
+    // Destination is in deferred section  
+    finalIndex = regularCount + (globalDestinationIndex - regularCount)
+    console.log('Destination in deferred section, finalIndex = regularCount + (globalDestinationIndex - regularCount) =', regularCount, '+', '(', globalDestinationIndex, '-', regularCount, ') =', finalIndex)
+  }
+
+  // Step 4: Move item to that position manually
+  // Remove task from current position
+  const currentIndex = parentTasks.findIndex(t => t.id === task.id)
+  console.log('Current index of task in array:', currentIndex)
+  if (currentIndex === -1) return
+  
+  const [movedTask] = parentTasks.splice(currentIndex, 1)
+  console.log('After removal, array length:', parentTasks.length)
+  
+  // Insert at final position
+  console.log('Inserting at finalIndex:', finalIndex)
+  parentTasks.splice(finalIndex, 0, movedTask)
+  console.log('After insertion, array length:', parentTasks.length)
+  
+  // Update all position values
+  parentTasks.forEach((t, index) => {
+    t.position = index
+  })
+  console.log('Final task order:', parentTasks.map(t => `${t.name}(${t.priority})`))
+  console.log('=== END DEBUG ===')
+}
+
+/**
  * Set task priority without positioning side effects
  * 
  * Unlike toggleTaskDefer(), this method only changes the priority value
