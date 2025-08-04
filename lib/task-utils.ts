@@ -180,7 +180,7 @@ export const fillMissingPrioritiesForProjects = (projects: ProjectData[]): void 
  */
 export const toggleTaskDefer = (projects: ProjectData[], taskPath: string[]): string[][] => {
   const task = findTaskAtPath(projects, taskPath)
-  if (!task) return
+  if (!task) return []
 
   // Determine parent task array
   const parentPath = taskPath.slice(0, -1)
@@ -189,26 +189,18 @@ export const toggleTaskDefer = (projects: ProjectData[], taskPath: string[]): st
   if (parentPath.length === 1) {
     // Top-level task in project
     const project = findProjectAtPath(projects, parentPath)
-    if (!project) return
+    if (!project) return []
     parentTasks = project.tasks
   } else {
     // Subtask
     const parentTask = findTaskAtPath(projects, parentPath)
-    if (!parentTask) return
+    if (!parentTask) return []
     parentTasks = parentTask.subtasks
   }
 
   const isCurrentlyDeferred = task.priority === -1
   const newPriority = isCurrentlyDeferred ? 0 : -1
-  
-  console.log('=== toggleTaskDefer DEBUG ===')
-  console.log('Task:', task.name, 'changing from priority', task.priority, 'to', newPriority)
-  
-  console.log('=== ALL TASK POSITIONS BEFORE DEFER/UNDEFER ===')
-  parentTasks.forEach(t => {
-    console.log(`${t.name}: priority=${t.priority}, position=${t.position}`)
-  })
-  console.log('==============================================')
+  const affectedTaskPaths: string[][] = []
 
   // Update task priority and timestamp
   task.priority = newPriority
@@ -348,23 +340,7 @@ export const moveTaskWithPriorityChange = (
       return a.lastModificationDate.localeCompare(b.lastModificationDate)
     })
   
-  const preferredTasksCount = sortedTasks.filter(t => t.priority === 1).length
-  const normalTasksCount = sortedTasks.filter(t => t.priority === 0).length
-  
-  // Step 3: Convert visual destination to section-local position
-  let targetPosition: number
-  if (newPriority === 1) {
-    // Moving to preferred section - visual index IS the position 
-    targetPosition = globalDestinationIndex
-  } else if (newPriority === 0) {
-    // Moving to normal section - subtract preferred tasks count
-    targetPosition = globalDestinationIndex - preferredTasksCount
-  } else {
-    // Moving to deferred section - subtract preferred and normal tasks count
-    targetPosition = globalDestinationIndex - preferredTasksCount - normalTasksCount
-  }
-
-  // Step 4: Create visual array and perform the move
+  // Step 3: Create visual array and perform the move
   const visualArray = sortedTasks.slice() // Copy the sorted visual array
   
   // Find current position of moved task in visual array
