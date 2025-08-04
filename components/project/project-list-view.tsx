@@ -36,7 +36,7 @@ export function ProjectListView({ projects }: ProjectListViewProps) {
           <div 
             ref={provided.innerRef}
             {...provided.droppableProps}
-            className="space-y-3"
+            className=""
           >
             {sortedProjects.map((project, index) => (
               <SortableProjectItem

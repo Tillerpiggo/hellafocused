@@ -12,3 +12,4 @@ When the user runs `/commit`:
 Never attribute yourself as co-author in any commit messages.
 
 - Do not attribute yourself as author to commit messages
+- don't attribute yourself to commit messages
