@@ -19,6 +19,7 @@ import {
   fillMissingProjectPositions,
   reorderProjects,
   toggleTaskDefer,
+  toggleTaskPrefer,
   setTaskPriority,
   moveTaskWithPriorityChange,
   moveTaskToNewParent,
@@ -47,6 +48,7 @@ interface AppState {
 
   toggleTaskCompletion: (taskPath: string[]) => void
   toggleTaskDefer: (taskPath: string[]) => void
+  toggleTaskPrefer: (taskPath: string[]) => void
   setTaskPriority: (taskPath: string[], priority: number) => void
   moveTaskWithPriorityChange: (taskPath: string[], globalSourceIndex: number, globalDestinationIndex: number, newPriority: number) => void
   deleteAtPath: (itemPath: string[]) => void
@@ -124,12 +126,35 @@ export const useAppStore = create<AppState>()(
   },
 
   toggleTaskDefer: (taskPath) => {
+    let affectedTaskPaths: string[][] = []
+    
     set(
       produce((draft: AppState) => {
-        toggleTaskDefer(draft.projects, taskPath)
+        affectedTaskPaths = toggleTaskDefer(draft.projects, taskPath)
       }),
     )
+    
     trackTaskUpdated(taskPath)
+    // Track position updates for affected tasks
+    affectedTaskPaths.forEach(affectedTaskPath => {
+      trackTaskUpdated(affectedTaskPath)
+    })
+  },
+
+  toggleTaskPrefer: (taskPath) => {
+    let affectedTaskPaths: string[][] = []
+    
+    set(
+      produce((draft: AppState) => {
+        affectedTaskPaths = toggleTaskPrefer(draft.projects, taskPath)
+      }),
+    )
+    
+    trackTaskUpdated(taskPath)
+    // Track position updates for affected tasks
+    affectedTaskPaths.forEach(affectedTaskPath => {
+      trackTaskUpdated(affectedTaskPath)
+    })
   },
 
   setTaskPriority: (taskPath, priority) => {

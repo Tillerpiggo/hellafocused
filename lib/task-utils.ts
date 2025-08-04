@@ -178,7 +178,7 @@ export const fillMissingPrioritiesForProjects = (projects: ProjectData[]): void 
  * 
  * Deferred tasks go to position 0, normal tasks go to end of normal group
  */
-export const toggleTaskDefer = (projects: ProjectData[], taskPath: string[]): void => {
+export const toggleTaskDefer = (projects: ProjectData[], taskPath: string[]): string[][] => {
   const task = findTaskAtPath(projects, taskPath)
   if (!task) return
 
@@ -215,36 +215,91 @@ export const toggleTaskDefer = (projects: ProjectData[], taskPath: string[]): vo
   task.lastModificationDate = new Date().toISOString()
 
   if (newPriority === -1) {
-    // Deferring: Move to end of deferred group (maintain original order)
+    // Deferring: Move to end of deferred group and shift normal tasks up to fill gap
+    const oldPosition = task.position ?? 0
+    const normalTasks = parentTasks.filter(t => t.priority === 0)
+    
+    // Shift normal tasks that come after the deferred task up by 1
+    normalTasks.forEach(t => {
+      if (t.id !== task.id && t.position !== undefined && t.position > oldPosition) {
+        t.position = t.position - 1
+        t.lastModificationDate = new Date().toISOString()
+        affectedTaskPaths.push([...parentPath, t.id])
+      }
+    })
+    
     const deferredTasks = parentTasks.filter(t => t.priority === -1)
     const maxDeferredPosition = Math.max(-1, ...deferredTasks.map(t => t.position ?? -1))
     task.position = maxDeferredPosition + 1
-    console.log('Deferring task. Deferred tasks count:', deferredTasks.length)
-    console.log('Max deferred position:', maxDeferredPosition)
-    console.log('Setting task position to:', task.position)
   } else {
     // Undeferring: Move to end of normal priority tasks
     const normalTasks = parentTasks.filter(t => t.priority === 0)
     const maxNormalPosition = Math.max(0, ...normalTasks.map(t => t.position ?? 0))
     task.position = maxNormalPosition + 1
-    console.log('Undeferring task. Normal tasks count:', normalTasks.length)
-    console.log('Max normal position:', maxNormalPosition)
-    console.log('Setting task position to:', task.position)
   }
+
+  return affectedTaskPaths
+}
+
+/**
+ * Toggle task prefer status with pile-up behavior
+ * 
+ * POSITIONING SIDE EFFECTS:
+ * - When preferring (priority = 1): Moves task to END of preferred group, ignores current position
+ * - When unpreferring (priority = 0): Moves task to START of normal group, ignores current position
+ * - Always overwrites task.position based on group maximums
+ * - Use setTaskPriority() for priority changes without positioning side effects
+ * 
+ * Preferred tasks go to end of preferred group, normal tasks go to position 0
+ */
+export const toggleTaskPrefer = (projects: ProjectData[], taskPath: string[]): string[][] => {
+  const task = findTaskAtPath(projects, taskPath)
+  if (!task) return []
+
+  // Determine parent task array
+  const parentPath = taskPath.slice(0, -1)
+  let parentTasks: TaskData[]
   
-  console.log('=== ALL TASK POSITIONS AFTER DEFER/UNDEFER ===')
-  // Sort by priority then position to show proper order
-  const sortedTasks = [...parentTasks]
-    .sort((a, b) => {
-      if (a.priority !== b.priority) return b.priority - a.priority
-      return (a.position ?? 0) - (b.position ?? 0)
+  if (parentPath.length === 1) {
+    // Top-level task in project
+    const project = findProjectAtPath(projects, parentPath)
+    if (!project) return []
+    parentTasks = project.tasks
+  } else {
+    // Subtask
+    const parentTask = findTaskAtPath(projects, parentPath)
+    if (!parentTask) return []
+    parentTasks = parentTask.subtasks
+  }
+
+  const isCurrentlyPreferred = task.priority === 1
+  const newPriority = isCurrentlyPreferred ? 0 : 1
+  const affectedTaskPaths: string[][] = []
+
+  // Update task priority and timestamp
+  task.priority = newPriority
+  task.lastModificationDate = new Date().toISOString()
+
+  if (newPriority === 1) {
+    // Preferring: Move to end of preferred group (maintain original order)
+    const preferredTasks = parentTasks.filter(t => t.priority === 1)
+    const maxPreferredPosition = Math.max(-1, ...preferredTasks.map(t => t.position ?? -1))
+    task.position = maxPreferredPosition + 1
+  } else {
+    // Unpreferring: Move to start of normal priority tasks (position 0, others shift)
+    const normalTasks = parentTasks.filter(t => t.priority === 0)
+    // Shift all existing normal tasks down by 1
+    normalTasks.forEach(t => {
+      if (t.id !== task.id && t.position !== undefined) {
+        t.position = t.position + 1
+        t.lastModificationDate = new Date().toISOString()
+        affectedTaskPaths.push([...parentPath, t.id])
+      }
     })
-  
-  console.log('Tasks in visual order:')
-  sortedTasks.forEach(t => {
-    console.log(`${t.name}: priority=${t.priority}, position=${t.position}`)
-  })
-  console.log('=============================================')
+    task.position = 0
+  }
+
+  return affectedTaskPaths
 }
 
 /**
@@ -280,23 +335,9 @@ export const moveTaskWithPriorityChange = (
     parentTasks = parentTask.subtasks
   }
 
-  console.log('=== moveTaskWithPriorityChange DEBUG ===')
-  console.log('Moving task:', task.name)
-  console.log('From priority:', task.priority, 'position:', task.position)
-  console.log('To priority:', newPriority)
-  console.log('globalSourceIndex:', globalSourceIndex, 'globalDestinationIndex:', globalDestinationIndex)
-  
-  console.log('=== ALL TASK POSITIONS BEFORE MOVE ===')
-  parentTasks.forEach(t => {
-    console.log(`${t.name}: priority=${t.priority}, position=${t.position}`)
-  })
-  console.log('===========================================')
-
   // Step 1: Change priority FIRST
-  const oldPriority = task.priority
   task.priority = newPriority
   task.lastModificationDate = new Date().toISOString()
-  console.log('Changed priority from', oldPriority, 'to', newPriority)
 
   // Step 2: NOW compute section counts with correct priorities
   const sortedTasks = parentTasks
@@ -307,29 +348,27 @@ export const moveTaskWithPriorityChange = (
       return a.lastModificationDate.localeCompare(b.lastModificationDate)
     })
   
+  const preferredTasksCount = sortedTasks.filter(t => t.priority === 1).length
   const normalTasksCount = sortedTasks.filter(t => t.priority === 0).length
-  console.log('sortedTasks after priority change:', sortedTasks.map(t => `${t.name}(${t.priority}:${t.position})`))
-  console.log('normalTasksCount:', normalTasksCount)
   
   // Step 3: Convert visual destination to section-local position
   let targetPosition: number
-  if (newPriority === 0) {
-    // Moving to normal section - visual index IS the position 
+  if (newPriority === 1) {
+    // Moving to preferred section - visual index IS the position 
     targetPosition = globalDestinationIndex
-    console.log('Moving to normal section, targetPosition =', targetPosition)
+  } else if (newPriority === 0) {
+    // Moving to normal section - subtract preferred tasks count
+    targetPosition = globalDestinationIndex - preferredTasksCount
   } else {
-    // Moving to deferred section - subtract normal tasks count
-    targetPosition = globalDestinationIndex - normalTasksCount
-    console.log('Moving to deferred section, targetPosition = globalDestinationIndex - normalTasksCount =', globalDestinationIndex, '-', normalTasksCount, '=', targetPosition)
+    // Moving to deferred section - subtract preferred and normal tasks count
+    targetPosition = globalDestinationIndex - preferredTasksCount - normalTasksCount
   }
 
   // Step 4: Create visual array and perform the move
-  console.log('=== STEP 4: Create visual array and perform move ===')
   const visualArray = sortedTasks.slice() // Copy the sorted visual array
   
   // Find current position of moved task in visual array
   const currentVisualIndex = visualArray.findIndex(t => t.id === task.id)
-  console.log('Task', task.name, 'found at visual index', currentVisualIndex)
   
   // Remove task from current visual position
   if (currentVisualIndex !== -1) {
@@ -338,39 +377,24 @@ export const moveTaskWithPriorityChange = (
   
   // Insert task at target visual position
   visualArray.splice(globalDestinationIndex, 0, task)
-  console.log('Inserted task at visual index', globalDestinationIndex)
   
   // Step 5: Reassign all positions based on final visual array order
-  console.log('=== STEP 5: Reassign positions using visual array 0-indexing ===')
+  let preferredPosition = 0
   let normalPosition = 0
   let deferredPosition = 0
   
-  console.log('Visual array elements in order:')
-  visualArray.forEach((t, visualIndex) => {
-    console.log(`  [${visualIndex}] ${t.name} (priority: ${t.priority})`)
-  })
-  
   visualArray.forEach((t) => {
-    if (t.priority === 0) {
-      console.log(`Setting ${t.name} (normal) position to ${normalPosition}`)
+    if (t.priority === 1) {
+      t.position = preferredPosition++
+      t.lastModificationDate = new Date().toISOString()
+    } else if (t.priority === 0) {
       t.position = normalPosition++
       t.lastModificationDate = new Date().toISOString()
     } else if (t.priority === -1) {
-      console.log(`Setting ${t.name} (deferred) position to ${deferredPosition}`)
       t.position = deferredPosition++
       t.lastModificationDate = new Date().toISOString()
     }
   })
-  
-  console.log('=== ALL TASK POSITIONS AFTER MOVE ===')
-  parentTasks.forEach(t => {
-    console.log(`${t.name}: priority=${t.priority}, position=${t.position}`)
-  })
-  console.log('=========================================')
-  
-  console.log('=== FINAL RESULT ===')
-  console.log('All tasks after move:', parentTasks.map(t => `${t.name}(${t.priority}:${t.position})`))
-  console.log('==========================')
 }
 
 /**
