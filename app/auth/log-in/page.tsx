@@ -16,8 +16,10 @@ export default function LogInPage() {
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
 
+  const hasValidEmail = email.trim() !== "" && email.includes("@")
   const hasInput = email.trim() !== "" || password.trim() !== ""
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -113,58 +115,16 @@ export default function LogInPage() {
             </div>
           )}
 
-          {/* Log In Form */}
-          <form onSubmit={handleSignIn} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="email" className="text-sm font-medium">
-                Email
-              </label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="benjamin.lasky@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <label htmlFor="password" className="text-sm font-medium">
-                  Password
-                </label>
-                <Link
-                  href="/auth/forgot-password"
-                  className="text-sm text-muted-foreground hover:text-foreground underline"
-                >
-                  Forgot your password?
-                </Link>
-              </div>
-              <PasswordInput
-                id="password"
-                name="password"
-                placeholder="••••••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="current-password"
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <Button 
-              type="submit" 
-              className={`w-full ${!hasInput ? 'bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 cursor-not-allowed' : ''}`}
-              disabled={loading || !hasInput}
-              variant={hasInput ? "default" : "ghost"}
-            >
-              {loading ? "Logging in..." : "Log In"}
-            </Button>
-          </form>
+          {/* Google Log In */}
+          <Button
+            variant="outline"
+            className="w-full bg-blue-50 hover:bg-blue-100 border-blue-200 hover:border-blue-300 text-gray-700 dark:bg-blue-950/30 dark:hover:bg-blue-900/50 dark:border-blue-800 dark:hover:border-blue-700 dark:text-blue-100"
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+          >
+            <GoogleLogo className="mr-2" />
+            Continue with Google
+          </Button>
 
           {/* Divider */}
           <div className="relative">
@@ -178,16 +138,85 @@ export default function LogInPage() {
             </div>
           </div>
 
-          {/* Google Log In */}
-          <Button
-            variant="outline"
-            className="w-full bg-blue-50 hover:bg-blue-100 border-blue-200 hover:border-blue-300 text-gray-700 dark:bg-blue-950/30 dark:hover:bg-blue-900/50 dark:border-blue-800 dark:hover:border-blue-700 dark:text-blue-100"
-            onClick={handleGoogleSignIn}
-            disabled={loading}
-          >
-            <GoogleLogo className="mr-2" />
-            Login with Google
-          </Button>
+          {/* Log In Form */}
+          <form onSubmit={showPassword ? handleSignIn : (e) => {
+            e.preventDefault()
+            if (hasValidEmail) {
+              setShowPassword(true)
+            }
+          }} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="email" className="text-sm font-medium">
+                Email
+              </label>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                placeholder="benjamin.lasky@example.com"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  setError("")
+                }}
+                autoComplete="email"
+                required
+                disabled={loading}
+                autoFocus
+              />
+            </div>
+
+            {showPassword && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="password" className="text-sm font-medium">
+                    Password
+                  </label>
+                  <Link
+                    href="/auth/forgot-password"
+                    className="text-sm text-muted-foreground hover:text-foreground underline"
+                  >
+                    Forgot your password?
+                  </Link>
+                </div>
+                <PasswordInput
+                  id="password"
+                  name="password"
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
+                  required
+                  disabled={loading}
+                  autoFocus
+                />
+              </div>
+            )}
+
+            <Button 
+              type="submit" 
+              className={`w-full ${(!hasValidEmail && !showPassword) || (!hasInput && showPassword) ? 'bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 cursor-not-allowed' : ''}`}
+              disabled={loading || (!hasValidEmail && !showPassword) || (!hasInput && showPassword)}
+              variant={(hasValidEmail || hasInput) ? "default" : "ghost"}
+            >
+              {loading ? "Logging in..." : showPassword ? "Log In" : "Continue"}
+            </Button>
+
+            {showPassword && (
+              <Button 
+                type="button"
+                variant="ghost"
+                className="w-full text-sm text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setShowPassword(false)
+                  setPassword("")
+                  setError("")
+                }}
+              >
+                ← Back to email
+              </Button>
+            )}
+          </form>
         </div>
       </div>
 

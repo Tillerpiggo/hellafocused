@@ -17,8 +17,10 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
 
+  const hasValidEmail = email.trim() !== "" && email.includes("@")
   const hasInput = email.trim() !== "" || password.trim() !== ""
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -175,51 +177,16 @@ export default function SignUpPage() {
             </div>
           )}
 
-          {/* Sign Up Form */}
-          <form onSubmit={handleSignUp} className="space-y-4">
-            <div className="space-y-2">
-              <label htmlFor="signup-email" className="text-sm font-medium">
-                Email
-              </label>
-              <Input
-                id="signup-email"
-                name="email"
-                type="email"
-                placeholder="benjamin.lasky@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="email"
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="signup-password" className="text-sm font-medium">
-                Password
-              </label>
-              <PasswordInput
-                id="signup-password"
-                name="password"
-                placeholder="••••••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="new-password"
-                required
-                disabled={loading}
-                minLength={6}
-              />
-            </div>
-
-            <Button 
-              type="submit" 
-              className={`w-full ${!hasInput ? 'bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 cursor-not-allowed' : ''}`}
-              disabled={loading || !hasInput}
-              variant={hasInput ? "default" : "ghost"}
-            >
-              {loading ? "Creating account..." : "Create Account"}
-            </Button>
-          </form>
+          {/* Google Sign Up */}
+          <Button
+            variant="outline"
+            className="w-full bg-blue-50 hover:bg-blue-100 border-blue-200 hover:border-blue-300 text-gray-700 dark:bg-blue-950/30 dark:hover:bg-blue-900/50 dark:border-blue-800 dark:hover:border-blue-700 dark:text-blue-100"
+            onClick={handleGoogleSignUp}
+            disabled={loading}
+          >
+            <GoogleLogo className="mr-2" />
+            Continue with Google
+          </Button>
 
           {/* Divider */}
           <div className="relative">
@@ -233,16 +200,81 @@ export default function SignUpPage() {
             </div>
           </div>
 
-          {/* Google Sign Up */}
-          <Button
-            variant="outline"
-            className="w-full bg-blue-50 hover:bg-blue-100 border-blue-200 hover:border-blue-300 text-gray-700 dark:bg-blue-950/30 dark:hover:bg-blue-900/50 dark:border-blue-800 dark:hover:border-blue-700 dark:text-blue-100"
-            onClick={handleGoogleSignUp}
-            disabled={loading}
-          >
-            <GoogleLogo className="mr-2" />
-            Sign up with Google
-          </Button>
+          {/* Sign Up Form */}
+          <form onSubmit={showPassword ? handleSignUp : (e) => {
+            e.preventDefault()
+            if (hasValidEmail) {
+              setShowPassword(true)
+            }
+          }} className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor="signup-email" className="text-sm font-medium">
+                Email
+              </label>
+              <Input
+                id="signup-email"
+                name="email"
+                type="email"
+                placeholder="benjamin.lasky@example.com"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                  setError("")
+                }}
+                autoComplete="email"
+                required
+                disabled={loading}
+                autoFocus
+              />
+            </div>
+
+            {showPassword && (
+              <div className="space-y-2">
+                <label htmlFor="signup-password" className="text-sm font-medium">
+                  Password
+                </label>
+                <PasswordInput
+                  id="signup-password"
+                  name="password"
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
+                  required
+                  disabled={loading}
+                  minLength={6}
+                  autoFocus
+                />
+                <p className="text-xs text-muted-foreground">
+                  Password must be at least 6 characters long
+                </p>
+              </div>
+            )}
+
+            <Button 
+              type="submit" 
+              className={`w-full ${(!hasValidEmail && !showPassword) || (!hasInput && showPassword) ? 'bg-gray-300 dark:bg-gray-600 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 cursor-not-allowed' : ''}`}
+              disabled={loading || (!hasValidEmail && !showPassword) || (!hasInput && showPassword)}
+              variant={(hasValidEmail || hasInput) ? "default" : "ghost"}
+            >
+              {loading ? "Creating account..." : showPassword ? "Create Account" : "Continue"}
+            </Button>
+
+            {showPassword && (
+              <Button 
+                type="button"
+                variant="ghost"
+                className="w-full text-sm text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  setShowPassword(false)
+                  setPassword("")
+                  setError("")
+                }}
+              >
+                ← Back to email
+              </Button>
+            )}
+          </form>
         </div>
       </div>
 
