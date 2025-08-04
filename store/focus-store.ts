@@ -112,11 +112,13 @@ export const useFocusStore = create<FocusState>((set, get) => ({
         (leaf) => leaf.id !== state.currentFocusTask?.id && !leaf.completed,
       )
       
-      // Try normal priority tasks first, then deferred
+      // Try preferred priority tasks first, then normal, then deferred
+      const preferredTasks = availableLeaves.filter(leaf => leaf.priority === 1)
       const normalTasks = availableLeaves.filter(leaf => leaf.priority === 0)
       const deferredTasks = availableLeaves.filter(leaf => leaf.priority === -1)
       
-      const nextTask = randomFrom(normalTasks) || 
+      const nextTask = randomFrom(preferredTasks) || 
+                      randomFrom(normalTasks) || 
                       randomFrom(deferredTasks) || 
                       randomFrom(state.focusModeProjectLeaves.filter(leaf => !leaf.completed))
       
