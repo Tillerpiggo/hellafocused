@@ -18,6 +18,7 @@ export function FocusView({ startPath }: FocusViewProps) {
   // App store for projects data and app state updates
   const projects = useAppStore((state) => state.projects)
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
+  const toggleTaskPrefer = useAppStore((state) => state.toggleTaskPrefer)
   const setFocusMode = useUIStore((state) => state.setFocusMode)
 
   // Focus store for focus-specific state
@@ -64,6 +65,24 @@ export function FocusView({ startPath }: FocusViewProps) {
       }
     }
   }, [currentFocusTask, startPath, toggleTaskDefer, getNextFocusTask])
+
+  const handleTogglePrefer = useCallback(() => {
+    if (!currentFocusTask) return
+    
+    const currentProjectId = getProjectId(startPath)
+    if (!currentProjectId) return
+
+    const projects = useAppStore.getState().projects
+    const project = projects.find((p) => p.id === currentProjectId)
+    if (project) {
+      const taskPathInProject = findTaskPath(project.tasks, currentFocusTask.id)
+      if (taskPathInProject) {
+        const fullTaskPath = [currentProjectId, ...taskPathInProject]
+        toggleTaskPrefer(fullTaskPath)
+        // Don't pick next task - stay on current task since we just preferred it
+      }
+    }
+  }, [currentFocusTask, startPath, toggleTaskPrefer])
 
   // Initialize focus store when component mounts
   useEffect(() => {
@@ -114,6 +133,7 @@ export function FocusView({ startPath }: FocusViewProps) {
           completeFocusTask={completeFocusTask}
           getNextFocusTask={getNextFocusTask}
           onToggleDefer={handleToggleDefer}
+          onTogglePrefer={handleTogglePrefer}
         />
       )
     }

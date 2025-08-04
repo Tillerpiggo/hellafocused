@@ -35,6 +35,7 @@ export default function HomePage() {
     updateTaskName,
     toggleTaskCompletion, // Still needed for uncompleting tasks (no confirmation needed)
     toggleTaskDefer,
+    toggleTaskPrefer,
     addProject,
     showCompleted,
     searchQuery,
@@ -247,9 +248,11 @@ export default function HomePage() {
             onTitleChange={handleTitleChange}
             isCompleted={isCurrentTaskCompleted}
             isDeferred={taskChain[taskChain.length - 1]?.priority === -1}
+            isPreferred={taskChain[taskChain.length - 1]?.priority === 1}
             onRename={handleRename}
             onDelete={handleDelete}
             onToggleDefer={() => toggleTaskDefer(currentPath)}
+            onTogglePrefer={() => toggleTaskPrefer(currentPath)}
             onFocus={() => setFocusMode(true, currentPath)}
             showCompleted={showCompleted}
             shouldShowCompleteButton={shouldShowCompleteButton()}

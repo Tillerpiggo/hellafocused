@@ -23,6 +23,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
   const navigateToTask = useAppStore((state) => state.navigateToTask)
   const updateTaskName = useAppStore((state) => state.updateTaskName)
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
+  const toggleTaskPrefer = useAppStore((state) => state.toggleTaskPrefer)
   const attemptTaskCompletion = useUIStore((state) => state.attemptTaskCompletion)
   const attemptDeletion = useUIStore((state) => state.attemptDeletion)
   const setFocusMode = useUIStore((state) => state.setFocusMode)
@@ -65,6 +66,8 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
               "bg-background",
               task.completed
                 ? "bg-muted/50 opacity-60 border-border/30"
+                : effectivePriority === 1
+                ? "bg-primary/10 border-primary/50 hover:bg-primary/20 hover:border-primary/60"
                 : effectivePriority === -1
                 ? "bg-muted/20 opacity-70 border-border/20 hover:bg-muted/30 hover:border-border/30"
                 : "hover:bg-accent/80 hover:border-primary/30 border-border/50",
@@ -98,6 +101,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
               className={cn(
                 "text-base font-medium", 
                 task.completed && "line-through text-muted-foreground",
+                effectivePriority === 1 && !task.completed && "text-primary font-semibold",
                 effectivePriority === -1 && !task.completed && "text-muted-foreground"
               )}
               isCompleted={task.completed}
@@ -107,6 +111,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
               className={cn(
                 "text-base font-medium break-words", 
                 task.completed && "line-through text-muted-foreground",
+                effectivePriority === 1 && !task.completed && "text-primary font-semibold",
                 effectivePriority === -1 && !task.completed && "text-muted-foreground"
               )}
             >
@@ -135,11 +140,13 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         }}
         onToggleComplete={() => attemptTaskCompletion(taskPath)}
         onToggleDefer={() => toggleTaskDefer(taskPath)}
+        onTogglePrefer={() => toggleTaskPrefer(taskPath)}
         onDelete={() => attemptDeletion(taskPath)}
         onMove={() => setIsMoveDialogOpen(true)}
         onFocus={() => setFocusMode(true, taskPath)}
         isCompleted={task.completed}
         isDeferred={effectivePriority === -1}
+        isPreferred={effectivePriority === 1}
       >
         {taskContent}
       </TaskContextMenu>

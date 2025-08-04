@@ -9,13 +9,15 @@ interface FocusTaskViewProps {
   completeFocusTask: () => void
   getNextFocusTask: () => void
   onToggleDefer: () => void
+  onTogglePrefer: () => void
 }
 
 export function FocusTaskView({
   currentTask,
   completeFocusTask,
   getNextFocusTask,
-  onToggleDefer
+  onToggleDefer,
+  onTogglePrefer
 }: FocusTaskViewProps) {
   const [isCompleting, setIsCompleting] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
@@ -69,7 +71,9 @@ export function FocusTaskView({
         onComplete={handleCompleteTask}
         onNext={handleGetNextTask}
         onToggleDefer={onToggleDefer}
+        onTogglePrefer={onTogglePrefer}
         isDeferred={currentTask?.priority === -1}
+        isPreferred={currentTask?.priority === 1}
       >
         <div className="flex-1 flex items-center justify-center p-8 overflow-hidden">
           <div className="relative max-w-4xl w-full">

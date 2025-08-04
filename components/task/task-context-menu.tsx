@@ -1,6 +1,6 @@
 "use client"
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu"
-import { Edit, Check, X, Trash2, Move, Clock, ArrowUp, Focus } from "lucide-react"
+import { Edit, Check, X, Trash2, Move, Clock, ArrowUp, Focus, Star, StarOff } from "lucide-react"
 import type React from "react"
 
 interface TaskContextMenuProps {
@@ -8,14 +8,16 @@ interface TaskContextMenuProps {
   onEdit: () => void
   onToggleComplete: () => void
   onToggleDefer: () => void
+  onTogglePrefer: () => void
   onDelete: () => void
   onMove: () => void
   onFocus: () => void
   isCompleted: boolean
   isDeferred: boolean
+  isPreferred: boolean
 }
 
-export function TaskContextMenu({ children, onEdit, onToggleComplete, onToggleDefer, onDelete, onMove, onFocus, isCompleted, isDeferred }: TaskContextMenuProps) {
+export function TaskContextMenu({ children, onEdit, onToggleComplete, onToggleDefer, onTogglePrefer, onDelete, onMove, onFocus, isCompleted, isDeferred, isPreferred }: TaskContextMenuProps) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
@@ -55,6 +57,19 @@ export function TaskContextMenu({ children, onEdit, onToggleComplete, onToggleDe
             <>
               <Clock className="menu-icon" />
               Defer Task
+            </>
+          )}
+        </ContextMenuItem>
+        <ContextMenuItem onClick={onTogglePrefer} className="gap-2 transition-colors">
+          {isPreferred ? (
+            <>
+              <StarOff className="menu-icon" />
+              Unprefer Task
+            </>
+          ) : (
+            <>
+              <Star className="menu-icon" />
+              Prefer Task
             </>
           )}
         </ContextMenuItem>

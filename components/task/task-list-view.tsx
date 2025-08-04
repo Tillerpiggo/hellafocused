@@ -58,14 +58,17 @@ export function TaskListView({ tasks, currentPath }: TaskListViewProps) {
       const sourceTaskPath = [...currentPath, sourceTask.id]
 
       // Determine destination priority based on visual position
+      const normalSectionStartIndex = tasks.findIndex(task => task.priority === 0)
       const deferredSectionStartIndex = tasks.findIndex(task => task.priority === -1)
-      const hasDeferredTasks = deferredSectionStartIndex !== -1
       
       let destinationPriority: number
-      if (!hasDeferredTasks || destinationIndex < deferredSectionStartIndex) {
-        destinationPriority = 0  // Regular section
-      } else {
+      if (normalSectionStartIndex !== -1 && destinationIndex >= normalSectionStartIndex && 
+          (deferredSectionStartIndex === -1 || destinationIndex < deferredSectionStartIndex)) {
+        destinationPriority = 0  // Normal section
+      } else if (deferredSectionStartIndex !== -1 && destinationIndex >= deferredSectionStartIndex) {
         destinationPriority = -1  // Deferred section
+      } else {
+        destinationPriority = 1  // Preferred section (everything before normal section)
       }
       
       // Check if this is a cross-section move

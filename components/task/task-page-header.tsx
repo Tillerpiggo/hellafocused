@@ -10,9 +10,11 @@ interface TaskPageHeaderProps {
   onTitleChange: (newTitle: string) => void
   isCompleted: boolean
   isDeferred: boolean
+  isPreferred: boolean
   onRename: () => void
   onDelete: () => void
   onToggleDefer: () => void
+  onTogglePrefer: () => void
   onFocus: () => void
   showCompleted: boolean
   shouldShowCompleteButton: boolean
@@ -25,9 +27,11 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
   onTitleChange,
   isCompleted,
   isDeferred,
+  isPreferred,
   onRename,
   onDelete,
   onToggleDefer,
+  onTogglePrefer,
   onFocus,
   showCompleted,
   shouldShowCompleteButton,
@@ -72,9 +76,11 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
           onRename={onRename}
           onDelete={onDelete}
           onToggleDefer={onToggleDefer}
+          onTogglePrefer={onTogglePrefer}
           onFocus={onFocus}
           showCompleted={showCompleted}
           isDeferred={isDeferred}
+          isPreferred={isPreferred}
         />
       }
       actionButtons={actionButtons}
