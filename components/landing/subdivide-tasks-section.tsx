@@ -1,32 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useTheme } from "next-themes"
 
 export function SubdivideTasksSection() {
-  const [isDark, setIsDark] = useState(false)
-
-  useEffect(() => {
-    // Check for dark mode
-    const checkTheme = () => {
-      const isDarkMode = document.documentElement.classList.contains('dark') || 
-                        window.matchMedia('(prefers-color-scheme: dark)').matches
-      setIsDark(isDarkMode)
-    }
-    
-    checkTheme()
-    
-    // Listen for theme changes
-    const observer = new MutationObserver(checkTheme)
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-    
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    mediaQuery.addEventListener('change', checkTheme)
-    
-    return () => {
-      observer.disconnect()
-      mediaQuery.removeEventListener('change', checkTheme)
-    }
-  }, [])
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
 
   return (
     <section className="min-h-screen flex flex-col bg-gradient-to-br from-purple-50/20 via-background to-blue-50/10 dark:from-purple-950/10 dark:via-background dark:to-blue-950/5">

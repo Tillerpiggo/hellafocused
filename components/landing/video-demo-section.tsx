@@ -1,30 +1,8 @@
-import { useState, useEffect } from "react"
+import { useTheme } from "next-themes"
 
 export function VideoDemoSection() {
-  const [isDark, setIsDark] = useState(false)
-
-  useEffect(() => {
-    // Check for dark mode
-    const checkTheme = () => {
-      const isDarkMode = document.documentElement.classList.contains('dark') || 
-                        window.matchMedia('(prefers-color-scheme: dark)').matches
-      setIsDark(isDarkMode)
-    }
-    
-    checkTheme()
-    
-    // Listen for theme changes
-    const observer = new MutationObserver(checkTheme)
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-    
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    mediaQuery.addEventListener('change', checkTheme)
-    
-    return () => {
-      observer.disconnect()
-      mediaQuery.removeEventListener('change', checkTheme)
-    }
-  }, [])
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
 
   return (
     <section id="how-it-works" className="py-20">
@@ -32,7 +10,7 @@ export function VideoDemoSection() {
         {/* Section Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-4">
-            Make your to-dos tiny.
+            Break tasks into infinitely nested subtasks.
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto mt-6">
             With infinite nesting, it&apos;s easy to make your to-dos smaller... and smaller... and smaller...

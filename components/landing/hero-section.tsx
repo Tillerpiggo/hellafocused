@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Check } from "lucide-react"
+import { useTheme } from "next-themes"
 
 const examples = [
   { goal: "Get fit", task: "do 1 push-up" },
@@ -24,30 +25,8 @@ interface HeroSectionProps {
 export function HeroSection({ hasSession }: HeroSectionProps) {
   const [currentExample, setCurrentExample] = useState(0)
   const [isTaskChecked, setIsTaskChecked] = useState(false)
-  const [isDark, setIsDark] = useState(false)
-
-  useEffect(() => {
-    // Check for dark mode
-    const checkTheme = () => {
-      const isDarkMode = document.documentElement.classList.contains('dark') || 
-                        window.matchMedia('(prefers-color-scheme: dark)').matches
-      setIsDark(isDarkMode)
-    }
-    
-    checkTheme()
-    
-    // Listen for theme changes
-    const observer = new MutationObserver(checkTheme)
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-    
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    mediaQuery.addEventListener('change', checkTheme)
-    
-    return () => {
-      observer.disconnect()
-      mediaQuery.removeEventListener('change', checkTheme)
-    }
-  }, [])
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -79,7 +58,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
               {/* Focus on one tiny task at a time. */}
               {/* Big tasks are hard. Make them smaller. */}
               {/* Bite-sized productivity.*/}
-              Conquer one tiny to-do at a time.
+              Focus on one task at a time.
             </h1>
             
             {/* Typing effect subtitle with todo styling */}

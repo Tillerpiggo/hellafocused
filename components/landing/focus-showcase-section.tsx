@@ -1,32 +1,10 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useTheme } from "next-themes"
 
 export function FocusShowcaseSection() {
-  const [isDark, setIsDark] = useState(false)
-
-  useEffect(() => {
-    // Check for dark mode
-    const checkTheme = () => {
-      const isDarkMode = document.documentElement.classList.contains('dark') || 
-                        window.matchMedia('(prefers-color-scheme: dark)').matches
-      setIsDark(isDarkMode)
-    }
-    
-    checkTheme()
-    
-    // Listen for theme changes
-    const observer = new MutationObserver(checkTheme)
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-    
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    mediaQuery.addEventListener('change', checkTheme)
-    
-    return () => {
-      observer.disconnect()
-      mediaQuery.removeEventListener('change', checkTheme)
-    }
-  }, [])
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
 
   return (
     <section className="min-h-screen flex flex-col bg-primary/5">
@@ -34,7 +12,7 @@ export function FocusShowcaseSection() {
         {/* Title */}
         <div className="text-center mb-16">
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-tight text-foreground">
-            We&apos;ll tell you what to focus on.
+            Hyperfocus on the task at hand.
           </h2>
           <p className="text-xl text-muted-foreground leading-relaxed max-w-4xl mx-auto mt-6">
             Focus Mode continually presents you with a random choice from the smallest subtasks (the leaf nodes), making it easy to get in a flow state.

@@ -544,7 +544,7 @@ export function StickyScrollSection() {
                           activeStep === 1 ? "text-2xl" : "text-xl"
                         }`}
                       >
-                        Add a task
+                        Add tasks
                       </h3>
                     </div>
                   </button>
@@ -569,7 +569,7 @@ export function StickyScrollSection() {
                           activeStep === 2 ? "text-2xl" : "text-xl"
                         }`}
                       >
-                        Break it down
+                        Break tasks into subtasks
                       </h3>
                     </div>
                   </button>
@@ -594,7 +594,7 @@ export function StickyScrollSection() {
                           activeStep === 3 ? "text-2xl" : "text-xl"
                         }`}
                       >
-                        Click &apos;focus&apos; to see the next smallest step
+                        Click &apos;focus&apos; to start working
                       </h3>
                     </div>
                   </button>
@@ -617,7 +617,7 @@ export function StickyScrollSection() {
                   1
                 </div>
                 <div className="flex items-center">
-                  <h3 className="text-2xl font-medium text-foreground">Add a task</h3>
+                  <h3 className="text-2xl font-medium text-foreground">Add tasks</h3>
                 </div>
               </div>
               <div className="bg-background rounded-2xl p-6 border border-border/50" style={{ minHeight: "400px" }}>
@@ -659,7 +659,7 @@ export function StickyScrollSection() {
                   2
                 </div>
                 <div className="flex items-center">
-                  <h3 className="text-2xl font-medium text-foreground">Break it down</h3>
+                  <h3 className="text-2xl font-medium text-foreground">Break tasks into subtasks</h3>
                 </div>
               </div>
               <div className="bg-background rounded-2xl p-6 border border-border/50" style={{ minHeight: "400px" }}>
@@ -914,7 +914,7 @@ export function StickyScrollSection() {
                   3
                 </div>
                 <div className="flex items-center">
-                  <h3 className="text-2xl font-medium text-foreground">Click &apos;focus&apos; to see the next step</h3>
+                  <h3 className="text-2xl font-medium text-foreground">Click &apos;focus&apos; to start working</h3>
                 </div>
               </div>
               <div
