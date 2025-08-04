@@ -54,6 +54,7 @@ export interface DatabaseProject {
   updated_at: string
   device_id?: string
   is_deleted: boolean
+  position: number
 }
 
 export interface DatabaseTask {

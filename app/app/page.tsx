@@ -1,5 +1,5 @@
 "use client"
-import { ProjectListItem } from "@/components/project/project-list-item"
+import { ProjectListView } from "@/components/project/project-list-view"
 import { AddProjectForm } from "@/components/project/add-project-form"
 import { TaskListView } from "@/components/task/task-list-view"
 import { FocusView } from "@/components/focus/focus-view"
@@ -210,11 +210,7 @@ export default function HomePage() {
               {isFocusMode ? "Exit" : "Focus"}
             </Button>
           </div>
-          <div className="space-y-3">
-            {projects.map((project) => (
-              <ProjectListItem key={project.id} project={project} />
-            ))}
-          </div>
+          <ProjectListView projects={projects} />
 
           <AddProjectForm onAddProject={addProject} />
         </div>

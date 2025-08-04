@@ -405,6 +405,7 @@ class SyncEngine {
         id: change.entityId,
         name: projectData.name,
         updated_at: projectData.lastModificationDate,
+        position: projectData.position,
         user_id: userId,
         device_id: this.instanceId, // Include device_id for echo prevention
       }
@@ -591,6 +592,7 @@ class SyncEngine {
     const { error } = await supabase.from('projects').insert({
       id: project.id,
       name: project.name,
+      position: project.position,
       user_id: userId,
       device_id: this.instanceId,
       is_deleted: false,
@@ -611,6 +613,7 @@ class SyncEngine {
       .update({
         name: project.name,
         updated_at: project.lastModificationDate,
+        position: project.position,
         device_id: this.instanceId,
       })
       .eq('id', projectId)

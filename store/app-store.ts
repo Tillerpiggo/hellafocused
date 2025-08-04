@@ -16,6 +16,8 @@ import {
   isProjectList,
   fillMissingPositionsForProjects,
   fillMissingPrioritiesForProjects,
+  fillMissingProjectPositions,
+  reorderProjects,
   toggleTaskDefer,
   setTaskPriority,
   moveTaskWithPriorityChange,
@@ -57,6 +59,7 @@ interface AppState {
   updateTaskName: (taskPath: string[], newName: string) => void
   addProject: (projectName: string) => void
   reorderTasks: (parentPath: string[], fromIndex: number, toIndex: number) => void
+  reorderProjects: (fromIndex: number, toIndex: number) => void
   moveTaskToNewParent: (taskPath: string[], newParentPath: string[], newPosition?: number) => void
   getValidDropTargets: (taskPath: string[]) => string[][]
   clearLocalState: () => void
@@ -263,21 +266,25 @@ export const useAppStore = create<AppState>()(
   addProject: (projectName) => {
     
     const newProjectId = uuidv4()
-    const newProject: ProjectData = {
-      id: newProjectId,
-      name: projectName,
-      lastModificationDate: new Date().toISOString(),
-      tasks: [],
-    }
-
-
+    
     set(
       produce((draft: AppState) => {
+        // Calculate position at end of project list (clean 0-indexed approach)
+        const newPosition = draft.projects.length
+
+        const newProject: ProjectData = {
+          id: newProjectId,
+          name: projectName,
+          lastModificationDate: new Date().toISOString(),
+          position: newPosition,
+          tasks: [],
+        }
+
         draft.projects.push(newProject)
       }),
     )
   
-    trackProjectCreated(newProject.id)
+    trackProjectCreated(newProjectId)
   },
 
   reorderTasks: (parentPath, fromIndex, toIndex) => {
@@ -388,6 +395,24 @@ export const useAppStore = create<AppState>()(
     })
   },
 
+  reorderProjects: (fromIndex, toIndex) => {
+    if (fromIndex === toIndex) return
+
+    // Store project IDs for sync tracking after state update
+    let updatedProjectIds: string[] = []
+
+    set(
+      produce((draft: AppState) => {
+        updatedProjectIds = reorderProjects(draft.projects, fromIndex, toIndex)
+      }),
+    )
+
+    // Track each affected project for sync AFTER state update is committed
+    updatedProjectIds.forEach(projectId => {
+      trackProjectUpdated(projectId)
+    })
+  },
+
   moveTaskToNewParent: (taskPath, newParentPath, newPosition) => {
     let result: { success: boolean; sourceAffectedTaskPaths: string[][]; destinationAffectedTaskPaths: string[][] } = { 
       success: false, 
@@ -437,6 +462,7 @@ export const useAppStore = create<AppState>()(
       onRehydrateStorage: () => (state) => {
         // Fill missing positions and priorities for any existing tasks when loading from storage
         if (state?.projects) {
+          fillMissingProjectPositions(state.projects)
           fillMissingPositionsForProjects(state.projects)
           fillMissingPrioritiesForProjects(state.projects)
         }

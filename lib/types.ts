@@ -14,5 +14,6 @@ export interface ProjectData {
   id: string
   name: string
   lastModificationDate: string // Store as ISO string, tracks last modification
+  position?: number // Position for drag-and-drop ordering
   tasks: TaskData[]
 }

@@ -81,6 +81,7 @@ export class MergeManager {
       id: cloudProject.id,
       name: cloudProject.name,
       lastModificationDate: cloudProject.updated_at,
+      position: cloudProject.position,
       tasks: projectTasks,
     }
   }
@@ -117,6 +118,7 @@ export class MergeManager {
       id: cloudProject.id,
       name: useCloudProject ? cloudProject.name : localProject.name,
       lastModificationDate: useCloudProject ? cloudUpdateDate : localProject.lastModificationDate,
+      position: useCloudProject ? cloudProject.position : localProject.position,
       tasks: this.mergeProjectTasks(localProject, cloudProject, cloudTasks, pendingChanges)
     }
     

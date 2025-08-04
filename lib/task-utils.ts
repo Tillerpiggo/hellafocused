@@ -115,11 +115,32 @@ export const fillMissingPositions = (tasks: TaskData[]): void => {
 }
 
 /**
- * Fill missing positions for all projects
+ * Fill missing positions for all projects (fills task positions within each project)
  */
 export const fillMissingPositionsForProjects = (projects: ProjectData[]): void => {
   projects.forEach(project => {
     fillMissingPositions(project.tasks)
+  })
+}
+
+/**
+ * Normalize ALL project positions to be 0-indexed and gap-free based on creation order
+ */
+export const fillMissingProjectPositions = (projects: ProjectData[]): void => {
+  // Sort all projects by their position first, then by creation date for missing positions
+  const sortedProjects = projects.slice().sort((a, b) => {
+    if (a.position !== undefined && b.position !== undefined) {
+      return a.position - b.position
+    }
+    if (a.position !== undefined) return -1
+    if (b.position !== undefined) return 1
+    // Both undefined, sort by creation date
+    return a.lastModificationDate.localeCompare(b.lastModificationDate)
+  })
+  
+  // Reassign ALL positions to be 0-indexed and gap-free
+  sortedProjects.forEach((project, index) => {
+    project.position = index
   })
 }
 
@@ -677,6 +698,39 @@ export const getValidDropTargets = (projects: ProjectData[], taskPath: string[])
   })
   
   return validTargets
+}
+
+/**
+ * Reorder projects by moving a project from one position to another
+ * Returns array of affected project IDs that had their positions updated
+ */
+export const reorderProjects = (projects: ProjectData[], fromIndex: number, toIndex: number): string[] => {
+  if (fromIndex === toIndex) return []
+  
+  // Sort projects by position to match visual order
+  const sortedProjects = projects
+    .slice()
+    .sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+  
+  // Get the project being moved
+  const movedProject = sortedProjects[fromIndex]
+  if (!movedProject) return []
+  
+  // Remove project from current position
+  sortedProjects.splice(fromIndex, 1)
+  
+  // Insert project at new position
+  sortedProjects.splice(toIndex, 0, movedProject)
+  
+  // ALWAYS reassign ALL positions to ensure 0-indexed, gap-free ordering
+  const updatedProjectIds: string[] = []
+  sortedProjects.forEach((project, index) => {
+    project.position = index
+    project.lastModificationDate = new Date().toISOString()
+    updatedProjectIds.push(project.id)
+  })
+  
+  return updatedProjectIds
 }
 
 /**
