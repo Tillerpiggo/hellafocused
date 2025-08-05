@@ -19,6 +19,7 @@ export function FocusTaskView({
   onToggleDefer,
   onTogglePrefer
 }: FocusTaskViewProps) {
+  const priority = currentTask?.priority ?? 0
   const [isCompleting, setIsCompleting] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [taskKey, setTaskKey] = useState(0)
@@ -75,12 +76,24 @@ export function FocusTaskView({
         isDeferred={currentTask?.priority === -1}
         isPreferred={currentTask?.priority === 1}
       >
-        <div className="flex-1 flex items-center justify-center p-8 overflow-hidden">
+        <div className={`flex-1 flex items-center justify-center p-8 overflow-hidden transition-colors duration-300 ${
+          priority === 1 
+            ? "bg-amber-50/30 dark:bg-amber-950/10" 
+            : priority === -1 
+            ? "bg-muted/20 dark:bg-muted/10" 
+            : ""
+        }`}>
           <div className="relative max-w-4xl w-full">
             <h1
               key={taskKey}
-              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-foreground text-center leading-relaxed break-words transition-all duration-300 ease-out ${
+              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-center leading-relaxed break-words transition-all duration-300 ease-out ${
                 isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"
+              } ${
+                priority === 1 
+                  ? "text-amber-800/90 dark:text-amber-200/95" 
+                  : priority === -1 
+                  ? "text-muted-foreground" 
+                  : "text-foreground"
               }`}
             >
               {displayedTaskName || (currentTask?.name || "")}

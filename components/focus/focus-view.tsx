@@ -182,6 +182,7 @@ export function FocusView({ startPath }: FocusViewProps) {
         <FocusHeaderButtons
           onExitFocus={handleExitFocusMode}
           onShowAddTasks={() => setShowAddTasksView(true)}
+          currentTaskPriority={currentFocusTask?.priority}
         />
 
         {/* Conditional main content */}
