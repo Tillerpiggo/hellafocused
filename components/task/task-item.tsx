@@ -98,10 +98,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
             )}
           >
             {task.completed ? (
-              <CheckCircle className={cn(
-                "h-5 w-5",
-                effectivePriority === 1 ? "text-amber-600 dark:text-amber-400" : "text-primary"
-              )} />
+              <CheckCircle className="h-5 w-5 text-primary" />
             ) : (
               <Circle className={cn(
                 "h-5 w-5 transition-colors",
