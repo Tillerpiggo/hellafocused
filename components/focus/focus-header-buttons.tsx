@@ -1,14 +1,16 @@
 import { Button } from "@/components/ui/button"
 import { X, Plus, Star, Clock } from "lucide-react"
 import { useEffect, useState } from "react"
+import { PriorityDropdown } from "./priority-dropdown"
 
 interface FocusHeaderButtonsProps {
   onExitFocus: () => void
   onShowAddTasks: () => void
   currentTaskPriority?: number
+  onPriorityChange?: (priority: number) => void
 }
 
-export function FocusHeaderButtons({ onExitFocus, onShowAddTasks, currentTaskPriority = 0 }: FocusHeaderButtonsProps) {
+export function FocusHeaderButtons({ onExitFocus, onShowAddTasks, currentTaskPriority = 0, onPriorityChange }: FocusHeaderButtonsProps) {
   const [justBecamePreferred, setJustBecamePreferred] = useState(false)
   const [justBecameUnpreferred, setJustBecameUnpreferred] = useState(false)
   const [prevPriority, setPrevPriority] = useState(currentTaskPriority)
@@ -45,18 +47,22 @@ export function FocusHeaderButtons({ onExitFocus, onShowAddTasks, currentTaskPri
       {/* Add tasks button in top right */}
       <div className="absolute top-6 right-6 flex items-center gap-2 z-10">
         {/* Priority indicator */}
-        {(currentTaskPriority === 1 || justBecameUnpreferred) && (
-          <div className="h-10 w-10 rounded-full flex items-center justify-center opacity-80">
-            <Star className={`h-4 w-4 text-amber-600 fill-amber-600 dark:text-amber-400 dark:fill-amber-400 transition-transform duration-300 ease-out ${
-              justBecamePreferred ? "animate-bounce-scale" : 
-              justBecameUnpreferred ? "animate-shrink-fade" : ""
-            }`} />
-          </div>
+        {(currentTaskPriority === 1 || justBecameUnpreferred) && onPriorityChange && (
+          <PriorityDropdown currentPriority={currentTaskPriority} onPriorityChange={onPriorityChange}>
+            <div className="h-10 w-10 rounded-full flex items-center justify-center opacity-80 hover:opacity-100 cursor-pointer transition-opacity">
+              <Star className={`h-4 w-4 text-amber-600 fill-amber-600 dark:text-amber-400 dark:fill-amber-400 transition-transform duration-300 ease-out ${
+                justBecamePreferred ? "animate-bounce-scale" : 
+                justBecameUnpreferred ? "animate-shrink-fade" : ""
+              }`} />
+            </div>
+          </PriorityDropdown>
         )}
-        {currentTaskPriority === -1 && (
-          <div className="h-10 w-10 rounded-full flex items-center justify-center opacity-60">
-            <Clock className="h-4 w-4 text-slate-500/80 dark:text-slate-400/80" />
-          </div>
+        {currentTaskPriority === -1 && onPriorityChange && (
+          <PriorityDropdown currentPriority={currentTaskPriority} onPriorityChange={onPriorityChange}>
+            <div className="h-10 w-10 rounded-full flex items-center justify-center opacity-60 hover:opacity-100 cursor-pointer transition-opacity">
+              <Clock className="h-4 w-4 text-slate-500/80 dark:text-slate-400/80" />
+            </div>
+          </PriorityDropdown>
         )}
         
         <Button

@@ -99,6 +99,21 @@ export function FocusView({ startPath }: FocusViewProps) {
     }
   }, [currentFocusTask, startPath, toggleTaskPrefer])
 
+  const handleSetPriority = useCallback((targetPriority: number) => {
+    if (targetPriority === 1) {
+      handleTogglePrefer()
+    } else if (targetPriority === -1) {
+      handleToggleDefer()
+    } else {
+      // Normal - either unprefer or undefer
+      if (currentFocusTask?.priority === 1) {
+        handleTogglePrefer()
+      } else if (currentFocusTask?.priority === -1) {
+        handleToggleDefer()
+      }
+    }
+  }, [currentFocusTask?.priority, handleTogglePrefer, handleToggleDefer])
+
   // Initialize focus store when component mounts
   useEffect(() => {
     initializeFocus(projects, startPath)
@@ -191,6 +206,7 @@ export function FocusView({ startPath }: FocusViewProps) {
           onExitFocus={handleExitFocusMode}
           onShowAddTasks={() => setShowAddTasksView(true)}
           currentTaskPriority={currentTaskPriority}
+          onPriorityChange={handleSetPriority}
         />
 
         {/* Conditional main content */}
