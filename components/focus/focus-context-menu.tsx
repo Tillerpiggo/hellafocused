@@ -26,19 +26,6 @@ export function FocusContextMenu({ children, onComplete, onNext, onToggleDefer, 
           <ArrowRight className="menu-icon" />
           Next Task
         </ContextMenuItem>
-        <ContextMenuItem onClick={onToggleDefer} className="gap-2 transition-colors">
-          {isDeferred ? (
-            <>
-              <ArrowUp className="menu-icon" />
-              Undefer Task
-            </>
-          ) : (
-            <>
-              <Clock className="menu-icon" />
-              Defer Task
-            </>
-          )}
-        </ContextMenuItem>
         <ContextMenuItem onClick={onTogglePrefer} className="gap-2 transition-colors">
           {isPreferred ? (
             <>
@@ -49,6 +36,19 @@ export function FocusContextMenu({ children, onComplete, onNext, onToggleDefer, 
             <>
               <Star className="menu-icon" />
               Prefer Task
+            </>
+          )}
+        </ContextMenuItem>
+        <ContextMenuItem onClick={onToggleDefer} className="gap-2 transition-colors">
+          {isDeferred ? (
+            <>
+              <ArrowUp className="menu-icon" />
+              Undefer Task
+            </>
+          ) : (
+            <>
+              <Clock className="menu-icon" />
+              Defer Task
             </>
           )}
         </ContextMenuItem>

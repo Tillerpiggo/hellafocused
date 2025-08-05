@@ -56,19 +56,6 @@ export function TaskOptionsMenu({ onRename, onDelete, onToggleDefer, onTogglePre
           <Focus className="menu-icon" />
           Focus on Task
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={onToggleDefer}>
-          {isDeferred ? (
-            <>
-              <ArrowUp className="menu-icon" />
-              Undefer Task
-            </>
-          ) : (
-            <>
-              <Clock className="menu-icon" />
-              Defer Task
-            </>
-          )}
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={onTogglePrefer}>
           {isPreferred ? (
             <>
@@ -79,6 +66,19 @@ export function TaskOptionsMenu({ onRename, onDelete, onToggleDefer, onTogglePre
             <>
               <Star className="menu-icon" />
               Prefer Task
+            </>
+          )}
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={onToggleDefer}>
+          {isDeferred ? (
+            <>
+              <ArrowUp className="menu-icon" />
+              Undefer Task
+            </>
+          ) : (
+            <>
+              <Clock className="menu-icon" />
+              Defer Task
             </>
           )}
         </DropdownMenuItem>

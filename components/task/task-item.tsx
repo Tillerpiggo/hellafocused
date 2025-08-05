@@ -5,7 +5,7 @@ import type React from "react"
 import { useAppStore } from "@/store/app-store"
 import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, Circle, ChevronRight } from "lucide-react"
+import { CheckCircle, Circle, ChevronRight, Star, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TaskContextMenu } from "./task-context-menu"
 import { MoveTaskDialog } from "./move-task-dialog"
@@ -61,13 +61,22 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         !isDragging && "transition-all duration-200",
         // Dragging state - avoid scale transform to prevent conflicts with drop animation
         isDragging 
-          ? "bg-accent/80 border-primary/30 opacity-80"
+          ? [
+              "opacity-80",
+              task.completed
+                ? "bg-muted/60 border-border/40"
+                : effectivePriority === 1
+                ? "bg-amber-100/70 border-amber-300/60 dark:bg-amber-900/40 dark:border-amber-700/50"
+                : effectivePriority === -1
+                ? "bg-muted/30 border-border/30"
+                : "bg-accent/80 border-primary/30"
+            ]
           : [
               "bg-background",
               task.completed
                 ? "bg-muted/50 opacity-60 border-border/30"
                 : effectivePriority === 1
-                ? "bg-primary/10 border-primary/50 hover:bg-primary/20 hover:border-primary/60"
+                ? "bg-amber-50/50 border-amber-200/50 hover:bg-amber-100/50 hover:border-amber-300/50 dark:bg-amber-950/20 dark:border-amber-800/30 dark:hover:bg-amber-900/30 dark:hover:border-amber-700/40"
                 : effectivePriority === -1
                 ? "bg-muted/20 opacity-70 border-border/20 hover:bg-muted/30 hover:border-border/30"
                 : "hover:bg-accent/80 hover:border-primary/30 border-border/50",
@@ -83,12 +92,23 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
             variant="ghost"
             size="icon"
             onClick={handleToggleCompletion}
-            className="h-8 w-8 flex-shrink-0 rounded-full"
+            className={cn(
+              "h-8 w-8 flex-shrink-0 rounded-full",
+              effectivePriority === 1 && !task.completed && "hover:bg-amber-100/50 dark:hover:bg-amber-900/20"
+            )}
           >
             {task.completed ? (
-              <CheckCircle className="h-5 w-5 text-primary" />
+              <CheckCircle className={cn(
+                "h-5 w-5",
+                effectivePriority === 1 ? "text-amber-600 dark:text-amber-400" : "text-primary"
+              )} />
             ) : (
-              <Circle className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <Circle className={cn(
+                "h-5 w-5 transition-colors",
+                effectivePriority === 1 
+                  ? "text-amber-500/60 dark:text-amber-400/60 group-hover:text-amber-600 dark:group-hover:text-amber-400"
+                  : "text-muted-foreground group-hover:text-primary"
+              )} />
             )}
           </Button>
         </div>
@@ -101,7 +121,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
               className={cn(
                 "text-base font-medium", 
                 task.completed && "line-through text-muted-foreground",
-                effectivePriority === 1 && !task.completed && "text-primary font-semibold",
+                effectivePriority === 1 && !task.completed && "text-amber-800/80 dark:text-amber-200/90 font-medium",
                 effectivePriority === -1 && !task.completed && "text-muted-foreground"
               )}
               isCompleted={task.completed}
@@ -111,7 +131,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
               className={cn(
                 "text-base font-medium break-words", 
                 task.completed && "line-through text-muted-foreground",
-                effectivePriority === 1 && !task.completed && "text-primary font-semibold",
+                effectivePriority === 1 && !task.completed && "text-amber-800/80 dark:text-amber-200/90 font-medium",
                 effectivePriority === -1 && !task.completed && "text-muted-foreground"
               )}
             >
@@ -121,6 +141,13 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         </div>
       </div>
       <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2 min-h-[2rem]">
+        {/* Priority indicators */}
+        {effectivePriority === 1 && !task.completed && (
+          <Star className="h-4 w-4 text-amber-600/60 fill-amber-600/60 dark:text-amber-400/70 dark:fill-amber-400/70" />
+        )}
+        {effectivePriority === -1 && !task.completed && (
+          <Clock className="h-4 w-4 text-slate-500/60 dark:text-slate-400/70" />
+        )}
         <ChevronRight className="h-4 w-4 group-hover:text-primary transition-colors" />
       </div>
     </div>
