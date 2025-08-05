@@ -81,7 +81,17 @@ export function FocusView({ startPath }: FocusViewProps) {
       if (taskPathInProject) {
         const fullTaskPath = [currentProjectId, ...taskPathInProject]
         toggleTaskPrefer(fullTaskPath)
-        // Don't pick next task - stay on current task since we just preferred it
+        
+        // Update priority in-place to avoid animation
+        const updatedProjects = useAppStore.getState().projects
+        useFocusStore.getState().updateFocusLeaves(updatedProjects)
+        
+        const focusLeaves = useFocusStore.getState().focusModeProjectLeaves
+        const currentTaskInLeaves = focusLeaves.find(t => t.id === currentFocusTask.id)
+        if (currentTaskInLeaves) {
+          // Update priority in-place without changing object reference
+          currentFocusTask.priority = currentTaskInLeaves.priority
+        }
       }
     }
   }, [currentFocusTask, startPath, toggleTaskPrefer])
