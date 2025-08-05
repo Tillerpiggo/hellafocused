@@ -18,6 +18,7 @@ interface FocusState {
   focusStartPath: string[]
   showAddTasksView: boolean
   showSubtaskCelebration: boolean
+  lastFocusedTaskId: string | null
   
   // Actions
   initializeFocus: (projects: ProjectData[], startPath: string[]) => void
@@ -35,6 +36,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
   focusStartPath: [],
   showAddTasksView: false,
   showSubtaskCelebration: false,
+  lastFocusedTaskId: null,
 
   updateFocusLeaves: (projects) => {
     const { focusStartPath, currentFocusTask } = get()
@@ -92,37 +94,118 @@ export const useFocusStore = create<FocusState>((set, get) => ({
 
     const leaves = getHierarchicalLeafNodes(projects, startPath)
     
+    // Check if focus scope has changed
+    const { focusStartPath: currentStartPath } = get()
+    const scopeChanged = JSON.stringify(currentStartPath) !== JSON.stringify(startPath)
+    
     set({
       focusStartPath: startPath,
       focusModeProjectLeaves: leaves,
-      currentFocusTask: randomFrom(leaves),   
+      lastFocusedTaskId: scopeChanged ? null : get().lastFocusedTaskId,
     })
   },
 
-  resetFocus: () => set({
-    focusModeProjectLeaves: [],
-    currentFocusTask: null,
-    focusStartPath: [],
-    showAddTasksView: false,
-  }),
+  resetFocus: () => {
+    const { currentFocusTask } = get()
+    set({
+      focusModeProjectLeaves: [],
+      currentFocusTask: null,
+      focusStartPath: [],
+      showAddTasksView: false,
+      lastFocusedTaskId: currentFocusTask?.id || null,
+    })
+  },
 
   getNextFocusTask: () => {
     set((state) => {
+      const { focusStartPath } = state
+      const projectId = getProjectId(focusStartPath)
+      if (!projectId) return { currentFocusTask: null }
+      
+      const projects = useAppStore.getState().projects
+      const project = projects.find((p) => p.id === projectId)
+      if (!project) return { currentFocusTask: null }
+      
       const availableLeaves = state.focusModeProjectLeaves.filter(
         (leaf) => leaf.id !== state.currentFocusTask?.id && !leaf.completed,
       )
       
-      // Try preferred priority tasks first, then normal, then deferred
-      const preferredTasks = availableLeaves.filter(leaf => leaf.priority === 1)
-      const normalTasks = availableLeaves.filter(leaf => leaf.priority === 0)
-      const deferredTasks = availableLeaves.filter(leaf => leaf.priority === -1)
+      // Get hierarchical priority for each leaf task
+      const getHierarchicalPriority = (leafTask: TaskData): number[] => {
+        const taskPathInProject = findTaskPath(project.tasks, leafTask.id)
+        if (!taskPathInProject) return [leafTask.priority]
+        
+        const focusTaskPath = focusStartPath.slice(1) // Remove project ID
+        
+        // Verify taskPathInProject starts with focusTaskPath
+        if (taskPathInProject.length < focusTaskPath.length) {
+          throw new Error(`Task ${leafTask.id} is not a descendant of focus path`)
+        }
+        
+        for (let i = 0; i < focusTaskPath.length; i++) {
+          if (taskPathInProject[i] !== focusTaskPath[i]) {
+            throw new Error(`Task ${leafTask.id} is not a descendant of focus path`)
+          }
+        }
+        
+        // Get relative path from focus level down
+        const relativePath = taskPathInProject.slice(focusTaskPath.length)
+        
+        // Build priority array for each level in the relative path
+        const priorityArray: number[] = []
+        
+        // Start with tasks at the focus level
+        let currentTasks: TaskData[]
+        if (focusTaskPath.length === 0) {
+          currentTasks = project.tasks
+        } else {
+          const focusTask = findTaskAtPath(projects, focusStartPath)
+          currentTasks = focusTask?.subtasks || []
+        }
+        
+        // Walk down the task tree directly
+        for (const taskId of relativePath) {
+          const task = currentTasks.find(t => t.id === taskId)
+          if (task) {
+            priorityArray.push(task.priority)
+            currentTasks = task.subtasks // Move down to next level
+          } else {
+            break // Task not found, shouldn't happen
+          }
+        }
+        
+        return priorityArray
+      }
       
-      const nextTask = randomFrom(preferredTasks) || 
-                      randomFrom(normalTasks) || 
-                      randomFrom(deferredTasks) || 
-                      randomFrom(state.focusModeProjectLeaves.filter(leaf => !leaf.completed))
+      // Sort tasks by hierarchical priority (lexicographic comparison)
+      const sortedLeaves = availableLeaves.sort((a, b) => {
+        const priorityA = getHierarchicalPriority(a)
+        const priorityB = getHierarchicalPriority(b)
+        
+        // Lexicographic comparison (higher priority values come first)
+        const maxLength = Math.max(priorityA.length, priorityB.length)
+        for (let i = 0; i < maxLength; i++) {
+          const valA = priorityA[i] ?? 0
+          const valB = priorityB[i] ?? 0
+          if (valA !== valB) {
+            return valB - valA // Higher priority first
+          }
+        }
+        return 0
+      })
       
-      return { currentFocusTask: nextTask }
+      // Select random task from the highest priority group
+      if (sortedLeaves.length > 0) {
+        const highestPriority = getHierarchicalPriority(sortedLeaves[0])
+        const highestPriorityTasks = sortedLeaves.filter(task => {
+          const taskPriority = getHierarchicalPriority(task)
+          return JSON.stringify(taskPriority) === JSON.stringify(highestPriority)
+        })
+        
+        return { currentFocusTask: randomFrom(highestPriorityTasks) }
+      }
+      
+      return { currentFocusTask: null }
     })
   },
 

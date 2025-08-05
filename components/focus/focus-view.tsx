@@ -26,6 +26,8 @@ export function FocusView({ startPath }: FocusViewProps) {
     currentFocusTask,
     showAddTasksView,
     showSubtaskCelebration,
+    focusModeProjectLeaves,
+    lastFocusedTaskId,
     initializeFocus,
     resetFocus,
     completeFocusTask,
@@ -116,6 +118,26 @@ export function FocusView({ startPath }: FocusViewProps) {
       window.removeEventListener("keydown", handleKeyDown)
     }
   }, [handleExitFocusMode])
+
+  // Auto-select initial task if none is set
+  useEffect(() => {
+    if (!currentFocusTask && !showSubtaskCelebration) {
+      // Try to restore last focused task if it's still valid
+      const lastTask = lastFocusedTaskId 
+        ? focusModeProjectLeaves.find(task => 
+            task.id === lastFocusedTaskId && !task.completed
+          )
+        : null
+        
+      if (lastTask) {
+        // Restore last task
+        useFocusStore.setState({ currentFocusTask: lastTask })
+      } else {
+        // Fall back to priority selection
+        getNextFocusTask()
+      }
+    }
+  }, [currentFocusTask, showSubtaskCelebration, lastFocusedTaskId, focusModeProjectLeaves, getNextFocusTask])
 
   // Determine the main content based on current state
   const renderMainContent = () => {
