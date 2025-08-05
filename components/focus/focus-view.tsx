@@ -37,6 +37,7 @@ export function FocusView({ startPath }: FocusViewProps) {
 
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [isExiting, setIsExiting] = useState(false)
+  const [currentTaskPriority, setCurrentTaskPriority] = useState(0)
 
   const handleExitFocusMode = useCallback(() => {
     setIsExiting(true)
@@ -91,6 +92,8 @@ export function FocusView({ startPath }: FocusViewProps) {
         if (currentTaskInLeaves) {
           // Update priority in-place without changing object reference
           currentFocusTask.priority = currentTaskInLeaves.priority
+          // Update separate priority state for header buttons
+          setCurrentTaskPriority(currentTaskInLeaves.priority)
         }
       }
     }
@@ -149,6 +152,11 @@ export function FocusView({ startPath }: FocusViewProps) {
     }
   }, [currentFocusTask, showSubtaskCelebration, lastFocusedTaskId, focusModeProjectLeaves, getNextFocusTask])
 
+  // Sync priority state when current task changes
+  useEffect(() => {
+    setCurrentTaskPriority(currentFocusTask?.priority ?? 0)
+  }, [currentFocusTask?.priority])
+
   // Determine the main content based on current state
   const renderMainContent = () => {
     // Show subtask celebration if flagged
@@ -182,7 +190,7 @@ export function FocusView({ startPath }: FocusViewProps) {
         <FocusHeaderButtons
           onExitFocus={handleExitFocusMode}
           onShowAddTasks={() => setShowAddTasksView(true)}
-          currentTaskPriority={currentFocusTask?.priority}
+          currentTaskPriority={currentTaskPriority}
         />
 
         {/* Conditional main content */}

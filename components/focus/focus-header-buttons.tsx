@@ -10,13 +10,20 @@ interface FocusHeaderButtonsProps {
 
 export function FocusHeaderButtons({ onExitFocus, onShowAddTasks, currentTaskPriority = 0 }: FocusHeaderButtonsProps) {
   const [justBecamePreferred, setJustBecamePreferred] = useState(false)
+  const [justBecameUnpreferred, setJustBecameUnpreferred] = useState(false)
   const [prevPriority, setPrevPriority] = useState(currentTaskPriority)
 
-  // Track when task becomes preferred to trigger animation
+  // Track when task becomes preferred/unpreferred to trigger animations
   useEffect(() => {
     if (prevPriority !== 1 && currentTaskPriority === 1) {
       setJustBecamePreferred(true)
+      setJustBecameUnpreferred(false) // Clear unprefer state
       const timer = setTimeout(() => setJustBecamePreferred(false), 600)
+      return () => clearTimeout(timer)
+    } else if (prevPriority === 1 && currentTaskPriority !== 1) {
+      setJustBecameUnpreferred(true)
+      setJustBecamePreferred(false) // Clear preferred state
+      const timer = setTimeout(() => setJustBecameUnpreferred(false), 500)
       return () => clearTimeout(timer)
     }
     setPrevPriority(currentTaskPriority)
@@ -38,10 +45,11 @@ export function FocusHeaderButtons({ onExitFocus, onShowAddTasks, currentTaskPri
       {/* Add tasks button in top right */}
       <div className="absolute top-6 right-6 flex items-center gap-2 z-10">
         {/* Priority indicator */}
-        {currentTaskPriority === 1 && (
+        {(currentTaskPriority === 1 || justBecameUnpreferred) && (
           <div className="h-10 w-10 rounded-full flex items-center justify-center opacity-80">
             <Star className={`h-4 w-4 text-amber-600 fill-amber-600 dark:text-amber-400 dark:fill-amber-400 transition-transform duration-300 ease-out ${
-              justBecamePreferred ? "animate-bounce-scale" : ""
+              justBecamePreferred ? "animate-bounce-scale" : 
+              justBecameUnpreferred ? "animate-shrink-fade" : ""
             }`} />
           </div>
         )}

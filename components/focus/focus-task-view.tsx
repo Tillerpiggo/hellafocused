@@ -76,7 +76,7 @@ export function FocusTaskView({
         isDeferred={currentTask?.priority === -1}
         isPreferred={currentTask?.priority === 1}
       >
-        <div className={`flex-1 flex items-center justify-center p-8 overflow-hidden transition-colors duration-300 ${
+        <div className={`flex-1 flex items-center justify-center p-8 overflow-hidden transition-colors duration-500 ease-out ${
           priority === 1 
             ? "bg-amber-50/30 dark:bg-amber-950/10" 
             : priority === -1 
@@ -86,7 +86,7 @@ export function FocusTaskView({
           <div className="relative max-w-4xl w-full">
             <h1
               key={taskKey}
-              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-center leading-relaxed break-words transition-all duration-300 ease-out ${
+              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-center leading-relaxed break-words transition-colors duration-500 ease-out ${
                 isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"
               } ${
                 priority === 1 
