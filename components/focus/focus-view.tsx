@@ -49,7 +49,7 @@ export function FocusView({ startPath }: FocusViewProps) {
     }, 500) // Increased from 300ms to 500ms for gentler exit
   }, [resetFocus, setFocusMode])
 
-  const handleToggleDefer = useCallback(() => {
+  const handleToggleDefer = useCallback((autoAdvance = true) => {
     if (!currentFocusTask) return
     
     const currentProjectId = getProjectId(startPath)
@@ -63,8 +63,23 @@ export function FocusView({ startPath }: FocusViewProps) {
         const fullTaskPath = [currentProjectId, ...taskPathInProject]
         toggleTaskDefer(fullTaskPath)
         
-        // Automatically pick the next task after deferring
-        getNextFocusTask()
+        if (autoAdvance) {
+          // Automatically pick the next task after deferring
+          getNextFocusTask()
+        } else {
+          // Update priority in-place to avoid animation
+          const updatedProjects = useAppStore.getState().projects
+          useFocusStore.getState().updateFocusLeaves(updatedProjects)
+          
+          const focusLeaves = useFocusStore.getState().focusModeProjectLeaves
+          const currentTaskInLeaves = focusLeaves.find(t => t.id === currentFocusTask.id)
+          if (currentTaskInLeaves) {
+            // Update priority in-place without changing object reference
+            currentFocusTask.priority = currentTaskInLeaves.priority
+            // Update separate priority state for header buttons
+            setCurrentTaskPriority(currentTaskInLeaves.priority)
+          }
+        }
       }
     }
   }, [currentFocusTask, startPath, toggleTaskDefer, getNextFocusTask])
@@ -103,13 +118,13 @@ export function FocusView({ startPath }: FocusViewProps) {
     if (targetPriority === 1) {
       handleTogglePrefer()
     } else if (targetPriority === -1) {
-      handleToggleDefer()
+      handleToggleDefer(false) // Don't auto-advance when using dropdown
     } else {
       // Normal - either unprefer or undefer
       if (currentFocusTask?.priority === 1) {
         handleTogglePrefer()
       } else if (currentFocusTask?.priority === -1) {
-        handleToggleDefer()
+        handleToggleDefer(false) // Don't auto-advance when using dropdown
       }
     }
   }, [currentFocusTask?.priority, handleTogglePrefer, handleToggleDefer])
