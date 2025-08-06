@@ -24,14 +24,19 @@ export function FocusTaskView({
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [taskKey, setTaskKey] = useState(0)
   const [displayedTaskName, setDisplayedTaskName] = useState("")
+  const [displayedTaskId, setDisplayedTaskId] = useState("")
 
   // Update displayed task name when current task changes (but not during completion or transition)
   useEffect(() => {
     if (currentTask && !isCompleting && !isTransitioning) {
-      setDisplayedTaskName(currentTask.name)
-      setTaskKey((prev) => prev + 1)
+      // Only update taskKey (trigger animation) if the task ID actually changed
+      if (currentTask.id !== displayedTaskId) {
+        setDisplayedTaskName(currentTask.name)
+        setDisplayedTaskId(currentTask.id)
+        setTaskKey((prev) => prev + 1)
+      }
     }
-  }, [currentTask, isCompleting, isTransitioning])
+  }, [currentTask, isCompleting, isTransitioning, displayedTaskId])
 
   const handleCompleteTask = () => {
     if (isCompleting || !currentTask) return
