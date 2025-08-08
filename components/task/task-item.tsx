@@ -5,7 +5,7 @@ import type React from "react"
 import { useAppStore } from "@/store/app-store"
 import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
-import { CheckCircle, Circle, ChevronRight, Star, Clock } from "lucide-react"
+import { CheckCircle, Circle, ChevronRight, Star, Clock, Edit3 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TaskContextMenu } from "./task-context-menu"
 import { MoveTaskDialog } from "./move-task-dialog"
@@ -17,9 +17,10 @@ interface TaskItemProps {
   currentPath: string[] // Unified path to the parent of this task
   isDragging?: boolean
   previewPriority?: number // For cross-section drag styling preview
+  onEditingChange?: (isEditing: boolean) => void
 }
 
-export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false, previewPriority }: TaskItemProps) {
+export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false, previewPriority, onEditingChange }: TaskItemProps) {
   const navigateToTask = useAppStore((state) => state.navigateToTask)
   const updateTaskName = useAppStore((state) => state.updateTaskName)
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
@@ -51,6 +52,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
   const handleTaskNameChange = (newName: string) => {
     updateTaskName(taskPath, newName)
     setIsEditing(false)
+    onEditingChange?.(false)
   }
 
   const taskContent = (
@@ -80,7 +82,6 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
                 : effectivePriority === -1
                 ? "bg-muted/20 opacity-70 border-border/20 hover:bg-muted/30 hover:border-border/30"
                 : "hover:bg-accent/80 hover:border-primary/30 border-border/50",
-              isEditing && "bg-accent border-primary/50",
             ],
         "cursor-pointer",
       )}
@@ -97,7 +98,9 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
               effectivePriority === 1 && !task.completed && "hover:bg-amber-100/50 dark:hover:bg-amber-900/20"
             )}
           >
-            {task.completed ? (
+            {isEditing ? (
+              <Edit3 className="h-4 w-4 text-primary" />
+            ) : task.completed ? (
               <CheckCircle className="h-5 w-5 text-primary" />
             ) : (
               <Circle className={cn(
@@ -145,7 +148,10 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         {effectivePriority === -1 && !task.completed && (
           <Clock className="h-4 w-4 text-slate-500/60 dark:text-slate-400/70" />
         )}
-        <ChevronRight className="h-4 w-4 group-hover:text-primary transition-colors" />
+<ChevronRight className={cn(
+          "h-4 w-4 transition-colors",
+          isEditing ? "text-muted-foreground/30" : "group-hover:text-primary"
+        )} />
       </div>
     </div>
   )
@@ -159,6 +165,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
       <TaskContextMenu
         onEdit={() => {
           setIsEditing(true)
+          onEditingChange?.(true)
           // Focus the editable title after state updates
           setTimeout(() => editableTitleRef.current?.focus(), 0)
         }}

@@ -1,6 +1,6 @@
 "use client"
 import { Draggable } from '@hello-pangea/dnd'
-import React, { memo } from 'react'
+import React, { memo, useState } from 'react'
 import { TaskItem } from './task-item'
 import type { TaskData } from '@/lib/types'
 import { cn } from '@/lib/utils'
@@ -14,11 +14,12 @@ interface SortableTaskItemProps {
 }
 
 export const SortableTaskItem = memo(function SortableTaskItem({ task, index, currentPath, disabled, previewPriority }: SortableTaskItemProps) {
+  const [taskIsEditing, setTaskIsEditing] = useState(false)
   return (
     <Draggable 
       draggableId={task.id} 
       index={index}
-      isDragDisabled={disabled}
+      isDragDisabled={disabled || taskIsEditing}
     >
       {(provided, snapshot) => {
         // Follow pangea's pattern with custom drop animation timing
@@ -58,6 +59,7 @@ export const SortableTaskItem = memo(function SortableTaskItem({ task, index, cu
               currentPath={currentPath}
               isDragging={snapshot.isDragging && !snapshot.isDropAnimating}
               previewPriority={previewPriority ?? undefined}
+              onEditingChange={setTaskIsEditing}
             />
           </div>
         );
