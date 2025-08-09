@@ -2,7 +2,7 @@
 import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, ChevronRight, Folder, FileText } from "lucide-react"
+import { ArrowLeft, ChevronRight, Folder, Circle, Star, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/store/app-store"
 import type { TaskData } from "@/lib/types"
@@ -47,7 +47,8 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
         type: 'project' as const,
         path: [project.id],
         isValid: isValidTarget([project.id]),
-        hasChildren: project.tasks.length > 0
+        hasChildren: project.tasks.length > 0,
+        priority: undefined // Projects don't have priority
       }))
     }
 
@@ -65,13 +66,27 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
 
     return tasks
       .filter(task => !task.completed) // Only show incomplete tasks
+      .sort((a, b) => {
+        // First sort by priority (descending: preferred=1 first, then normal=0, then deferred=-1)
+        if (a.priority !== b.priority) {
+          return b.priority - a.priority
+        }
+        // Within same priority group, sort by position
+        if (a.position !== undefined && b.position !== undefined) {
+          return a.position - b.position
+        }
+        if (a.position !== undefined && b.position === undefined) return -1
+        if (a.position === undefined && b.position !== undefined) return 1
+        return a.lastModificationDate.localeCompare(b.lastModificationDate)
+      })
       .map(task => ({
         id: task.id,
         name: task.name,
         type: 'task' as const,
         path: [...currentNavigationPath, task.id],
         isValid: isValidTarget([...currentNavigationPath, task.id]),
-        hasChildren: task.subtasks.length > 0
+        hasChildren: task.subtasks.length > 0,
+        priority: task.priority
       }))
   }
 
@@ -176,12 +191,19 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
                       {item.type === 'project' ? (
                         <Folder className="h-4 w-4 text-blue-600" />
                       ) : (
-                        <FileText className="h-4 w-4 text-gray-600" />
+                        <Circle className={cn(
+                          "h-4 w-4 transition-colors",
+                          item.priority === 1
+                            ? "text-amber-500/60 dark:text-amber-400/60"
+                            : "text-muted-foreground"
+                        )} />
                       )}
                     </div>
                     <span className={cn(
                       "font-medium truncate",
-                      isOriginalTask && "text-muted-foreground"
+                      isOriginalTask && "text-muted-foreground",
+                      item.type === 'task' && item.priority === 1 && !isOriginalTask && "text-amber-800/80 dark:text-amber-200/90",
+                      item.type === 'task' && item.priority === -1 && !isOriginalTask && "text-muted-foreground"
                     )}>
                       {item.name}
                       {isOriginalTask && " (current location)"}
@@ -189,6 +211,12 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
                   </div>
 
                   <div className="flex items-center gap-2 flex-shrink-0">
+                    {item.type === 'task' && item.priority === 1 && (
+                      <Star className="h-4 w-4 text-amber-600/60 fill-amber-600/60 dark:text-amber-400/70 dark:fill-amber-400/70" />
+                    )}
+                    {item.type === 'task' && item.priority === -1 && (
+                      <Clock className="h-4 w-4 text-slate-500/60 dark:text-slate-400/70" />
+                    )}
                     {item.hasChildren && !isDisabled && (
                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     )}

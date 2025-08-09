@@ -148,10 +148,12 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         {effectivePriority === -1 && !task.completed && (
           <Clock className="h-4 w-4 text-slate-500/60 dark:text-slate-400/70" />
         )}
-<ChevronRight className={cn(
-          "h-4 w-4 transition-colors",
-          isEditing ? "text-muted-foreground/30" : "group-hover:text-primary"
-        )} />
+{task.subtasks.length > 0 && (
+          <ChevronRight className={cn(
+            "h-4 w-4 transition-colors",
+            isEditing ? "text-muted-foreground/30" : "group-hover:text-primary"
+          )} />
+        )}
       </div>
     </div>
   )

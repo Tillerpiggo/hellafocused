@@ -28,7 +28,7 @@ export function TasksView({
               )}
               <span className={task.completed ? "line-through text-muted-foreground" : ""}>{task.name}</span>
             </div>
-            <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+<ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
           </button>
         ))}
     </div>
