@@ -3,10 +3,9 @@
 interface HeatmapDayProps {
   date: Date
   count: number
-  onHover: (date: Date, count: number) => void
 }
 
-export function HeatmapDay({ date, count, onHover }: HeatmapDayProps) {
+export function HeatmapDay({ date, count }: HeatmapDayProps) {
   const getIntensityLevel = (count: number): number => {
     if (count === 0) return 0
     if (count <= 2) return 1
@@ -31,8 +30,8 @@ export function HeatmapDay({ date, count, onHover }: HeatmapDayProps) {
   return (
     <div
       className={`w-3 h-3 rounded-sm border cursor-pointer hover:ring-2 hover:ring-blue-400 hover:ring-opacity-50 ${getColorClass(level)}`}
-      onMouseEnter={() => onHover(date, count)}
-      title={`${count} tasks completed`}
+      data-date={date.toISOString().split('T')[0]}
+      data-count={count}
     />
   )
 }

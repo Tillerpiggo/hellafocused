@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { useFloating, autoUpdate, offset, flip, shift } from '@floating-ui/react'
 import { ProjectData, TaskData } from '@/lib/types'
 import { HeatmapDay } from './heatmap-day'
 import { HeatmapTooltip } from './heatmap-tooltip'
@@ -16,6 +17,17 @@ interface TooltipState {
 
 export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
+
+  const { refs, floatingStyles } = useFloating({
+    open: tooltip !== null,
+    placement: 'top',
+    middleware: [
+      offset(10),
+      flip(),
+      shift({ padding: 8 })
+    ],
+    whileElementsMounted: autoUpdate
+  })
 
   const completions = useMemo(() => {
     const counts: Record<string, number> = {}
@@ -56,6 +68,16 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
     <div className="relative">
       <div 
         className="grid grid-rows-7 grid-flow-col gap-1"
+        onMouseOver={(e) => {
+          const dayElement = e.target as HTMLElement
+          if (dayElement.dataset.date) {
+            refs.setReference(dayElement)
+            setTooltip({
+              date: dayElement.dataset.date,
+              count: parseInt(dayElement.dataset.count || '0')
+            })
+          }
+        }}
         onMouseLeave={() => setTooltip(null)}
       >
         {days.map(({ date, dateKey, count }) => (
@@ -63,7 +85,6 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
             key={dateKey}
             date={date}
             count={count}
-            onHover={(date, count) => setTooltip({ date: dateKey, count })}
           />
         ))}
       </div>
@@ -82,10 +103,16 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
       </div>
 
       {tooltip && (
-        <HeatmapTooltip
-          date={tooltip.date}
-          count={tooltip.count}
-        />
+        <div
+          ref={refs.setFloating}
+          style={floatingStyles}
+          className="z-50 px-3 py-2 text-sm bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 rounded-lg shadow-lg pointer-events-none whitespace-nowrap"
+        >
+          <HeatmapTooltip
+            date={tooltip.date}
+            count={tooltip.count}
+          />
+        </div>
       )}
     </div>
   )
