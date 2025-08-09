@@ -13,3 +13,6 @@ Never attribute yourself as co-author in any commit messages.
 
 - Do not attribute yourself as author to commit messages
 - don't attribute yourself to commit messages
+
+## Code Comments
+- Avoid comments that plainly describe what the code does without adding useful information not obviously implied by the code. BAD: `// fetch data - fetchData()`. GOOD: `fetchData()` (no comment needed unless this has some side effect)

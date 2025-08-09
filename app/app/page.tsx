@@ -15,6 +15,7 @@ import { useSyncStore } from "@/store/sync-store"
 import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
 import { Target, Loader2, CheckSquare, TrendingUp } from "lucide-react"
+import { CompletionHeatmap } from "@/components/progress/heatmap/completion-heatmap"
 import { AddTaskForm } from "@/components/task/add-task-form"
 import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
@@ -208,11 +209,14 @@ export default function HomePage() {
     if (activeTab === 'progress') {
       return (
         <div className="container max-w-4xl mx-auto py-12 px-6">
-          <div className="flex flex-col items-center justify-center space-y-4 py-20">
-            <h2 className="text-2xl font-semibold text-foreground">Progress Tracking</h2>
-            <p className="text-muted-foreground text-center max-w-md">
-              Track your focus points and completed tasks. This feature is coming soon!
-            </p>
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-2xl font-semibold text-foreground mb-2">Progress Tracking</h2>
+              <p className="text-muted-foreground">
+                Your task completion activity over the past year
+              </p>
+            </div>
+            <CompletionHeatmap projects={projects} />
           </div>
         </div>
       )
