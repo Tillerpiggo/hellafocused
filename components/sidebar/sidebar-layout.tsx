@@ -99,7 +99,7 @@ export function SidebarLayout({ tabs, activeTab, onTabChange, children, classNam
         )}
 
         {/* Tab navigation */}
-        <div className={cn("pt-6", !isMobile && !isHovered ? "px-2" : "px-6")}>
+        <div className="pt-2 px-2">
           <SidebarTabs 
             tabs={tabs}
             activeTab={activeTab}
