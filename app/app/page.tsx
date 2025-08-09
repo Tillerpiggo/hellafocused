@@ -14,12 +14,13 @@ import { useAppStore, getCurrentTasksForView, getCurrentTaskChain } from "@/stor
 import { useSyncStore } from "@/store/sync-store"
 import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
-import { Target, Loader2 } from "lucide-react"
+import { Target, Loader2, CheckSquare, TrendingUp } from "lucide-react"
 import { AddTaskForm } from "@/components/task/add-task-form"
 import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
 import { type EditableTitleRef } from "@/components/editable-title"
-import { useRef, useMemo } from "react"
+import { useRef, useMemo, useState } from "react"
+import { SidebarLayout } from "@/components/sidebar/sidebar-layout"
 import { countSubtasksRecursively, findTaskAtPath, findProjectAtPath, getProjectId, isProject, isProjectList } from "@/lib/task-utils"
 import { searchAllTasks, groupSearchResults } from "@/lib/search-utils"
 
@@ -61,6 +62,14 @@ export default function HomePage() {
     focusStartPath,
   } = uiStore
   const titleRef = useRef<EditableTitleRef>(null)
+  
+  // Tab state for sidebar navigation
+  const [activeTab, setActiveTab] = useState('tasks')
+  
+  const tabs = [
+    { value: 'tasks', label: 'Tasks', icon: CheckSquare },
+    { value: 'progress', label: 'Progress', icon: TrendingUp }
+  ]
 
   // Show loading until authentication is complete
   const shouldShowLoading = !isInitialized
@@ -195,6 +204,28 @@ export default function HomePage() {
     return !hasIncompleteSubtasks
   }
 
+  const renderTabContent = () => {
+    if (activeTab === 'progress') {
+      return (
+        <div className="container max-w-4xl mx-auto py-12 px-6">
+          <div className="flex flex-col items-center justify-center space-y-4 py-20">
+            <h2 className="text-2xl font-semibold text-foreground">Progress Tracking</h2>
+            <p className="text-muted-foreground text-center max-w-md">
+              Track your focus points and completed tasks. This feature is coming soon!
+            </p>
+          </div>
+        </div>
+      )
+    }
+    
+    // Default to tasks tab
+    return (
+      <div className="container max-w-4xl mx-auto py-12 px-6">
+        {pageContent()}
+      </div>
+    )
+  }
+
   const pageContent = () => {
     if (isProjectList(currentPath)) {
       return (
@@ -310,7 +341,13 @@ export default function HomePage() {
           </div>
         </main>
       ) : (
-        <main className="flex-1 container max-w-4xl mx-auto py-12 px-6">{pageContent()}</main>
+        <SidebarLayout
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        >
+          {renderTabContent()}
+        </SidebarLayout>
       )}
       
       <TaskCompletionDialog
