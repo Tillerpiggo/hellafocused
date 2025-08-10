@@ -1,13 +1,16 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { ProjectData, TaskData } from '@/lib/types'
+import Tilt from 'react-parallax-tilt'
 
 interface FocusPointsBadgeProps {
   projects: ProjectData[]
 }
 
 export function FocusPointsBadge({ projects }: FocusPointsBadgeProps) {
+  const [isClicked, setIsClicked] = useState(false)
+
   const totalPoints = useMemo(() => {
     let count = 0
 
@@ -29,23 +32,25 @@ export function FocusPointsBadge({ projects }: FocusPointsBadgeProps) {
     return num.toLocaleString()
   }
 
+  const handleClick = () => {
+    setIsClicked(true)
+    setTimeout(() => setIsClicked(false), 200)
+  }
+
   return (
-    <div 
-      className="w-full flex flex-col items-center px-6 py-8 bg-muted/30 rounded-xl border shadow-sm transition-all duration-300 ease-out hover:shadow-lg cursor-default group"
-      style={{ perspective: '1000px' }}
+    <Tilt
+      tiltMaxAngleX={8}
+      tiltMaxAngleY={8}
+      perspective={1000}
+      scale={1.02}
+      transitionSpeed={300}
+      gyroscope={true}
     >
       <div 
-        className="transition-transform duration-300 ease-out"
-        style={{
-          transformStyle: 'preserve-3d',
-          transform: 'rotateY(0deg) rotateX(0deg)'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'rotateY(6deg) rotateX(2deg)'
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'rotateY(0deg) rotateX(0deg)'
-        }}
+        className={`w-full flex flex-col items-center px-6 py-8 bg-muted/30 rounded-xl border shadow-sm hover:shadow-lg cursor-pointer select-none transition-all ${
+          isClicked ? 'scale-95 duration-75' : 'scale-100 duration-200'
+        } ease-out`}
+        onClick={handleClick}
       >
         <div className="text-5xl font-bold text-foreground tabular-nums drop-shadow-sm">
           {formatNumber(totalPoints)}
@@ -54,6 +59,6 @@ export function FocusPointsBadge({ projects }: FocusPointsBadgeProps) {
           Focus Points
         </div>
       </div>
-    </div>
+    </Tilt>
   )
 }

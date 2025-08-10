@@ -11,6 +11,7 @@ import { PageNavigation } from "@/components/page/page-navigation"
 
 import { TopBar } from "@/components/top-bar"
 import { useAppStore, getCurrentTasksForView, getCurrentTaskChain } from "@/store/app-store"
+import { TaskData } from "@/lib/types"
 import { useSyncStore } from "@/store/sync-store"
 import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
@@ -214,7 +215,7 @@ export default function HomePage() {
             <div>
               <h2 className="text-2xl font-semibold text-foreground mb-2">Progress Dashboard</h2>
               <p className="text-muted-foreground">
-                Feel good about what you've done so far
+                Feel good about what you&apos;ve done so far
               </p>
             </div>
             <FocusPointsBadge projects={projects} />
