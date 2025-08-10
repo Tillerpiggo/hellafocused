@@ -16,6 +16,7 @@ import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
 import { Target, Loader2, CheckSquare, TrendingUp } from "lucide-react"
 import { CompletionHeatmap } from "@/components/progress/heatmap/completion-heatmap"
+import { FocusPointsBadge } from "@/components/progress/focus-points-badge"
 import { AddTaskForm } from "@/components/task/add-task-form"
 import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
@@ -211,12 +212,30 @@ export default function HomePage() {
         <div className="container max-w-4xl mx-auto py-12 px-6">
           <div className="space-y-8">
             <div>
-              <h2 className="text-2xl font-semibold text-foreground mb-2">Progress Tracking</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-2">Progress Dashboard</h2>
               <p className="text-muted-foreground">
-                Your task completion activity over the past year
+                Feel good about what you've done so far
               </p>
             </div>
-            <CompletionHeatmap projects={projects} />
+            <FocusPointsBadge projects={projects} />
+            <div>
+              <h3 className="text-lg font-medium text-foreground mb-4">
+                {(() => {
+                  let totalTasks = 0
+                  const countTask = (task: TaskData) => {
+                    if (task.completed && task.completionDate) {
+                      totalTasks += 1
+                    }
+                    task.subtasks.forEach(countTask)
+                  }
+                  projects.forEach(project => {
+                    project.tasks.forEach(countTask)
+                  })
+                  return `${totalTasks.toLocaleString()} tasks completed in the last year`
+                })()}
+              </h3>
+              <CompletionHeatmap projects={projects} />
+            </div>
           </div>
         </div>
       )
