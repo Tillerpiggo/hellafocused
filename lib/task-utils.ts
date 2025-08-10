@@ -279,10 +279,12 @@ export const toggleTaskPrefer = (projects: ProjectData[], taskPath: string[]): s
     task.position = maxPreferredPosition + 1
   } else {
     // Unpreferring: Move to start of normal priority tasks (position 0, others shift)
-    const normalTasks = parentTasks.filter(t => t.priority === 0)
+    // Exclude the primary task to avoid sync conflicts - it's already synced separately
+    const normalTasks = parentTasks.filter(t => t.priority === 0 && t.id !== task.id)
+    
     // Shift all existing normal tasks down by 1
     normalTasks.forEach(t => {
-      if (t.id !== task.id && t.position !== undefined) {
+      if (t.position !== undefined) {
         t.position = t.position + 1
         t.lastModificationDate = new Date().toISOString()
         affectedTaskPaths.push([...parentPath, t.id])

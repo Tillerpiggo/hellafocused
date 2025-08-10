@@ -72,14 +72,6 @@ export function WeeklyProgressChart({ projects }: WeeklyProgressChartProps) {
         Weekly Progress
       </h3>
       <div className="h-64">
-        <style jsx>{`
-          .recharts-active-bar {
-            filter: brightness(0.95) !important;
-          }
-          .recharts-tooltip-cursor {
-            fill: rgba(0, 0, 0, 0.05) !important;
-          }
-        `}</style>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={weeklyData} barCategoryGap="20%">
             <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} />
@@ -98,6 +90,8 @@ export function WeeklyProgressChart({ projects }: WeeklyProgressChartProps) {
               allowDecimals={false}
             />
             <Tooltip 
+              cursor={{ fill: 'rgba(59, 130, 246, 0.12)' }}
+              allowEscapeViewBox={{ x: false, y: true }}
               contentStyle={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #e2e8f0',
