@@ -51,8 +51,23 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
     const today = new Date()
     const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
     
-    return Array.from({ length: 365 }, (_, i) => {
-      const date = new Date(oneYearAgo)
+    // Calculate total days to show complete weeks
+    const startDate = new Date(oneYearAgo)
+    const endDate = new Date(today)
+    
+    // Find the Sunday before the start date
+    const dayOfWeek = startDate.getDay()
+    startDate.setDate(startDate.getDate() - dayOfWeek)
+    
+    // Find the Saturday after the end date
+    const endDayOfWeek = endDate.getDay()
+    endDate.setDate(endDate.getDate() + (6 - endDayOfWeek))
+    
+    // Calculate total days needed
+    const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    
+    return Array.from({ length: totalDays }, (_, i) => {
+      const date = new Date(startDate)
       date.setDate(date.getDate() + i)
       const dateKey = date.toISOString().split('T')[0]
       

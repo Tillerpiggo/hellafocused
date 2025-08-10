@@ -29,7 +29,7 @@ export function HeatmapDay({ date, count }: HeatmapDayProps) {
 
   return (
     <div
-      className={`w-3 h-3 rounded-sm border cursor-pointer hover:ring-2 hover:ring-blue-400 hover:ring-opacity-50 ${getColorClass(level)}`}
+      className={`w-3 h-3 rounded-sm border cursor-pointer hover:ring-1 hover:ring-blue-300 hover:ring-opacity-30 ${getColorClass(level)}`}
       data-date={date.toISOString().split('T')[0]}
       data-count={count}
     />
