@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button"
 import { Target, Loader2, CheckSquare, TrendingUp } from "lucide-react"
 import { CompletionHeatmap } from "@/components/progress/heatmap/completion-heatmap"
 import { FocusPointsBadge } from "@/components/progress/focus-points-badge"
+import { TodaysProgressCard } from "@/components/progress/todays-progress-card"
 import { AddTaskForm } from "@/components/task/add-task-form"
 import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
@@ -218,6 +219,7 @@ export default function HomePage() {
                 Feel good about what you&apos;ve done so far
               </p>
             </div>
+            <TodaysProgressCard projects={projects} />
             <FocusPointsBadge projects={projects} />
             <div>
               <h3 className="text-lg font-medium text-foreground mb-4">
