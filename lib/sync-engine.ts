@@ -352,6 +352,7 @@ class SyncEngine {
         completed: taskData.completed,
         completion_date: taskData.completionDate || null,
         position: taskData.position ?? 0,
+        priority: taskData.priority,
         updated_at: taskData.lastModificationDate,
         user_id: userId,
         project_id: change.projectId, // Get from sync action metadata
