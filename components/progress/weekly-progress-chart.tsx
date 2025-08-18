@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { useTheme } from 'next-themes'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { ProjectData, TaskData } from '@/lib/types'
 
@@ -14,6 +15,8 @@ interface WeekData {
 }
 
 export function WeeklyProgressChart({ projects }: WeeklyProgressChartProps) {
+  const { theme } = useTheme()
+  
   const weeklyData = useMemo(() => {
     const countTasksInRange = (projects: ProjectData[], startDate: Date, endDate: Date): number => {
       let count = 0
@@ -74,7 +77,11 @@ export function WeeklyProgressChart({ projects }: WeeklyProgressChartProps) {
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={weeklyData} barCategoryGap="20%">
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.5} />
+            <CartesianGrid 
+              strokeDasharray="3 3" 
+              stroke={theme === 'dark' ? '#374151' : '#e2e8f0'} 
+              opacity={0.5} 
+            />
             <XAxis 
               dataKey="week" 
               stroke="#64748b"
