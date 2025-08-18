@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronRight, CheckCircle2 } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 import { TaskData } from '@/lib/types'
 
 interface ProgressTaskProps {
@@ -62,8 +62,10 @@ export function ProgressTask({ task, depth }: ProgressTaskProps) {
           <div className="w-4" />
         )}
 
-        {/* Checkmark icon */}
-        <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
+        {/* Focus points badge */}
+        <div className="px-2 py-1 bg-blue-600 text-white text-xs font-medium rounded-full flex-shrink-0">
+          +{task.focusPoints}
+        </div>
 
         {/* Task name */}
         <span className="flex-1 text-sm text-foreground">
