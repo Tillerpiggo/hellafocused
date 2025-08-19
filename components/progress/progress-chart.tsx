@@ -4,8 +4,8 @@ import { useMemo, useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { ProjectData, TaskData } from '@/lib/types'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { ChevronDown } from 'lucide-react'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { ChevronDown, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 type TimePeriod = 'daily' | 'weekly' | 'monthly'
@@ -22,6 +22,13 @@ interface ChartData {
 export function ProgressChart({ projects }: ProgressChartProps) {
   const { theme } = useTheme()
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('weekly')
+
+  const TimePeriodOption = ({ value, label }: { value: TimePeriod, label: string }) => (
+    <DropdownMenuItem onClick={() => setTimePeriod(value)} className="pl-8 relative">
+      {timePeriod === value && <Check className="h-4 w-4 opacity-50 absolute left-2" />}
+      {label}
+    </DropdownMenuItem>
+  )
   const [activeBarIndex, setActiveBarIndex] = useState<number | undefined>()
   const [toolTipYPosition, setToolTipYPosition] = useState(0)
   const [tooltipOffset, setTooltipOffset] = useState(-60)
@@ -195,11 +202,9 @@ export function ProgressChart({ projects }: ProgressChartProps) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuRadioGroup value={timePeriod} onValueChange={(value) => setTimePeriod(value as TimePeriod)}>
-              <DropdownMenuRadioItem value="daily">Daily</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="weekly">Weekly</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="monthly">Monthly</DropdownMenuRadioItem>
-            </DropdownMenuRadioGroup>
+            <TimePeriodOption value="monthly" label="Monthly" />
+            <TimePeriodOption value="weekly" label="Weekly" />
+            <TimePeriodOption value="daily" label="Daily" />
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
