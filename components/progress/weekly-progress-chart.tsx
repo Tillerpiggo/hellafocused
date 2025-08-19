@@ -98,7 +98,8 @@ export function WeeklyProgressChart({ projects }: WeeklyProgressChartProps) {
             data={weeklyData} 
             barCategoryGap="20%"
             onMouseMove={(e) => {
-              setActiveBarIndex(e.activeTooltipIndex ?? undefined)
+              const index = e.activeTooltipIndex
+              setActiveBarIndex(typeof index === 'number' ? index : undefined)
             }}
           >
             <CartesianGrid 
