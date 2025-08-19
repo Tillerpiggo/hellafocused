@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useTheme } from 'next-themes'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { ProjectData, TaskData } from '@/lib/types'
@@ -16,6 +16,24 @@ interface WeekData {
 
 export function WeeklyProgressChart({ projects }: WeeklyProgressChartProps) {
   const { theme } = useTheme()
+  const [activeBarIndex, setActiveBarIndex] = useState<number | undefined>()
+  const [toolTipYPosition, setToolTipYPosition] = useState(0)
+  const [tooltipOffset, setTooltipOffset] = useState(-60)
+
+  useEffect(() => {
+    if (activeBarIndex === undefined) return
+    
+    const barChart = document.querySelectorAll(".recharts-bar-rectangle")[activeBarIndex]
+    if (barChart) {
+      setToolTipYPosition(barChart.getBoundingClientRect().height)
+    }
+
+    const tooltipElement = document.querySelector(".recharts-tooltip-wrapper")
+    if (tooltipElement) {
+      const tooltipWidth = tooltipElement.getBoundingClientRect().width
+      setTooltipOffset(-tooltipWidth / 2)
+    }
+  }, [activeBarIndex])
   
   const weeklyData = useMemo(() => {
     const countTasksInRange = (projects: ProjectData[], startDate: Date, endDate: Date): number => {
@@ -76,7 +94,13 @@ export function WeeklyProgressChart({ projects }: WeeklyProgressChartProps) {
       </h3>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={weeklyData} barCategoryGap="20%">
+          <BarChart 
+            data={weeklyData} 
+            barCategoryGap="20%"
+            onMouseMove={(e) => {
+              setActiveBarIndex(e.activeTooltipIndex)
+            }}
+          >
             <CartesianGrid 
               strokeDasharray="3 3" 
               stroke={theme === 'dark' ? '#374151' : '#e2e8f0'} 
@@ -99,6 +123,9 @@ export function WeeklyProgressChart({ projects }: WeeklyProgressChartProps) {
             <Tooltip 
               cursor={{ fill: 'rgba(59, 130, 246, 0.12)' }}
               allowEscapeViewBox={{ x: false, y: true }}
+              animationDuration={0}
+              position={{ x: undefined, y: 160 - toolTipYPosition }}
+              offset={tooltipOffset}
               contentStyle={{
                 backgroundColor: '#ffffff',
                 border: '1px solid #e2e8f0',
