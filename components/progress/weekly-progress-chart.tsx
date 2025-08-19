@@ -98,7 +98,16 @@ export function WeeklyProgressChart({ projects }: WeeklyProgressChartProps) {
             data={weeklyData} 
             barCategoryGap="20%"
             onMouseMove={(e) => {
-              setActiveBarIndex(e.activeTooltipIndex ?? undefined)
+              console.log('activeTooltipIndex:', e.activeTooltipIndex, 'type:', typeof e.activeTooltipIndex)
+              // Recharts types activeTooltipIndex as string | number | undefined, but it can be a string representation of a number
+              const index = e.activeTooltipIndex
+              if (typeof index === 'number') {
+                setActiveBarIndex(index)
+              } else if (typeof index === 'string' && !isNaN(Number(index))) {
+                setActiveBarIndex(Number(index))
+              } else {
+                setActiveBarIndex(undefined)
+              }
             }}
           >
             <CartesianGrid 
@@ -123,7 +132,7 @@ export function WeeklyProgressChart({ projects }: WeeklyProgressChartProps) {
             <Tooltip 
               cursor={{ fill: 'rgba(59, 130, 246, 0.12)' }}
               allowEscapeViewBox={{ x: false, y: true }}
-              animationDuration={0}
+              animationDuration={200}
               position={{ x: undefined, y: 160 - toolTipYPosition }}
               offset={tooltipOffset}
               contentStyle={{
