@@ -211,6 +211,7 @@ export function ProgressChart({ projects }: ProgressChartProps) {
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart 
+            key={timePeriod}
             data={chartData} 
             barCategoryGap="20%"
             onMouseMove={(e) => {
@@ -252,22 +253,24 @@ export function ProgressChart({ projects }: ProgressChartProps) {
               position={{ x: undefined, y: 160 - toolTipYPosition }}
               offset={tooltipOffset}
               contentStyle={{
-                backgroundColor: '#ffffff',
-                border: '1px solid #e2e8f0',
+                backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff',
+                border: `1px solid ${theme === 'dark' ? '#374151' : '#e2e8f0'}`,
                 borderRadius: '8px',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                 fontSize: '12px',
+                color: theme === 'dark' ? '#f9fafb' : '#111827'
               }}
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
                     <div style={{
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #e2e8f0',
+                      backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff',
+                      border: `1px solid ${theme === 'dark' ? '#374151' : '#e2e8f0'}`,
                       borderRadius: '8px',
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                       fontSize: '12px',
-                      padding: '8px 12px'
+                      padding: '8px 12px',
+                      color: theme === 'dark' ? '#f9fafb' : '#111827'
                     }}>
                       <p style={{ margin: 0, fontWeight: 'bold' }}>{getTooltipLabel(String(label || ''))}</p>
                       <p style={{ margin: 0, color: '#3b82f6' }}>Tasks completed: {payload[0].value}</p>
