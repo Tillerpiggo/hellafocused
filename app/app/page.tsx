@@ -356,13 +356,13 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
+    <div className="h-screen bg-background overflow-hidden">
       {/* Top Bar */}
       <TopBar />
       
       {/* Loading state */}
       {shouldShowLoading ? (
-        <main className="flex-1 flex items-center justify-center">
+        <main className="h-full flex items-center justify-center pt-14">
           <div className="flex flex-col items-center space-y-4">
             <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
             <div className="text-sm text-muted-foreground">Initializing...</div>

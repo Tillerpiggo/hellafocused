@@ -47,7 +47,7 @@ export function SidebarLayout({ tabs, activeTab, onTabChange, children, classNam
 
 
   return (
-    <div className={cn("flex min-h-screen", className)}>
+    <div className={cn("flex h-screen", className)}>
       {/* Mobile hamburger button */}
       {isMobile && (
         <Button
@@ -75,8 +75,8 @@ export function SidebarLayout({ tabs, activeTab, onTabChange, children, classNam
         onMouseLeave={() => !isMobile && setIsHovered(false)}
         className={cn(
           "bg-background border-r border-border transition-all duration-200 ease-out overflow-hidden",
-          // Desktop: collapsed by default, expanded on hover
-          !isMobile && "hidden md:block",
+          // Desktop: fixed positioned, below the top bar
+          !isMobile && "fixed top-14 left-0 bottom-0 z-40",
           !isMobile && !isHovered && "w-16",
           !isMobile && isHovered && "w-64",
           // Mobile: overlay when open
@@ -117,12 +117,13 @@ export function SidebarLayout({ tabs, activeTab, onTabChange, children, classNam
 
       {/* Main content */}
       <main className={cn(
-        "flex-1 min-w-0 transition-all duration-200 ease-out",
-        // Adjust main content margin based on sidebar state
-        !isMobile && !isHovered && "ml-0",
-        !isMobile && isHovered && "ml-0",
-        // Add left padding on mobile when hamburger button is visible
-        isMobile && "pl-12"
+        "flex-1 min-w-0 transition-all duration-200 ease-out overflow-y-auto",
+        // Desktop: account for fixed top bar and sidebar
+        !isMobile && "pt-14",
+        !isMobile && !isHovered && "ml-16",
+        !isMobile && isHovered && "ml-64",
+        // Mobile: account for fixed top bar and hamburger button
+        isMobile && "pt-14 pl-12"
       )}>
         {children}
       </main>
