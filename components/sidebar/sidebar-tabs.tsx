@@ -29,7 +29,7 @@ export function SidebarTabs({ tabs, activeTab, onTabChange, isCollapsed = false,
             key={tab.value}
             onClick={() => onTabChange(tab.value)}
             className={cn(
-              "h-12 text-left text-sm font-medium rounded-lg transition-all duration-150 ease-out overflow-hidden",
+              "h-12 text-left text-sm font-medium rounded-lg transition-all duration-200 ease-out overflow-hidden",
               "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
               "flex items-center pl-4 pr-4",
               isActive
@@ -40,7 +40,7 @@ export function SidebarTabs({ tabs, activeTab, onTabChange, isCollapsed = false,
           >
             <Icon className="h-4 w-4 shrink-0 mr-3" />
             <span className={cn(
-              "whitespace-nowrap transition-opacity duration-100 ease-out",
+              "whitespace-nowrap transition-opacity duration-200 ease-out",
               isCollapsed ? "opacity-0" : "opacity-100"
             )}>
               {tab.label}

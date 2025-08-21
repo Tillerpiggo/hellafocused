@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { ProjectData, TaskData } from '@/lib/types'
+import { calculateTaskFocusPoints } from '@/lib/task-utils'
 import { ProgressTask } from './progress-task'
 import { Button } from '@/components/ui/button'
 
@@ -11,14 +12,6 @@ interface TodaysProgressCardProps {
 
 export function TodaysProgressCard({ projects }: TodaysProgressCardProps) {
   const [showAll, setShowAll] = useState(false)
-  
-  const calculateTaskFocusPoints = (task: TaskData): number => {
-    let points = task.completed ? 1 : 0
-    task.subtasks.forEach(subtask => {
-      points += calculateTaskFocusPoints(subtask)
-    })
-    return points
-  }
 
   const todaysData = useMemo(() => {
     const today = new Date().toDateString()
@@ -76,8 +69,47 @@ export function TodaysProgressCard({ projects }: TodaysProgressCardProps) {
       return new Date(b.completionDate).getTime() - new Date(a.completionDate).getTime()
     })
 
-    return { completedTasks: topLevelTasks, totalFocusPoints }
-  }, [projects, calculateTaskFocusPoints])
+    // Calculate historical averages for fire emoji logic
+    const calculateDailyAverage = () => {
+      const dailyTotals: number[] = []
+      
+      // Look at past 30 days (excluding today)
+      for (let i = 1; i <= 30; i++) {
+        const date = new Date()
+        date.setDate(date.getDate() - i)
+        const dateString = date.toDateString()
+        
+        let dayTotal = 0
+        const countTasksForDate = (task: TaskData) => {
+          if (task.completed && task.completionDate) {
+            const taskDate = new Date(task.completionDate).toDateString()
+            if (taskDate === dateString) {
+              dayTotal += 1
+            }
+          }
+          task.subtasks.forEach(countTasksForDate)
+        }
+        
+        projects.forEach(project => {
+          project.tasks.forEach(countTasksForDate)
+        })
+        
+        dailyTotals.push(dayTotal)
+      }
+      
+      return dailyTotals.length > 0 ? dailyTotals.reduce((sum, total) => sum + total, 0) / dailyTotals.length : 0
+    }
+
+    const dailyAverage = calculateDailyAverage()
+    const isAboveAverage = totalFocusPoints > 0 && dailyAverage > 0 && totalFocusPoints >= dailyAverage * 1.2 // 20% above average
+
+    return { 
+      completedTasks: topLevelTasks, 
+      totalFocusPoints, 
+      isAboveAverage,
+      dailyAverage: Math.round(dailyAverage * 10) / 10 // Round to 1 decimal
+    }
+  }, [projects])
 
   if (todaysData.completedTasks.length === 0) {
     return (
@@ -96,7 +128,13 @@ export function TodaysProgressCard({ projects }: TodaysProgressCardProps) {
         <h3 className="text-lg font-medium text-foreground mb-1">Today&apos;s Progress</h3>
         <p className="text-muted-foreground">
           {todaysData.totalFocusPoints} focus point{todaysData.totalFocusPoints !== 1 ? 's' : ''} earned
+          {todaysData.isAboveAverage && <span className="ml-2">🔥</span>}
         </p>
+        {todaysData.isAboveAverage && (
+          <p className="text-xs text-muted-foreground mt-1">
+            Above your {todaysData.dailyAverage} daily average - you&apos;re on fire! 
+          </p>
+        )}
       </div>
       
       <div className="space-y-1">

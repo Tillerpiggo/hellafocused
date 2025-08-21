@@ -756,4 +756,15 @@ export const getProjectId = (taskPath: string[]): string | null => {
 }
 export const isProject = (taskPath: string[]): boolean => taskPath && taskPath.length === 1
 export const isTask = (taskPath: string[]): boolean => taskPath && taskPath.length > 1
-export const isProjectList = (taskPath: string[]): boolean => !taskPath || taskPath.length === 0 
+export const isProjectList = (taskPath: string[]): boolean => !taskPath || taskPath.length === 0
+
+/**
+ * Calculate focus points for a task and all its subtasks recursively
+ */
+export const calculateTaskFocusPoints = (task: TaskData): number => {
+  let points = task.completed ? 1 : 0
+  task.subtasks.forEach(subtask => {
+    points += calculateTaskFocusPoints(subtask)
+  })
+  return points
+} 

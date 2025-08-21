@@ -61,9 +61,12 @@ export function SidebarLayout({ tabs, activeTab, onTabChange, children, classNam
       )}
 
       {/* Sidebar backdrop for mobile */}
-      {isMobile && isSidebarOpen && (
+      {isMobile && (
         <div 
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className={cn(
+            "fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity duration-300 ease-in-out",
+            isSidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          )}
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
@@ -74,15 +77,15 @@ export function SidebarLayout({ tabs, activeTab, onTabChange, children, classNam
         onMouseEnter={() => !isMobile && setIsHovered(true)}
         onMouseLeave={() => !isMobile && setIsHovered(false)}
         className={cn(
-          "bg-background border-r border-border transition-all duration-200 ease-out overflow-hidden",
+          "bg-background border-r border-border transition-all duration-300 ease-in-out overflow-hidden",
           // Desktop: fixed positioned, below the top bar
           !isMobile && "fixed top-14 left-0 bottom-0 z-40",
           !isMobile && !isHovered && "w-16",
           !isMobile && isHovered && "w-64",
-          // Mobile: overlay when open
-          isMobile && "fixed top-0 left-0 h-full z-50 shadow-lg w-64",
-          isMobile && isSidebarOpen && "block",
-          isMobile && !isSidebarOpen && "hidden"
+          // Mobile: overlay with slide animation
+          isMobile && "fixed top-0 left-0 h-full z-50 shadow-lg w-64 transform",
+          isMobile && isSidebarOpen && "translate-x-0",
+          isMobile && !isSidebarOpen && "-translate-x-full"
         )}
       >
         {/* Mobile close button */}
