@@ -78,30 +78,43 @@ export function SidebarLayout({
         />
       )}
 
-      {/* Sidebar */}
-      <aside
-        id="sidebar"
-        onMouseEnter={() => !isMobile && setIsHovered(true)}
-        onMouseLeave={() => !isMobile && setIsHovered(false)}
-        className={cn(
-          "bg-background border-r border-border overflow-hidden",
-          // Only transition on desktop when hovering/not hovering
-          !isMobile && "transition-[width] duration-300 ease-in-out",
-          // Only transition transform on mobile for slide animation
-          isMobile && "transition-transform duration-300 ease-in-out",
-          // Desktop: fixed positioned, below the top bar
-          !isMobile && "fixed top-14 left-0 bottom-0 z-40",
-          !isMobile && !isHovered && "w-16",
-          !isMobile && isHovered && "w-64",
-          // Mobile: overlay with slide animation
-          isMobile && "fixed top-0 left-0 h-full z-50 shadow-lg w-64 transform",
-          isMobile && isSidebarOpen && "translate-x-0",
-          isMobile && !isSidebarOpen && "-translate-x-full"
-        )}
-      >
-        {/* Mobile header with logo and close button */}
-        {isMobile && (
-          <div className="flex justify-between items-center px-4 py-3 md:hidden">
+      {/* Desktop Sidebar */}
+      {!isMobile && (
+        <aside
+          id="desktop-sidebar"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
+          className={cn(
+            "bg-background border-r border-border overflow-hidden",
+            "fixed top-14 left-0 bottom-0 z-40",
+            "transition-[width] duration-300 ease-in-out",
+            isHovered ? "w-64" : "w-16"
+          )}
+        >
+          <div className="pt-2 px-2">
+            <SidebarTabs 
+              tabs={tabs}
+              activeTab={activeTab}
+              isCollapsed={!isHovered}
+              onTabChange={onTabChange}
+            />
+          </div>
+        </aside>
+      )}
+
+      {/* Mobile Sidebar */}
+      {isMobile && (
+        <aside
+          id="mobile-sidebar"
+          className={cn(
+            "bg-background border-r border-border overflow-hidden",
+            "fixed top-0 left-0 h-full z-50 shadow-lg w-64",
+            "transition-transform duration-300 ease-in-out",
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          )}
+        >
+          {/* Mobile header with logo and close button */}
+          <div className="flex justify-between items-center px-4 py-3">
             <Link href="/?from=app" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
               hellafocused
             </Link>
@@ -113,26 +126,21 @@ export function SidebarLayout({
               <X className="h-4 w-4" />
             </Button>
           </div>
-        )}
 
-        {/* Tab navigation */}
-        <div className={cn("px-2", isMobile ? "" : "pt-2")}>
-          <SidebarTabs 
-            tabs={tabs}
-            activeTab={activeTab}
-            isCollapsed={!isMobile && !isHovered}
-            onTabChange={(value) => {
-              onTabChange(value)
-              // Close mobile sidebar when tab is selected
-              if (isMobile) {
+          {/* Tab navigation */}
+          <div className="px-2">
+            <SidebarTabs 
+              tabs={tabs}
+              activeTab={activeTab}
+              isCollapsed={false}
+              onTabChange={(value) => {
+                onTabChange(value)
                 setIsSidebarOpen(false)
-              }
-            }}
-          />
-        </div>
+              }}
+            />
+          </div>
 
-        {/* Mobile-only Feedback and Discord section */}
-        {isMobile && (
+          {/* Mobile-only Feedback and Discord section */}
           <div className="px-4 py-4 border-t border-border mt-4">
             <div className="flex flex-col space-y-3">
               <button 
@@ -156,8 +164,8 @@ export function SidebarLayout({
               </Link>
             </div>
           </div>
-        )}
-      </aside>
+        </aside>
+      )}
 
       <FeedbackPopup
         isOpen={isFeedbackOpen}
