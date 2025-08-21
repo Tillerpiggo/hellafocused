@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { useFloating, autoUpdate, offset, flip, shift } from '@floating-ui/react'
 import { ProjectData, TaskData } from '@/lib/types'
 import { HeatmapDay } from './heatmap-day'
@@ -17,6 +17,7 @@ interface TooltipState {
 
 export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
 
   const { refs, floatingStyles } = useFloating({
     open: tooltip !== null,
@@ -90,9 +91,15 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
     return monthLabelsArray
   }, [days])
 
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth - scrollContainerRef.current.clientWidth
+    }
+  }, [days])
+
   return (
     <div className="w-full">
-      <div className="overflow-x-auto min-w-0">
+      <div className="overflow-x-auto min-w-0" ref={scrollContainerRef}>
         <div>
           {/* Month labels */}
           <div className="relative mb-2 h-4 ml-10">
@@ -112,6 +119,7 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
           <div className="flex">
             {/* Fixed-width days labels */}
             <div className="flex flex-col gap-1 mr-2 text-xs text-muted-foreground flex-shrink-0 w-8">
+              <div className="h-3"></div>
               <div className="h-3 flex items-center">Mon</div>
               <div className="h-3"></div>
               <div className="h-3 flex items-center">Wed</div>
@@ -123,6 +131,7 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
             {/* Heatmap grid */}
             <div 
               className="grid grid-rows-7 grid-flow-col gap-1"
+              style={{ minWidth: `${Math.ceil(days.length / 7) * 16}px` }}
               onMouseOver={(e) => {
                 const dayElement = e.target as HTMLElement
                 if (dayElement.dataset.date) {
