@@ -120,8 +120,7 @@ export function SidebarLayout({ tabs, activeTab, onTabChange, children, classNam
         "flex-1 min-w-0 transition-all duration-200 ease-out overflow-y-auto",
         // Desktop: account for fixed top bar and sidebar
         !isMobile && "pt-14",
-        !isMobile && !isHovered && "ml-16",
-        !isMobile && isHovered && "ml-64",
+        !isMobile && "ml-16",
         // Mobile: account for fixed top bar and hamburger button
         isMobile && "pt-14 pl-12"
       )}>
