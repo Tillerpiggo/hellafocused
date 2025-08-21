@@ -71,6 +71,9 @@ export default function HomePage() {
   // Tab state for sidebar navigation
   const [activeTab, setActiveTab] = useState('tasks')
   
+  // Mobile menu state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  
   const tabs = [
     { value: 'tasks', label: 'Tasks', icon: CheckSquare },
     { value: 'progress', label: 'Progress', icon: TrendingUp }
@@ -358,7 +361,10 @@ export default function HomePage() {
   return (
     <div className="h-screen bg-background overflow-hidden">
       {/* Top Bar */}
-      <TopBar />
+      <TopBar 
+        onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+        isMenuOpen={isMobileMenuOpen}
+      />
       
       {/* Loading state */}
       {shouldShowLoading ? (
@@ -373,6 +379,8 @@ export default function HomePage() {
           tabs={tabs}
           activeTab={activeTab}
           onTabChange={setActiveTab}
+          isSidebarOpen={isMobileMenuOpen}
+          setIsSidebarOpen={setIsMobileMenuOpen}
         >
           {renderTabContent()}
         </SidebarLayout>

@@ -284,6 +284,7 @@ export function ProgressChart({ projects }: ProgressChartProps) {
               dataKey="tasks"
               fill="#3b82f6"
               radius={[4, 4, 0, 0]}
+              animationDuration={300}
             />
           </BarChart>
         </ResponsiveContainer>
