@@ -70,10 +70,10 @@ export function TodaysProgressCard({ projects }: TodaysProgressCardProps) {
       })
     })
 
-    // Sort tasks by completion time (earliest first)
+    // Sort tasks by completion time (most recent first)
     topLevelTasks.sort((a, b) => {
       if (!a.completionDate || !b.completionDate) return 0
-      return new Date(a.completionDate).getTime() - new Date(b.completionDate).getTime()
+      return new Date(b.completionDate).getTime() - new Date(a.completionDate).getTime()
     })
 
     return { completedTasks: topLevelTasks, totalFocusPoints }
