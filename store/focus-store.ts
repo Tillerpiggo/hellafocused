@@ -41,11 +41,13 @@ export const useFocusStore = create<FocusState>((set, get) => ({
   updateFocusLeaves: (projects) => {
     const { focusStartPath, currentFocusTask } = get()
     
-    console.log('🔄 updateFocusLeaves called with current task:', currentFocusTask?.name)
-    
     // Recalculate leaves based on current focus path
-    const newLeaves = getHierarchicalLeafNodes(projects, focusStartPath)
-    console.log('📋 Recalculated leaves:', newLeaves.map(l => l.name))
+    const { leaves: newLeaves, updatedPath } = getHierarchicalLeafNodes(projects, focusStartPath)
+    
+    // Update focus path if it changed during leaf calculation
+    if (JSON.stringify(updatedPath) !== JSON.stringify(focusStartPath)) {
+      set({ focusStartPath: updatedPath })
+    }
     
     // Check if current focus task now has subtasks (i.e., it's no longer a leaf)
     if (currentFocusTask) {
@@ -60,15 +62,12 @@ export const useFocusStore = create<FocusState>((set, get) => ({
             const currentTaskInProjects = findTaskAtPath(projects, fullTaskPath)
             const currentTaskHasSubtasks = currentTaskInProjects?.subtasks?.filter(st => !st.completed).length ?? 0 > 0
             if (currentTaskHasSubtasks) {
-              console.log('🔀 Current task now has subtasks, refocusing on task children')
               // The task now has incomplete subtasks, so refocus on this task
               const newFocusPath = fullTaskPath
-              const newLeavesForTask = getHierarchicalLeafNodes(projects, newFocusPath)
-              
-              console.log('📋 New leaves for refocused task:', newLeavesForTask.map(l => l.name))
+              const { leaves: newLeavesForTask, updatedPath } = getHierarchicalLeafNodes(projects, newFocusPath)
               
               set({
-                focusStartPath: newFocusPath,
+                focusStartPath: updatedPath,
                 focusModeProjectLeaves: newLeavesForTask,
               })
               return
@@ -78,7 +77,6 @@ export const useFocusStore = create<FocusState>((set, get) => ({
       }
     }
     
-    console.log('✅ Just updating leaves, no currentFocusTask change')
     // Just update the leaves - never change currentFocusTask
     set({
       focusModeProjectLeaves: newLeaves,
@@ -92,14 +90,14 @@ export const useFocusStore = create<FocusState>((set, get) => ({
     const project = projects.find((p) => p.id === projectId)
     if (!project) return
 
-    const leaves = getHierarchicalLeafNodes(projects, startPath)
+    const { leaves, updatedPath } = getHierarchicalLeafNodes(projects, startPath)
     
     // Check if focus scope has changed
     const { focusStartPath: currentStartPath } = get()
     const scopeChanged = JSON.stringify(currentStartPath) !== JSON.stringify(startPath)
     
     set({
-      focusStartPath: startPath,
+      focusStartPath: updatedPath,
       focusModeProjectLeaves: leaves,
       lastFocusedTaskId: scopeChanged ? null : get().lastFocusedTaskId,
     })
@@ -290,10 +288,10 @@ export const useFocusStore = create<FocusState>((set, get) => ({
               if (currentTaskHasSubtasks) {
                 // The task now has incomplete subtasks, so refocus on this task's children
                 const newFocusPath = fullTaskPath
-                const newLeavesForTask = getHierarchicalLeafNodes(projects, newFocusPath)
+                const { leaves: newLeavesForTask, updatedPath } = getHierarchicalLeafNodes(projects, newFocusPath)
                 
                 set({
-                  focusStartPath: newFocusPath,
+                  focusStartPath: updatedPath,
                   focusModeProjectLeaves: newLeavesForTask,
                   currentFocusTask: randomFrom(newLeavesForTask),
                 })

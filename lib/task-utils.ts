@@ -409,12 +409,12 @@ export const findTaskPath = (tasks: TaskData[], targetId: string, currentPath: s
 /**
  * Get ALL leaf nodes of a task at a certain unified path (includes project ID)
  */
-export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: string[]): TaskData[] => {
-  if (isProjectList(fullPath)) return []
+export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: string[]): { leaves: TaskData[], updatedPath: string[] } => {
+  if (isProjectList(fullPath)) return { leaves: [], updatedPath: fullPath }
   
   // Make sure the project exists
   const project = projects.find(p => p.id === getProjectId(fullPath))
-  if (!project) return [] // Project not found
+  if (!project) return { leaves: [], updatedPath: fullPath } // Project not found
   
   // Get all leaf nodes from the tasks at this level (recursively)
   const getLeafNodesAtLevel = (tasksAtLevel: TaskData[]): TaskData[] => {
@@ -433,16 +433,16 @@ export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: stri
 
   // Get all leaf nodes from the path. 
   // If there are no leaves, keep going up a level until there are leaves.
-  const taskPath = fullPath.slice(1)
-  let currentPath = [...taskPath]
+  let currentFullPath = [...fullPath]
   while (true) {
     let currentTasks: TaskData[]
-    if (currentPath.length === 0) {
+    if (isProject(currentFullPath)) {
       currentTasks = project.tasks
     } else {
-      const parentTask = findTaskRecursive(project.tasks, currentPath)
+      const taskPath = currentFullPath.slice(1) // Remove project ID for findTaskRecursive
+      const parentTask = findTaskRecursive(project.tasks, taskPath)
       if (!parentTask) {
-        return [] // Path is invalid
+        return { leaves: [], updatedPath: fullPath } // Path is invalid
       }
       currentTasks = parentTask.subtasks
     }
@@ -450,22 +450,23 @@ export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: stri
     // Get leaf nodes at current level
     const leaves = getLeafNodesAtLevel(currentTasks)
     if (leaves.length > 0) {
-      return leaves
+      return { leaves, updatedPath: currentFullPath }
     }
-    if (currentPath.length === 0) {
+    if (isProject(currentFullPath)) {
       // We're at project level with no leaves, so return empty array
-      return []
+      return { leaves: [], updatedPath: currentFullPath }
     }
 
     // Check if the parent task (the task we're inside) can be a leaf
-    const parentTask = findTaskRecursive(project.tasks, currentPath)
+    const taskPath = currentFullPath.slice(1) // Remove project ID for findTaskRecursive
+    const parentTask = findTaskRecursive(project.tasks, taskPath)
     if (parentTask && !parentTask.completed) {
       // The parent task becomes the leaf
-      return [parentTask]
+      return { leaves: [parentTask], updatedPath: currentFullPath }
     }
 
     // Parent is completed or doesn't exist, go up one level
-    currentPath = currentPath.slice(0, -1)
+    currentFullPath = currentFullPath.slice(0, -1)
   }
 }
 
