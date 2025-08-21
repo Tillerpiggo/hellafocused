@@ -439,8 +439,7 @@ export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: stri
     if (isProject(currentFullPath)) {
       currentTasks = project.tasks
     } else {
-      const taskPath = currentFullPath.slice(1) // Remove project ID for findTaskRecursive
-      const parentTask = findTaskRecursive(project.tasks, taskPath)
+      const parentTask = findTaskAtPath(projects, currentFullPath)
       if (!parentTask) {
         return { leaves: [], updatedPath: fullPath } // Path is invalid
       }
@@ -458,8 +457,7 @@ export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: stri
     }
 
     // Check if the parent task (the task we're inside) can be a leaf
-    const taskPath = currentFullPath.slice(1) // Remove project ID for findTaskRecursive
-    const parentTask = findTaskRecursive(project.tasks, taskPath)
+    const parentTask = findTaskAtPath(projects, currentFullPath)
     if (parentTask && !parentTask.completed) {
       // The parent task becomes the leaf
       return { leaves: [parentTask], updatedPath: currentFullPath }
