@@ -15,22 +15,22 @@ export function HeatmapDay({ date, count }: HeatmapDayProps) {
   }
 
   const getColorStyle = (level: number): React.CSSProperties => {
-    // CSS variable-based heatmap colors
+    // GitHub's actual heatmap colors
     const colors = [
       { 
-        lightBg: '#EBEDF0', darkBg: '#161B22',  // Level 0 (--hm-0)
+        lightBg: '#ebedf0', darkBg: '#161b22'  // Level 0 - Gray (no activity)
       },
       { 
-        lightBg: '#E9F1FD', darkBg: '#112441',  // Level 1 (--hm-1)
+        lightBg: '#9be9a8', darkBg: '#0e4429'  // Level 1 - Light green
       },
       { 
-        lightBg: '#C7DBFA', darkBg: '#133261',  // Level 2 (--hm-2)
+        lightBg: '#40c463', darkBg: '#006d32'  // Level 2 - Medium green
       },
       { 
-        lightBg: '#9ABEF6', darkBg: '#17458C',  // Level 3 (--hm-3)
+        lightBg: '#30a14e', darkBg: '#26a641'  // Level 3 - Dark green
       },
       { 
-        lightBg: '#0047E1', darkBg: '#0060FF',  // Level 4 (more)
+        lightBg: '#216e39', darkBg: '#39d353'  // Level 4 - Darkest green
       }
     ]
     
@@ -38,8 +38,7 @@ export function HeatmapDay({ date, count }: HeatmapDayProps) {
     const color = colors[colorIndex]
     
     return {
-      backgroundColor: `light-dark(${color.lightBg}, ${color.darkBg})`,
-      borderColor: `light-dark(${color.lightBg}, ${color.darkBg})`
+      backgroundColor: `light-dark(${color.lightBg}, ${color.darkBg})`
     }
   }
 
@@ -47,7 +46,7 @@ export function HeatmapDay({ date, count }: HeatmapDayProps) {
 
   return (
     <div
-      className="w-3 h-3 rounded-[2px] border cursor-pointer hover:ring-1 hover:ring-blue-300 hover:ring-opacity-30"
+      className="w-3 h-3 rounded-sm cursor-pointer hover:ring-1 hover:ring-blue-300 hover:ring-opacity-30"
       style={getColorStyle(level)}
       data-date={date.toISOString().split('T')[0]}
       data-count={count}

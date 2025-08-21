@@ -116,7 +116,7 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
           <div className="h-3"></div>
         </div>
         <div 
-          className="grid grid-rows-7 grid-flow-col gap-0.5"
+          className="grid grid-rows-7 grid-flow-col gap-1"
           onMouseOver={(e) => {
             const dayElement = e.target as HTMLElement
             if (dayElement.dataset.date) {
@@ -170,19 +170,29 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
 }
 
 function getColorStyle(level: number): React.CSSProperties {
-  // CSS variable-based heatmap colors
+  // GitHub's actual heatmap colors
   const colors = [
-    { light: '#EBEDF0', dark: '#161B22' },    // Level 0 (--hm-0)
-    { light: '#E9F1FD', dark: '#112441' },    // Level 1 (--hm-1)
-    { light: '#C7DBFA', dark: '#133261' },    // Level 2 (--hm-2)
-    { light: '#9ABEF6', dark: '#17458C' },    // Level 3 (--hm-3)
-    { light: '#0047E1', dark: '#0060FF' }     // Level 4 (more)
+    { 
+      lightBg: '#ebedf0', darkBg: '#161b22'  // Level 0 - Gray (no activity)
+    },
+    { 
+      lightBg: '#9be9a8', darkBg: '#0e4429'  // Level 1 - Light green
+    },
+    { 
+      lightBg: '#40c463', darkBg: '#006d32'  // Level 2 - Medium green
+    },
+    { 
+      lightBg: '#30a14e', darkBg: '#26a641'  // Level 3 - Dark green
+    },
+    { 
+      lightBg: '#216e39', darkBg: '#39d353'  // Level 4 - Darkest green
+    }
   ]
   
   const colorIndex = Math.min(level, 4)
   const color = colors[colorIndex]
   
   return {
-    backgroundColor: `light-dark(${color.light}, ${color.dark})`
+    backgroundColor: `light-dark(${color.lightBg}, ${color.darkBg})`
   }
 }
