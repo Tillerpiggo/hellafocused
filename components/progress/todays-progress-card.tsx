@@ -1,14 +1,17 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { ProjectData, TaskData } from '@/lib/types'
 import { ProgressTask } from './progress-task'
+import { Button } from '@/components/ui/button'
 
 interface TodaysProgressCardProps {
   projects: ProjectData[]
 }
 
 export function TodaysProgressCard({ projects }: TodaysProgressCardProps) {
+  const [showAll, setShowAll] = useState(false)
+  
   const calculateTaskFocusPoints = (task: TaskData): number => {
     let points = task.completed ? 1 : 0
     task.subtasks.forEach(subtask => {
@@ -97,7 +100,7 @@ export function TodaysProgressCard({ projects }: TodaysProgressCardProps) {
       </div>
       
       <div className="space-y-1">
-        {todaysData.completedTasks.map((task) => {
+        {(showAll ? todaysData.completedTasks : todaysData.completedTasks.slice(0, 6)).map((task) => {
           const taskWithPath = task as TaskData & { projectName: string; path: string[]; focusPoints: number }
           return (
             <ProgressTask
@@ -108,6 +111,23 @@ export function TodaysProgressCard({ projects }: TodaysProgressCardProps) {
           )
         })}
       </div>
+      
+      {/* Show more/less button */}
+      {todaysData.completedTasks.length > 6 && (
+        <div className="flex justify-center mt-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowAll(!showAll)}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            {showAll 
+              ? 'Show less' 
+              : `Show ${todaysData.completedTasks.length - 6} more`
+            }
+          </Button>
+        </div>
+      )}
     </div>
   )
 }
