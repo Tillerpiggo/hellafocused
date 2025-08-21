@@ -170,13 +170,13 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
 }
 
 function getColorStyle(level: number): React.CSSProperties {
-  // Custom blue theme with light and dark mode gradients
+  // CSS variable-based heatmap colors
   const colors = [
-    { light: '#ebf5ff', dark: '#0d2a4a' },    // Level 0
-    { light: '#cce4ff', dark: '#1a5393' },    // Level 1
-    { light: '#99c9ff', dark: '#287cd8' },    // Level 2
-    { light: '#66adff', dark: '#36a5ff' },    // Level 3
-    { light: '#3392ff', dark: '#45d1ff' }     // Level 4
+    { light: '#EBEDF0', dark: '#161B22' },    // Level 0 (--hm-0)
+    { light: '#E9F1FD', dark: '#112441' },    // Level 1 (--hm-1)
+    { light: '#C7DBFA', dark: '#133261' },    // Level 2 (--hm-2)
+    { light: '#9ABEF6', dark: '#17458C' },    // Level 3 (--hm-3)
+    { light: '#0047E1', dark: '#0060FF' }     // Level 4 (more)
   ]
   
   const colorIndex = Math.min(level, 4)

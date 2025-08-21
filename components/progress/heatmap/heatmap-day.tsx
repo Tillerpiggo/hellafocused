@@ -15,22 +15,22 @@ export function HeatmapDay({ date, count }: HeatmapDayProps) {
   }
 
   const getColorStyle = (level: number): React.CSSProperties => {
-    // Custom blue theme with light and dark mode gradients
+    // CSS variable-based heatmap colors
     const colors = [
       { 
-        lightBg: '#ebf5ff', darkBg: '#0d2a4a',  // Level 0
+        lightBg: '#EBEDF0', darkBg: '#161B22',  // Level 0 (--hm-0)
       },
       { 
-        lightBg: '#cce4ff', darkBg: '#1a5393',  // Level 1
+        lightBg: '#E9F1FD', darkBg: '#112441',  // Level 1 (--hm-1)
       },
       { 
-        lightBg: '#99c9ff', darkBg: '#287cd8',  // Level 2
+        lightBg: '#C7DBFA', darkBg: '#133261',  // Level 2 (--hm-2)
       },
       { 
-        lightBg: '#66adff', darkBg: '#36a5ff',  // Level 3
+        lightBg: '#9ABEF6', darkBg: '#17458C',  // Level 3 (--hm-3)
       },
       { 
-        lightBg: '#3392ff', darkBg: '#45d1ff',  // Level 4
+        lightBg: '#0047E1', darkBg: '#0060FF',  // Level 4 (more)
       }
     ]
     
