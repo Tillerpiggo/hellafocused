@@ -51,20 +51,12 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
     const today = new Date()
     const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
     
-    // Calculate total days to show complete weeks
+    // Go from the Sunday before the start date to today
     const startDate = new Date(oneYearAgo)
-    const endDate = new Date(today)
-    
-    // Find the Sunday before the start date
     const dayOfWeek = startDate.getDay()
     startDate.setDate(startDate.getDate() - dayOfWeek)
     
-    // Find the Saturday after the end date
-    const endDayOfWeek = endDate.getDay()
-    endDate.setDate(endDate.getDate() + (6 - endDayOfWeek))
-    
-    // Calculate total days needed
-    const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
+    const totalDays = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
     
     return Array.from({ length: totalDays }, (_, i) => {
       const date = new Date(startDate)
@@ -79,29 +71,72 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
     })
   }, [completions])
 
+  const monthLabels = useMemo(() => {
+    const monthLabelsArray: { month: string; weekIndex: number }[] = []
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    
+    days.forEach((day, dayIndex) => {
+      if (dayIndex === 0 || day.date.getDate() === 1) {
+        const weekIndex = Math.floor(dayIndex / 7)
+        const month = day.date.getMonth()
+        
+        monthLabelsArray.push({
+          month: monthNames[month],
+          weekIndex: weekIndex
+        })
+      }
+    })
+    
+    return monthLabelsArray
+  }, [days])
+
   return (
     <div className="relative">
-      <div 
-        className="grid grid-rows-7 grid-flow-col gap-1"
-        onMouseOver={(e) => {
-          const dayElement = e.target as HTMLElement
-          if (dayElement.dataset.date) {
-            refs.setReference(dayElement)
-            setTooltip({
-              date: dayElement.dataset.date,
-              count: parseInt(dayElement.dataset.count || '0')
-            })
-          }
-        }}
-        onMouseLeave={() => setTooltip(null)}
-      >
-        {days.map(({ date, dateKey, count }) => (
-          <HeatmapDay
-            key={dateKey}
-            date={date}
-            count={count}
-          />
+      <div className="relative mb-2 h-4">
+        {monthLabels.map(({ month, weekIndex }) => (
+          <span 
+            key={`${month}-${weekIndex}`}
+            className="absolute text-xs text-muted-foreground"
+            style={{ 
+              left: `${weekIndex * 16}px`
+            }}
+          >
+            {month}
+          </span>
         ))}
+      </div>
+      <div className="flex">
+        <div className="flex flex-col gap-1 mr-2 text-xs text-muted-foreground">
+          <div className="h-3"></div>
+          <div className="h-3 flex items-center">Mon</div>
+          <div className="h-3"></div>
+          <div className="h-3 flex items-center">Wed</div>
+          <div className="h-3"></div>
+          <div className="h-3 flex items-center">Fri</div>
+          <div className="h-3"></div>
+        </div>
+        <div 
+          className="grid grid-rows-7 grid-flow-col gap-1"
+          onMouseOver={(e) => {
+            const dayElement = e.target as HTMLElement
+            if (dayElement.dataset.date) {
+              refs.setReference(dayElement)
+              setTooltip({
+                date: dayElement.dataset.date,
+                count: parseInt(dayElement.dataset.count || '0')
+              })
+            }
+          }}
+          onMouseLeave={() => setTooltip(null)}
+        >
+          {days.map(({ date, dateKey, count }) => (
+            <HeatmapDay
+              key={dateKey}
+              date={date}
+              count={count}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="flex items-center gap-2 mt-4 text-xs text-muted-foreground">
