@@ -116,7 +116,7 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
           <div className="h-3"></div>
         </div>
         <div 
-          className="grid grid-rows-7 grid-flow-col gap-1"
+          className="grid grid-rows-7 grid-flow-col gap-0.5"
           onMouseOver={(e) => {
             const dayElement = e.target as HTMLElement
             if (dayElement.dataset.date) {
@@ -145,7 +145,8 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
           {[0, 1, 2, 3, 4].map(level => (
             <div
               key={level}
-              className={`w-3 h-3 rounded-sm ${getColorClass(level)}`}
+              className="w-3 h-3 rounded-sm"
+              style={getColorStyle(level)}
             />
           ))}
         </div>
@@ -168,13 +169,20 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
   )
 }
 
-function getColorClass(level: number): string {
+function getColorStyle(level: number): React.CSSProperties {
+  // Custom blue theme with light and dark mode gradients
   const colors = [
-    'bg-gray-100 dark:bg-gray-800',
-    'bg-blue-100 dark:bg-blue-900',
-    'bg-blue-300 dark:bg-blue-700',
-    'bg-blue-500 dark:bg-blue-500',
-    'bg-blue-700 dark:bg-blue-300'
+    { light: '#ebf5ff', dark: '#0d2a4a' },    // Level 0
+    { light: '#cce4ff', dark: '#1a5393' },    // Level 1
+    { light: '#99c9ff', dark: '#287cd8' },    // Level 2
+    { light: '#66adff', dark: '#36a5ff' },    // Level 3
+    { light: '#3392ff', dark: '#45d1ff' }     // Level 4
   ]
-  return colors[level] || colors[0]
+  
+  const colorIndex = Math.min(level, 4)
+  const color = colors[colorIndex]
+  
+  return {
+    backgroundColor: `light-dark(${color.light}, ${color.dark})`
+  }
 }

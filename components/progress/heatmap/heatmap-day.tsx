@@ -14,22 +14,41 @@ export function HeatmapDay({ date, count }: HeatmapDayProps) {
     return 4
   }
 
-  const getColorClass = (level: number): string => {
+  const getColorStyle = (level: number): React.CSSProperties => {
+    // Custom blue theme with light and dark mode gradients
     const colors = [
-      'bg-gray-100 dark:bg-gray-800 border-gray-200 dark:border-gray-700',
-      'bg-blue-100 dark:bg-blue-900 border-blue-200 dark:border-blue-800',
-      'bg-blue-300 dark:bg-blue-700 border-blue-400 dark:border-blue-600',
-      'bg-blue-500 dark:bg-blue-500 border-blue-600 dark:border-blue-400',
-      'bg-blue-700 dark:bg-blue-300 border-blue-800 dark:border-blue-200'
+      { 
+        lightBg: '#ebf5ff', darkBg: '#0d2a4a',  // Level 0
+      },
+      { 
+        lightBg: '#cce4ff', darkBg: '#1a5393',  // Level 1
+      },
+      { 
+        lightBg: '#99c9ff', darkBg: '#287cd8',  // Level 2
+      },
+      { 
+        lightBg: '#66adff', darkBg: '#36a5ff',  // Level 3
+      },
+      { 
+        lightBg: '#3392ff', darkBg: '#45d1ff',  // Level 4
+      }
     ]
-    return colors[level] || colors[0]
+    
+    const colorIndex = Math.min(level, 4)
+    const color = colors[colorIndex]
+    
+    return {
+      backgroundColor: `light-dark(${color.lightBg}, ${color.darkBg})`,
+      borderColor: `light-dark(${color.lightBg}, ${color.darkBg})`
+    }
   }
 
   const level = getIntensityLevel(count)
 
   return (
     <div
-      className={`w-3 h-3 rounded-sm border cursor-pointer hover:ring-1 hover:ring-blue-300 hover:ring-opacity-30 ${getColorClass(level)}`}
+      className="w-3 h-3 rounded-[2px] border cursor-pointer hover:ring-1 hover:ring-blue-300 hover:ring-opacity-30"
+      style={getColorStyle(level)}
       data-date={date.toISOString().split('T')[0]}
       data-count={count}
     />
