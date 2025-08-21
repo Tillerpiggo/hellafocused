@@ -1,4 +1,5 @@
 import { TaskData } from "@/lib/types"
+import { ChevronRight } from "lucide-react"
 
 interface BreadcrumbPathProps {
   projectName: string
@@ -10,15 +11,19 @@ export function BreadcrumbPath({ projectName, taskChain }: BreadcrumbPathProps) 
     return null
   }
 
+  const pathItems = taskChain.slice(0, -1) // Exclude the current task
+  
   return (
-    <div className="text-sm text-muted-foreground font-light">
+    <div className="flex items-center text-sm text-muted-foreground font-light">
       <span>{projectName}</span>
-      {taskChain.slice(0, -1).map((task) => (
-        <span key={task.id}>
-          {" / "}
-          {task.name}
+      
+      {pathItems.length > 0 && (
+        // Show just the direct parent task
+        <span className="flex items-center">
+          <ChevronRight className="h-3 w-3 mx-1" />
+          {pathItems[pathItems.length - 1].name}
         </span>
-      ))}
+      )}
     </div>
   )
 } 

@@ -8,6 +8,7 @@ import { DeleteConfirmationDialog } from "@/components/task/delete-confirmation-
 import { ProjectPageHeader } from "@/components/project/project-page-header"
 import { TaskPageHeader } from "@/components/task/task-page-header"
 import { PageNavigation } from "@/components/page/page-navigation"
+import { BreadcrumbPath } from "@/components/page/breadcrumb-path"
 
 import { TopBar } from "@/components/top-bar"
 import { useAppStore, getCurrentTasksForView, getCurrentTaskChain } from "@/store/app-store"
@@ -292,6 +293,14 @@ export default function HomePage() {
           isFocusMode={isFocusMode}
           onFocusClick={() => setFocusMode(!isFocusMode, currentPath)}
         />
+
+        {/* Breadcrumb */}
+        {!isProjectList(currentPath) && !isProject(currentPath) && currentProject && (
+          <BreadcrumbPath
+            projectName={currentProject.name}
+            taskChain={taskChain}
+          />
+        )}
 
         {/* Title and Action Buttons */}
         {isProject(currentPath) ? (
