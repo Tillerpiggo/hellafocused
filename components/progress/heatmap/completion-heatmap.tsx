@@ -91,54 +91,63 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
   }, [days])
 
   return (
-    <div className="relative">
-      <div className="relative mb-2 h-4">
-        {monthLabels.map(({ month, weekIndex }) => (
-          <span 
-            key={`${month}-${weekIndex}`}
-            className="absolute text-xs text-muted-foreground"
-            style={{ 
-              left: `${weekIndex * 16}px`
-            }}
-          >
-            {month}
-          </span>
-        ))}
-      </div>
-      <div className="flex">
-        <div className="flex flex-col gap-1 mr-2 text-xs text-muted-foreground">
-          <div className="h-3"></div>
-          <div className="h-3 flex items-center">Mon</div>
-          <div className="h-3"></div>
-          <div className="h-3 flex items-center">Wed</div>
-          <div className="h-3"></div>
-          <div className="h-3 flex items-center">Fri</div>
-          <div className="h-3"></div>
-        </div>
-        <div 
-          className="grid grid-rows-7 grid-flow-col gap-1"
-          onMouseOver={(e) => {
-            const dayElement = e.target as HTMLElement
-            if (dayElement.dataset.date) {
-              refs.setReference(dayElement)
-              setTooltip({
-                date: dayElement.dataset.date,
-                count: parseInt(dayElement.dataset.count || '0')
-              })
-            }
-          }}
-          onMouseLeave={() => setTooltip(null)}
-        >
-          {days.map(({ date, dateKey, count }) => (
-            <HeatmapDay
-              key={dateKey}
-              date={date}
-              count={count}
-            />
-          ))}
+    <div className="w-full">
+      <div className="overflow-x-auto min-w-0">
+        <div>
+          {/* Month labels */}
+          <div className="relative mb-2 h-4 ml-10">
+            {monthLabels.map(({ month, weekIndex }) => (
+              <span 
+                key={`${month}-${weekIndex}`}
+                className="absolute text-xs text-muted-foreground"
+                style={{ 
+                  left: `${weekIndex * 16}px`
+                }}
+              >
+                {month}
+              </span>
+            ))}
+          </div>
+          
+          <div className="flex">
+            {/* Fixed-width days labels */}
+            <div className="flex flex-col gap-1 mr-2 text-xs text-muted-foreground flex-shrink-0 w-8">
+              <div className="h-3 flex items-center">Mon</div>
+              <div className="h-3"></div>
+              <div className="h-3 flex items-center">Wed</div>
+              <div className="h-3"></div>
+              <div className="h-3 flex items-center">Fri</div>
+              <div className="h-3"></div>
+            </div>
+            
+            {/* Heatmap grid */}
+            <div 
+              className="grid grid-rows-7 grid-flow-col gap-1"
+              onMouseOver={(e) => {
+                const dayElement = e.target as HTMLElement
+                if (dayElement.dataset.date) {
+                  refs.setReference(dayElement)
+                  setTooltip({
+                    date: dayElement.dataset.date,
+                    count: parseInt(dayElement.dataset.count || '0')
+                  })
+                }
+              }}
+              onMouseLeave={() => setTooltip(null)}
+            >
+              {days.map(({ date, dateKey, count }) => (
+                <HeatmapDay
+                  key={dateKey}
+                  date={date}
+                  count={count}
+                />
+              ))}
+            </div>
+          </div>
         </div>
       </div>
 
+      {/* Legend - outside scrollable area */}
       <div className="flex items-center gap-2 mt-4 text-xs text-muted-foreground">
         <span>Less</span>
         <div className="flex gap-1">

@@ -117,7 +117,7 @@ export function SidebarLayout({ tabs, activeTab, onTabChange, children, classNam
 
       {/* Main content */}
       <main className={cn(
-        "flex-1 transition-all duration-200 ease-out",
+        "flex-1 min-w-0 transition-all duration-200 ease-out",
         // Adjust main content margin based on sidebar state
         !isMobile && !isHovered && "ml-0",
         !isMobile && isHovered && "ml-0",
