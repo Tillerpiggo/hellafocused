@@ -1,61 +1,135 @@
-import { randomFrom } from "./utils"
+import confetti from "canvas-confetti"
 
 export const triggerConfetti = () => {
   if (typeof window === "undefined") return
   
-  const colors = ["#3b82f6", "#60a5fa", "#93c5fd", "#dbeafe", "#1d4ed8", "#1e40af"]
-  const confettiContainer = document.createElement("div")
-  confettiContainer.style.position = "fixed"
-  confettiContainer.style.top = "0"
-  confettiContainer.style.left = "0"
-  confettiContainer.style.width = "100%"
-  confettiContainer.style.height = "100%"
-  confettiContainer.style.pointerEvents = "none"
-  confettiContainer.style.zIndex = "9999"
-  document.body.appendChild(confettiContainer)
-
-  // Create multiple confetti pieces
-  for (let i = 0; i < 30; i++) {
-    const confetti = document.createElement("div")
-    confetti.style.position = "absolute"
-    confetti.style.width = "8px"
-    confetti.style.height = "8px"
-    confetti.style.backgroundColor = randomFrom(colors) || "#3b82f6"
-    confetti.style.left = Math.random() * 100 + "%"
-    confetti.style.top = "-10px"
-    confetti.style.borderRadius = "50%"
-    confetti.style.opacity = "0.7"
-    confetti.style.transform = `rotate(${Math.random() * 360}deg)`
-
-    confettiContainer.appendChild(confetti)
-
-    // Animate the confetti
-    const animation = confetti.animate(
-      [
-        {
-          transform: `translateY(0px) rotate(0deg)`,
-          opacity: 0.7,
-        },
-        {
-          transform: `translateY(${window.innerHeight + 100}px) rotate(${180 + Math.random() * 180}deg)`,
-          opacity: 0,
-        },
-      ],
-      {
-        duration: 4000 + Math.random() * 2000,
-        easing: "cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-      },
-    )
-
-    animation.onfinish = () => {
-      confetti.remove()
+  const pinkColors = ["#ec4899", "#f472b6", "#f9a8d4", "#fce7f3", "#be185d", "#9d174d"]
+  
+  // Always simple burst for now
+  const animations = [
+    { type: 'simple-burst', weight: 100 },     // 100% chance - always simple burst
+    { type: 'gentle-falling', weight: 0 },     // 0% chance
+    { type: 'side-bursts', weight: 0 },        // 0% chance  
+    { type: 'bottom-bursts', weight: 0 },      // 0% chance
+  ]
+  
+  // Select random animation based on weights using cumulative approach
+  const totalWeight = animations.reduce((sum, anim) => sum + anim.weight, 0)
+  const randomValue = Math.random() * totalWeight
+  let selectedAnimation = animations[0].type
+  let cumulativeWeight = 0
+  
+  for (const anim of animations) {
+    cumulativeWeight += anim.weight
+    if (randomValue <= cumulativeWeight) {
+      selectedAnimation = anim.type
+      break
     }
   }
 
-  // Clean up container after animations
-  setTimeout(() => {
-    if (confettiContainer.parentNode) {
-      confettiContainer.remove()
-    }
-  }, 7000)
+  // Animation 1: Simple burst (most common) - single clean burst from top
+  const simpleBurst = () => {
+    confetti({
+      particleCount: 25,
+      angle: 270, // Straight down
+      spread: 160, // Very wide spread for maximum coverage
+      origin: { x: 0.5, y: -0.2 }, // Center, higher above screen
+      colors: pinkColors,
+      gravity: 0.4, // Gentle gravity
+      drift: 0.1, // Slight horizontal drift
+      scalar: 0.7, // Consistent particle size
+      startVelocity: 15, // Consistent starting velocity
+      decay: 0.94, // Slower decay for longer fall
+    })
+  }
+
+  // Animation 2: Gentle falling across top of screen - left to right sequential
+  const gentleFalling = () => {
+    // Spawn confetti evenly across the top of the screen - left to right sequentially
+    const positions = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9] // Even distribution
+    
+    positions.forEach((x, index) => {
+      // Stagger the spawn times for left-to-right sequential effect
+      setTimeout(() => {
+        confetti({
+          particleCount: 3, // Very few particles per position for gentleness
+          angle: 270, // Straight down
+          spread: 10, // Very narrow spread for gentle fall
+          origin: { x, y: -0.1 }, // Each position at top, above screen
+          colors: pinkColors,
+          gravity: 0.3, // Very gentle gravity
+          drift: 0, // No horizontal drift for straight fall
+          scalar: 0.5 + Math.random() * 0.3, // Small particles
+          startVelocity: 5 + Math.random() * 5, // Very gentle starting velocity
+          decay: 0.95, // Slower decay for longer fall
+        })
+      }, index * 80) // 80ms between each position for smooth wave
+    })
+  }
+
+  // Animation 2: Bottom positioned bursts
+  const bottomBursts = () => {
+    const positions = [0.1, 0.3, 0.5, 0.7, 0.9]
+    
+    positions.forEach((x, index) => {
+      setTimeout(() => {
+        confetti({
+          particleCount: 30,
+          angle: 90, // Upward
+          spread: 60,
+          origin: { x, y: 0.9 }, // Bottom of screen
+          colors: pinkColors,
+          startVelocity: 40 + Math.random() * 20,
+          decay: 0.9,
+          scalar: 0.8,
+        })
+      }, index * 100)
+    })
+  }
+
+  // Animation 3: Simultaneous side bursts
+  const sideBursts = () => {
+    // Left side burst - angled higher and positioned further out
+    confetti({
+      particleCount: 50,
+      angle: 45, // Angled up and right (was 0)
+      spread: 90,
+      origin: { x: -0.2, y: 0.6 }, // Further left and slightly lower
+      colors: pinkColors,
+      startVelocity: 60,
+      decay: 0.9,
+    })
+    
+    // Right side burst - angled higher and positioned further out
+    setTimeout(() => {
+      confetti({
+        particleCount: 50,
+        angle: 135, // Angled up and left (was 180)
+        spread: 90,
+        origin: { x: 1.2, y: 0.6 }, // Further right and slightly lower
+        colors: pinkColors,
+        startVelocity: 60,
+        decay: 0.9,
+      })
+    }, 100)
+  }
+
+
+  // Execute selected animation
+  switch (selectedAnimation) {
+    case 'simple-burst':
+      simpleBurst()
+      break
+    case 'gentle-falling':
+      gentleFalling()
+      break
+    case 'bottom-bursts':
+      bottomBursts()
+      break
+    case 'side-bursts':
+      sideBursts()
+      break
+    default:
+      simpleBurst()
+  }
 }
