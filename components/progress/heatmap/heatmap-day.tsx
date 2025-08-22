@@ -3,16 +3,10 @@
 interface HeatmapDayProps {
   date: Date
   count: number
+  level: number
 }
 
-export function HeatmapDay({ date, count }: HeatmapDayProps) {
-  const getIntensityLevel = (count: number): number => {
-    if (count === 0) return 0
-    if (count <= 2) return 1
-    if (count <= 4) return 2
-    if (count <= 6) return 3
-    return 4
-  }
+export function HeatmapDay({ date, count, level }: HeatmapDayProps) {
 
   const getColorStyle = (level: number): React.CSSProperties => {
     // GitHub's actual heatmap colors
@@ -42,7 +36,6 @@ export function HeatmapDay({ date, count }: HeatmapDayProps) {
     }
   }
 
-  const level = getIntensityLevel(count)
 
   return (
     <div

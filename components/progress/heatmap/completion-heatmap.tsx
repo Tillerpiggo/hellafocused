@@ -72,6 +72,31 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
     })
   }, [completions])
 
+  const normalDistributionThresholds = useMemo(() => {
+    const activeDays = days.map(day => day.count).filter(count => count > 0)
+    
+    const mean = activeDays.reduce((sum, count) => sum + count, 0) / activeDays.length
+    const variance = activeDays.reduce((sum, count) => sum + Math.pow(count - mean, 2), 0) / activeDays.length
+    const stdDev = Math.sqrt(variance)
+    
+    // z-scores for 30th, 80th, 95th percentiles
+    const zScores = [-0.5244, 0.8416, 1.6449]
+    
+    const thresholds = [0, ...zScores.map(z => mean + z * stdDev)] // [0, 30th percentile, 80th percentile, 95th percentile]
+    
+    console.log('Heatmap Stats:', { mean, stdDev, thresholds })
+    
+    return thresholds
+  }, [days])
+
+  const getIntensityLevel = (count: number): number => {
+    if (count === 0) return 0
+    if (count <= normalDistributionThresholds[1]) return 1
+    if (count <= normalDistributionThresholds[2]) return 2
+    if (count <= normalDistributionThresholds[3]) return 3
+    return 4
+  }
+
   const monthLabels = useMemo(() => {
     const monthLabelsArray: { month: string; weekIndex: number }[] = []
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -149,6 +174,7 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
                   key={dateKey}
                   date={date}
                   count={count}
+                  level={getIntensityLevel(count)}
                 />
               ))}
             </div>
