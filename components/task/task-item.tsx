@@ -58,7 +58,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
   const taskContent = (
     <div
       className={cn(
-        "flex items-start justify-between p-4 rounded-2xl border group",
+        "flex items-start justify-between p-4 rounded-2xl group glass-card",
         // Only add transitions when not dragging to avoid conflicts with drop animation
         !isDragging && "transition-all duration-200",
         // Dragging state - avoid scale transform to prevent conflicts with drop animation
@@ -66,24 +66,23 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
           ? [
               "opacity-80",
               task.completed
-                ? "bg-muted/60 border-border/40"
+                ? "backdrop-blur-sm bg-muted/40"
                 : effectivePriority === 1
-                ? "bg-amber-100/70 border-amber-300/60 dark:bg-amber-900/40 dark:border-amber-700/50"
+                ? "backdrop-blur-md bg-gradient-to-br from-amber-200/30 to-pink-200/30 border-amber-300/50"
                 : effectivePriority === -1
-                ? "bg-muted/30 border-border/30"
-                : "bg-accent/80 border-primary/30"
+                ? "backdrop-blur-sm bg-muted/20"
+                : "backdrop-blur-md bg-gradient-to-br from-pink-100/30 to-rose-100/30"
             ]
           : [
-              "bg-background",
               task.completed
-                ? "bg-muted/50 opacity-60 border-border/30"
+                ? "backdrop-blur-sm bg-muted/30 opacity-60"
                 : effectivePriority === 1
-                ? "bg-amber-50/50 border-amber-200/50 hover:bg-amber-100/50 hover:border-amber-300/50 dark:bg-amber-950/20 dark:border-amber-800/30 dark:hover:bg-amber-900/30 dark:hover:border-amber-700/40"
+                ? "backdrop-blur-md bg-gradient-to-br from-amber-100/40 to-pink-100/40 hover:from-amber-200/50 hover:to-pink-200/50 border-amber-200/60 hover:border-amber-300/70 dark:from-amber-900/30 dark:to-pink-900/30 dark:hover:from-amber-800/40 dark:hover:to-pink-800/40 dark:border-amber-700/50 dark:hover:border-amber-600/60"
                 : effectivePriority === -1
-                ? "bg-muted/20 opacity-70 border-border/20 hover:bg-muted/30 hover:border-border/30"
-                : "hover:bg-accent/80 hover:border-primary/30 border-border/50",
+                ? "backdrop-blur-sm bg-muted/20 opacity-70 hover:bg-muted/30"
+                : "backdrop-blur-md hover:backdrop-blur-lg hover:bg-gradient-to-br hover:from-pink-100/40 hover:to-rose-100/40 dark:hover:from-pink-900/30 dark:hover:to-rose-900/30",
             ],
-        "cursor-pointer",
+        "cursor-pointer border-white/30 shadow-lg hover:shadow-xl",
       )}
       onClick={handleNavigate}
     >

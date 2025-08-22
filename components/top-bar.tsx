@@ -127,7 +127,7 @@ export function TopBar({ onMenuToggle, isMenuOpen }: TopBarProps) {
 
   if (isMobile) {
     return (
-      <div className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="fixed top-0 left-0 right-0 z-50 border-b border-white/20 glass-morphism">
         <div className="flex h-14 items-center justify-between px-6">
           {onMenuToggle && (
             <Button
@@ -147,7 +147,7 @@ export function TopBar({ onMenuToggle, isMenuOpen }: TopBarProps) {
 
   // Desktop layout (unchanged)
   return (
-    <div className="fixed top-0 left-0 right-0 z-50 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div className="fixed top-0 left-0 right-0 z-50 border-b border-white/20 glass-morphism">
       <div className="flex h-14 items-center justify-between px-6">
         {/* Left side - Logo and Sync Status */}
         <div className="flex items-center space-x-4">

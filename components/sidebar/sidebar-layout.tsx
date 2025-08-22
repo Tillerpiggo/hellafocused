@@ -85,7 +85,7 @@ export function SidebarLayout({
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
           className={cn(
-            "bg-background border-r border-border overflow-hidden",
+            "glass-morphism border-r border-white/20 overflow-hidden",
             "fixed top-14 left-0 bottom-0 z-40",
             "transition-[width] duration-300 ease-in-out",
             isHovered ? "w-64" : "w-16"
@@ -107,8 +107,8 @@ export function SidebarLayout({
         <aside
           id="mobile-sidebar"
           className={cn(
-            "bg-background border-r border-border overflow-hidden",
-            "fixed top-0 left-0 h-full z-50 shadow-lg w-64",
+            "glass-morphism border-r border-white/20 overflow-hidden",
+            "fixed top-0 left-0 h-full z-50 shadow-2xl w-64",
             "transition-transform duration-300 ease-in-out",
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
           )}

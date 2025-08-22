@@ -247,7 +247,7 @@ export function ProgressChart({ projects }: ProgressChartProps) {
               allowDecimals={false}
             />
             <Tooltip 
-              cursor={{ fill: 'rgba(59, 130, 246, 0.12)' }}
+              cursor={{ fill: 'rgba(244, 114, 182, 0.12)' }}
               allowEscapeViewBox={{ x: false, y: true }}
               animationDuration={200}
               position={{ x: undefined, y: 160 - toolTipYPosition }}
@@ -273,7 +273,7 @@ export function ProgressChart({ projects }: ProgressChartProps) {
                       color: theme === 'dark' ? '#f9fafb' : '#111827'
                     }}>
                       <p style={{ margin: 0, fontWeight: 'bold' }}>{getTooltipLabel(String(label || ''))}</p>
-                      <p style={{ margin: 0, color: '#3b82f6' }}>Tasks completed: {payload[0].value}</p>
+                      <p style={{ margin: 0, color: '#f472b6' }}>Tasks completed: {payload[0].value}</p>
                     </div>
                   )
                 }
@@ -282,7 +282,7 @@ export function ProgressChart({ projects }: ProgressChartProps) {
             />
             <Bar
               dataKey="tasks"
-              fill="#3b82f6"
+              fill="#f472b6"
               radius={[4, 4, 0, 0]}
               animationDuration={300}
             />
