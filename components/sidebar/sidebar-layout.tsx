@@ -107,7 +107,7 @@ export function SidebarLayout({
         <aside
           id="mobile-sidebar"
           className={cn(
-            "glass-morphism border-r border-white/20 overflow-hidden",
+            "glass-mobile-sidebar border-r border-white/20 overflow-hidden",
             "fixed top-0 left-0 h-full z-50 shadow-2xl w-64",
             "transition-transform duration-300 ease-in-out",
             isSidebarOpen ? "translate-x-0" : "-translate-x-full"
