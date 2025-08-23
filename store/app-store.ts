@@ -14,6 +14,7 @@ import {
   addTaskToParent,
   isProject,
   isProjectList,
+  isTaskDescendantOf,
   fillMissingPositionsForProjects,
   fillMissingPrioritiesForProjects,
   fillMissingProjectPositions,
@@ -38,6 +39,7 @@ import {
 interface AppState {
   projects: ProjectData[]
   currentPath: string[] // [] for project list, [projectId] for project, [projectId, taskId, ...] for tasks
+  navigationContext: string[] // Stores the deepest path visited for breadcrumb context
   showCompleted: boolean
   searchQuery: string
   // Actions
@@ -74,14 +76,43 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       projects: initialProjectsData,
       currentPath: [], // Start at project list
+      navigationContext: [], // Start with empty context
       showCompleted: false,
       searchQuery: "",
 
-  selectProject: (projectId) => set({ currentPath: projectId ? [projectId] : [] }),
+  selectProject: (projectId) => set({ 
+    currentPath: projectId ? [projectId] : [],
+    navigationContext: projectId ? [projectId] : [] // Reset context when selecting project
+  }),
 
-  navigateToTask: (taskId) => set((state) => ({ currentPath: [...state.currentPath, taskId] })),
+  navigateToTask: (taskId) => set((state) => {
+    const newPath = [...state.currentPath, taskId]
+    return { 
+      currentPath: newPath,
+      navigationContext: newPath // Going deeper, update context
+    }
+  }),
 
-  navigateToPath: (path) => set({ currentPath: path }),
+  navigateToPath: (path) => set((state) => {
+    let newContext = state.navigationContext
+    
+    if (isProjectList(path)) {
+      newContext = [] // Project list - reset
+    } else if (isProject(path)) {
+      newContext = path // Project level - reset to project
+    } else if (state.navigationContext.length > 0 && path[0] !== state.navigationContext[0]) {
+      newContext = path // Different project - reset
+    } else if (isTaskDescendantOf(state.navigationContext, path)) {
+      // Moving up same branch - keep context
+    } else {
+      newContext = path // Branch switch or going deeper
+    }
+    
+    return { 
+      currentPath: path,
+      navigationContext: newContext
+    }
+  }),
 
   navigateBack: () =>
     set((state) => {

@@ -17,14 +17,37 @@ interface BreadcrumbPathProps {
 
 export function BreadcrumbPath({ projectName, taskChain }: BreadcrumbPathProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const { navigateToPath, currentPath } = useAppStore()
+  const { navigateToPath, currentPath, navigationContext, projects } = useAppStore()
 
   const projectId = getProjectId(currentPath)
   
-  // Create array of all names in the chain excluding current task
+  // Build the full context chain for the dropdown
+  const contextTaskChain: TaskData[] = []
+  if (navigationContext.length > 1 && navigationContext[0] === projectId) {
+    // Build chain from navigation context
+    const project = projects.find(p => p.id === projectId)
+    if (project) {
+      let currentTasks = project.tasks
+      const taskPath = navigationContext.slice(1) // Remove project ID
+      for (const taskId of taskPath) {
+        const task = currentTasks.find((t) => t.id === taskId)
+        if (task) {
+          contextTaskChain.push(task)
+          currentTasks = task.subtasks
+        } else {
+          break // Path broken
+        }
+      }
+    }
+  }
+  
+  // Use the full context chain if available, otherwise fall back to current chain
+  const dropdownTaskChain = contextTaskChain.length > 0 ? contextTaskChain : taskChain
+  
+  // Create array of all names in the chain excluding current task (for preview text)
   const allNames = [projectName, ...taskChain.slice(0, -1).map(task => task.name)]
   
-  // Get the second to last two items (might only be one item)
+  // Get the second to last two items (might only be one item) for preview text
   const breadcrumbNames = allNames.length > 2 ? allNames.slice(-2) : allNames
   
   if (breadcrumbNames.length === 0) {
@@ -89,11 +112,12 @@ export function BreadcrumbPath({ projectName, taskChain }: BreadcrumbPathProps) 
           </div>
         </DropdownMenuItem>
         
-        {taskChain.length > 0 && <div className="h-px bg-border/50 my-1"></div>}
+        {dropdownTaskChain.length > 0 && <div className="h-px bg-border/50 my-1"></div>}
         
         {/* All tasks in the chain */}
-        {taskChain.map((task, index) => {
-          const isCurrentTask = index === taskChain.length - 1
+        {dropdownTaskChain.map((task, index) => {
+          // Check if this task is the current task based on the currentPath
+          const isCurrentTask = currentPath.length > 1 && currentPath[currentPath.length - 1] === task.id
           const indentLevel = index + 1
           
           return (
