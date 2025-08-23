@@ -440,7 +440,7 @@ class SyncEngine {
       // Fetch projects and tasks from Supabase with pagination
       const cloudProjects: DatabaseProject[] = []
       let projectsFrom = 0
-      const projectsBatchSize = 10000
+      const projectsBatchSize = 1000 // Supabase default limit
 
       while (true) {
         const { data, error } = await supabase
@@ -465,7 +465,7 @@ class SyncEngine {
 
       const cloudTasks: DatabaseTask[] = []
       let tasksFrom = 0
-      const tasksBatchSize = 10000
+      const tasksBatchSize = 1000 // Supabase default limit
 
       while (true) {
         const { data, error } = await supabase
@@ -482,11 +482,14 @@ class SyncEngine {
 
         if (!data || data.length === 0) break
 
+        console.log(`📥 Fetched batch: ${data.length} tasks (from ${tasksFrom})`)
         cloudTasks.push(...data)
         tasksFrom += tasksBatchSize
 
         if (data.length < tasksBatchSize) break
       }
+      
+      console.log(`📊 Total tasks fetched: ${cloudTasks.length}`)
 
       if (cloudProjects && cloudTasks) {
         await mergeManager.mergeCloudWithLocal(cloudProjects, cloudTasks)

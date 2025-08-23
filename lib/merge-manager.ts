@@ -7,6 +7,8 @@ import { fillMissingPositionsForProjects } from './task-utils'
 
 export class MergeManager {
   async mergeCloudWithLocal(cloudProjects: DatabaseProject[], cloudTasks: DatabaseTask[]) {
+    console.log(`🔄 Starting merge: ${cloudProjects.length} projects, ${cloudTasks.length} tasks`)
+    
     const localProjects = useAppStore.getState().projects
     const { pendingChanges } = useSyncStore.getState()
     
