@@ -1,5 +1,5 @@
 import { TaskData } from "@/lib/types"
-import { ChevronRight } from "lucide-react"
+import { ChevronDown, Home, Folder } from "lucide-react"
 import { useState } from "react"
 import {
   DropdownMenu,
@@ -50,24 +50,46 @@ export function BreadcrumbPath({ projectName, taskChain }: BreadcrumbPathProps) 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <div className="flex items-center text-sm text-muted-foreground font-light cursor-pointer hover:text-foreground transition-colors">
-          {breadcrumbNames.map((name, index) => (
-            <span key={`${name}-${index}`} className="flex items-center">
-              {index > 0 && <ChevronRight className="h-3 w-3 mx-1" />}
-              <span>{name}</span>
-            </span>
-          ))}
-        </div>
+        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/15 hover:to-primary/10 border border-primary/20 hover:border-primary/30 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 shadow-sm hover:shadow-md backdrop-blur-md">
+          <div className="flex items-center">
+            {breadcrumbNames.map((name, index) => {
+              const isProject = index === 0 && name === projectName
+              const opacity = breadcrumbNames.length > 1 
+                ? (index === 0 ? 'opacity-70' : 'opacity-100')
+                : 'opacity-100'
+              
+              return (
+                <span key={`${name}-${index}`} className="flex items-center">
+                  {index > 0 && (
+                    <span className="mx-1.5 text-muted-foreground/40 select-none">/</span>
+                  )}
+                  <span className={`flex items-center gap-1.5 text-muted-foreground ${opacity}`}>
+                    {isProject && <Home className="h-3 w-3" />}
+                    <span className={`truncate ${isProject ? 'font-medium' : 'font-normal'}`}>
+                      {name}
+                    </span>
+                  </span>
+                </span>
+              )
+            })}
+          </div>
+          <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground/60 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent align="start" className="w-64 md:w-80">
+      <DropdownMenuContent align="start" className="w-64 md:w-80 bg-background/95 backdrop-blur-sm border-border/50 shadow-lg animate-in slide-in-from-top-2 duration-200">
         {/* Project level */}
         <DropdownMenuItem 
           onClick={handleNavigateToProject}
-          className="font-medium"
+          className="font-medium hover:bg-accent/80 transition-colors duration-150"
         >
-          <span className="truncate">{projectName}</span>
+          <div className="flex items-center gap-2">
+            <Home className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="truncate">{projectName}</span>
+          </div>
         </DropdownMenuItem>
+        
+        {taskChain.length > 0 && <div className="h-px bg-border/50 my-1"></div>}
         
         {/* All tasks in the chain */}
         {taskChain.map((task, index) => {
@@ -78,14 +100,24 @@ export function BreadcrumbPath({ projectName, taskChain }: BreadcrumbPathProps) 
             <DropdownMenuItem
               key={task.id}
               onClick={() => handleNavigateToTask(index)}
-              className={`${
+              className={`relative hover:bg-accent/80 transition-colors duration-150 ${
                 isCurrentTask 
-                  ? "bg-accent text-accent-foreground font-medium" 
-                  : ""
+                  ? "font-medium" 
+                  : "font-normal"
               }`}
-              style={{ paddingLeft: `${indentLevel * 12 + 8}px` }}
+              style={{ paddingLeft: `${indentLevel * 16 + 8}px` }}
             >
-              <span className="truncate block">{task.name}</span>
+              {isCurrentTask && (
+                <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-primary" />
+              )}
+              <div className="flex items-center gap-2 w-full">
+                <Folder className={`h-3 w-3 flex-shrink-0 ${
+                  isCurrentTask ? 'text-primary' : 'text-muted-foreground'
+                }`} />
+                <span className={`truncate block flex-1 ${
+                  isCurrentTask ? 'text-foreground' : 'text-muted-foreground'
+                }`}>{task.name}</span>
+              </div>
             </DropdownMenuItem>
           )
         })}
