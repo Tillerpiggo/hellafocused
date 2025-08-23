@@ -7,7 +7,7 @@ import { TaskCompletionDialog } from "@/components/task/task-completion-dialog"
 import { DeleteConfirmationDialog } from "@/components/task/delete-confirmation-dialog"
 import { ProjectPageHeader } from "@/components/project/project-page-header"
 import { TaskPageHeader } from "@/components/task/task-page-header"
-import { TaskInfoPanel } from "@/components/task/task-info-panel"
+import { TaskDescriptionField } from "@/components/task/task-description-field"
 import { PageNavigation } from "@/components/page/page-navigation"
 import { BreadcrumbPath } from "@/components/page/breadcrumb-path"
 
@@ -333,9 +333,9 @@ export default function HomePage() {
           />
         )}
 
-        {/* Task Info Panel - Only show for tasks, not projects */}
+        {/* Task Description Field - Only show for tasks, not projects */}
         {!isProject(currentPath) && currentTask && (
-          <TaskInfoPanel
+          <TaskDescriptionField
             taskPath={currentPath}
             taskName={currentTask.name}
           />
