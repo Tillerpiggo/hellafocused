@@ -189,8 +189,7 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
           {[0, 1, 2, 3, 4].map(level => (
             <div
               key={level}
-              className="w-3 h-3 rounded-sm"
-              style={getColorStyle(level)}
+              className={`w-3 h-3 rounded-sm ${getColorClass(level)}`}
             />
           ))}
         </div>
@@ -213,30 +212,15 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
   )
 }
 
-function getColorStyle(level: number): React.CSSProperties {
-  // GitHub's actual heatmap colors
-  const colors = [
-    { 
-      lightBg: '#ebedf0', darkBg: '#161b22'  // Level 0 - Gray (no activity)
-    },
-    { 
-      lightBg: '#9be9a8', darkBg: '#0e4429'  // Level 1 - Light green
-    },
-    { 
-      lightBg: '#40c463', darkBg: '#006d32'  // Level 2 - Medium green
-    },
-    { 
-      lightBg: '#30a14e', darkBg: '#26a641'  // Level 3 - Dark green
-    },
-    { 
-      lightBg: '#216e39', darkBg: '#39d353'  // Level 4 - Darkest green
-    }
+function getColorClass(level: number): string {
+  const classes = [
+    'bg-[#ebedf0] dark:bg-[#161b22]',  // Level 0 - Gray (no activity)
+    'bg-[#9be9a8] dark:bg-[#0e4429]',  // Level 1 - Light green
+    'bg-[#40c463] dark:bg-[#006d32]',  // Level 2 - Medium green
+    'bg-[#30a14e] dark:bg-[#26a641]',  // Level 3 - Dark green
+    'bg-[#216e39] dark:bg-[#39d353]',  // Level 4 - Darkest green
   ]
   
   const colorIndex = Math.min(level, 4)
-  const color = colors[colorIndex]
-  
-  return {
-    backgroundColor: `light-dark(${color.lightBg}, ${color.darkBg})`
-  }
+  return classes[colorIndex]
 }
