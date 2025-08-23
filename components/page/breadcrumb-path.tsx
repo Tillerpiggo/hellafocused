@@ -64,7 +64,7 @@ export function BreadcrumbPath({ projectName, taskChain }: BreadcrumbPathProps) 
   const handleNavigateToTask = (taskIndex: number) => {
     if (projectId) {
       // Build path: project + task IDs up to the selected task
-      const taskPath = [projectId, ...taskChain.slice(0, taskIndex + 1).map(task => task.id)]
+      const taskPath = [projectId, ...dropdownTaskChain.slice(0, taskIndex + 1).map(task => task.id)]
       navigateToPath(taskPath)
       setIsOpen(false)
     }
