@@ -91,6 +91,8 @@
     background-position: center;
     background-attachment: fixed;
     background-blend-mode: soft-light;
+    /* Create stacking context for Safari backdrop-filter */
+    transform: translateZ(0);
   }
 }
 
@@ -114,30 +116,74 @@
 
   .glass-card {
     background: rgba(255, 240, 245, 0.25);
-    backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 192, 203, 0.3);
     box-shadow: 0 8px 32px rgba(255, 192, 203, 0.1);
+  }
+  
+  @supports (-webkit-backdrop-filter: blur(16px)) {
+    .glass-card {
+      -webkit-backdrop-filter: blur(16px);
+    }
+  }
+  
+  @supports (backdrop-filter: blur(16px)) {
+    .glass-card {
+      backdrop-filter: blur(16px);
+    }
   }
 
   .dark .glass-card {
     background: rgba(139, 69, 19, 0.15);
-    backdrop-filter: blur(16px);
     border: 1px solid rgba(255, 192, 203, 0.15);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+  
+  @supports (-webkit-backdrop-filter: blur(16px)) {
+    .dark .glass-card {
+      -webkit-backdrop-filter: blur(16px);
+    }
+  }
+  
+  @supports (backdrop-filter: blur(16px)) {
+    .dark .glass-card {
+      backdrop-filter: blur(16px);
+    }
   }
 
   .glass-morphism {
     background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+  
+  @supports (-webkit-backdrop-filter: blur(12px)) {
+    .glass-morphism {
+      -webkit-backdrop-filter: blur(12px);
+    }
+  }
+  
+  @supports (backdrop-filter: blur(12px)) {
+    .glass-morphism {
+      backdrop-filter: blur(12px);
+    }
   }
 
   .dark .glass-morphism {
     background: rgba(0, 0, 0, 0.15);
-    backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+  
+  @supports (-webkit-backdrop-filter: blur(12px)) {
+    .dark .glass-morphism {
+      -webkit-backdrop-filter: blur(12px);
+    }
+  }
+  
+  @supports (backdrop-filter: blur(12px)) {
+    .dark .glass-morphism {
+      backdrop-filter: blur(12px);
+    }
   }
 
   .animate-slide-up-in {

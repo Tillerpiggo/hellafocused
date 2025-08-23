@@ -5,12 +5,12 @@ export const triggerConfetti = () => {
   
   const pinkColors = ["#ec4899", "#f472b6", "#f9a8d4", "#fce7f3", "#be185d", "#9d174d"]
   
-  // Always simple burst for now
+  // Diverse animation weights for variety
   const animations = [
-    { type: 'simple-burst', weight: 100 },     // 100% chance - always simple burst
-    { type: 'gentle-falling', weight: 0 },     // 0% chance
-    { type: 'side-bursts', weight: 0 },        // 0% chance  
-    { type: 'bottom-bursts', weight: 0 },      // 0% chance
+    { type: 'simple-burst', weight: 40 },      // 40% chance - most common
+    { type: 'gentle-falling', weight: 25 },    // 25% chance - gentle cascade
+    { type: 'side-bursts', weight: 20 },       // 20% chance - dramatic side bursts
+    { type: 'bottom-bursts', weight: 15 },     // 15% chance - upward celebration
   ]
   
   // Select random animation based on weights using cumulative approach

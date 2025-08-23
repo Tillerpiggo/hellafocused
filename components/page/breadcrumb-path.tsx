@@ -60,13 +60,13 @@ export function BreadcrumbPath({ projectName, taskChain }: BreadcrumbPathProps) 
         </div>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent align="start" className="w-64">
+      <DropdownMenuContent align="start" className="w-64 md:w-80">
         {/* Project level */}
         <DropdownMenuItem 
           onClick={handleNavigateToProject}
           className="font-medium"
         >
-          {projectName}
+          <span className="truncate">{projectName}</span>
         </DropdownMenuItem>
         
         {/* All tasks in the chain */}
@@ -85,7 +85,7 @@ export function BreadcrumbPath({ projectName, taskChain }: BreadcrumbPathProps) 
               }`}
               style={{ paddingLeft: `${indentLevel * 12 + 8}px` }}
             >
-              {task.name}
+              <span className="truncate block">{task.name}</span>
             </DropdownMenuItem>
           )
         })}

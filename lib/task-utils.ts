@@ -76,11 +76,15 @@ export const countSubtasksRecursively = (task: TaskData): number => {
 
 /**
  * Mark all subtasks as completed (recursively)
+ * Only sets completed flag and lastModificationDate, preserves existing completionDate
  */
 export const markAllSubtasksCompleted = (task: TaskData) => {
   task.subtasks.forEach((subtask) => {
     subtask.completed = true
-    subtask.completionDate = new Date().toISOString()
+    // Only set completionDate if the subtask doesn't already have one
+    if (!subtask.completionDate) {
+      subtask.completionDate = new Date().toISOString()
+    }
     subtask.lastModificationDate = new Date().toISOString()
     markAllSubtasksCompleted(subtask)
   })

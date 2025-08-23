@@ -661,7 +661,7 @@ class SyncEngine {
       position = (count || 0)
     }
     
-    const { error } = await supabase.from('tasks').insert({
+    const { error } = await supabase.from('tasks').upsert({
       id: task.id,
       name: task.name,
       project_id: projectId,
