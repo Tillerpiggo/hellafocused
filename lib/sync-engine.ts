@@ -437,27 +437,55 @@ class SyncEngine {
     try {
       const userId = await this.getCurrentUserId()
       
-      // Fetch projects and tasks from Supabase
-      const { data: cloudProjects, error: projectsError } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_deleted', false)
+      // Fetch projects and tasks from Supabase with pagination
+      const cloudProjects: DatabaseProject[] = []
+      let projectsFrom = 0
+      const projectsBatchSize = 10000
 
-      if (projectsError) {
-        console.error('Error fetching projects:', projectsError)
-        return
+      while (true) {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('is_deleted', false)
+          .range(projectsFrom, projectsFrom + projectsBatchSize - 1)
+
+        if (error) {
+          console.error('Error fetching projects:', error)
+          return
+        }
+
+        if (!data || data.length === 0) break
+
+        cloudProjects.push(...data)
+        projectsFrom += projectsBatchSize
+
+        if (data.length < projectsBatchSize) break
       }
 
-      const { data: cloudTasks, error: tasksError } = await supabase
-        .from('tasks')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_deleted', false)
+      const cloudTasks: DatabaseTask[] = []
+      let tasksFrom = 0
+      const tasksBatchSize = 10000
 
-      if (tasksError) {
-        console.error('Error fetching tasks:', tasksError)
-        return
+      while (true) {
+        const { data, error } = await supabase
+          .from('tasks')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('is_deleted', false)
+          .range(tasksFrom, tasksFrom + tasksBatchSize - 1)
+
+        if (error) {
+          console.error('Error fetching tasks:', error)
+          return
+        }
+
+        if (!data || data.length === 0) break
+
+        cloudTasks.push(...data)
+        tasksFrom += tasksBatchSize
+
+        if (data.length < tasksBatchSize) break
       }
 
       if (cloudProjects && cloudTasks) {
