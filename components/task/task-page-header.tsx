@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/page/page-header"
 import { TaskOptionsMenu } from "./task-options-menu"
 import { Button } from "@/components/ui/button"
-import { Check, X } from "lucide-react"
+import { Check, X, Search, Edit2, Calendar } from "lucide-react"
 import { forwardRef } from "react"
 import type { EditableTitleRef } from "@/components/editable-title"
 
@@ -38,6 +38,50 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
   onComplete,
   onUncomplete,
 }, ref) => {
+  const handleSearchClick = () => {
+    console.log("Search subtasks - coming soon")
+  }
+
+  const handleDetailsClick = () => {
+    console.log("Edit details/description - coming soon")
+  }
+
+  const handleDueDateClick = () => {
+    console.log("Set due date - coming soon")
+  }
+
+  const iconButtons = (
+    <div className="flex items-center gap-1">
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleSearchClick}
+        className="h-8 w-8 rounded-full opacity-60 hover:opacity-100 transition-opacity"
+        title="Search subtasks"
+      >
+        <Search className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleDetailsClick}
+        className="h-8 w-8 rounded-full opacity-60 hover:opacity-100 transition-opacity"
+        title="Edit details"
+      >
+        <Edit2 className="h-4 w-4" />
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleDueDateClick}
+        className="h-8 w-8 rounded-full opacity-60 hover:opacity-100 transition-opacity"
+        title="Set due date"
+      >
+        <Calendar className="h-4 w-4" />
+      </Button>
+    </div>
+  )
+
   const actionButtons = (
     <>
       {shouldShowCompleteButton && (
@@ -71,6 +115,7 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
       title={title}
       onTitleChange={onTitleChange}
       isCompleted={isCompleted}
+      iconButtons={iconButtons}
       optionsMenu={
         <TaskOptionsMenu
           onRename={onRename}

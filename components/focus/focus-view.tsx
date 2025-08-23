@@ -224,7 +224,7 @@ export function FocusView({ startPath }: FocusViewProps) {
         <FocusHeaderButtons
           onExitFocus={handleExitFocusMode}
           onShowAddTasks={() => setShowAddTasksView(true)}
-          currentTaskPriority={currentTaskPriority}
+          currentTaskPriority={showSubtaskCelebration ? 0 : currentTaskPriority} // 0 hides icons on celebration page
           onPriorityChange={handleSetPriority}
         />
 

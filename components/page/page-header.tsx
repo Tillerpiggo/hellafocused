@@ -8,6 +8,7 @@ interface PageHeaderProps {
   isCompleted: boolean
   optionsMenu: React.ReactNode
   actionButtons?: React.ReactNode
+  iconButtons?: React.ReactNode
 }
 
 export const PageHeader = forwardRef<EditableTitleRef, PageHeaderProps>(({
@@ -16,6 +17,7 @@ export const PageHeader = forwardRef<EditableTitleRef, PageHeaderProps>(({
   isCompleted,
   optionsMenu,
   actionButtons,
+  iconButtons,
 }, ref) => {
   return (
     <div className="flex items-start justify-between gap-4">
@@ -31,6 +33,7 @@ export const PageHeader = forwardRef<EditableTitleRef, PageHeaderProps>(({
         </h1>
       </div>
       <div className="flex items-center gap-3 flex-shrink-0">
+        {iconButtons}
         {optionsMenu}
         {actionButtons}
       </div>
