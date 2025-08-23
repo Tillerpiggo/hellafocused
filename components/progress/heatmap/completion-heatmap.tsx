@@ -15,6 +15,23 @@ interface TooltipState {
   count: number
 }
 
+// Convert UTC ISO string to local date string (YYYY-MM-DD)
+function getLocalDateString(utcDateString: string): string {
+  const date = new Date(utcDateString)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+// Convert a local date to local date string (YYYY-MM-DD)
+function dateToLocalString(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -35,7 +52,7 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
 
     const processTask = (task: TaskData) => {
       if (task.completed && task.completionDate) {
-        const dateKey = task.completionDate.split('T')[0]
+        const dateKey = getLocalDateString(task.completionDate)
         counts[dateKey] = (counts[dateKey] || 0) + 1
       }
       task.subtasks.forEach(processTask)
@@ -62,7 +79,7 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
     return Array.from({ length: totalDays }, (_, i) => {
       const date = new Date(startDate)
       date.setDate(date.getDate() + i)
-      const dateKey = date.toISOString().split('T')[0]
+      const dateKey = dateToLocalString(date)
       
       return {
         date,
