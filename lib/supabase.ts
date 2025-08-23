@@ -60,6 +60,7 @@ export interface DatabaseProject {
 export interface DatabaseTask {
   id: string
   name: string
+  description?: string
   project_id: string
   parent_id?: string
   completed: boolean

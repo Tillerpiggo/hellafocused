@@ -1,6 +1,7 @@
 export interface TaskData {
   id: string
   name: string
+  description?: string
   completed: boolean
   completionDate?: string // Store as ISO string instead of Date object
   lastModificationDate: string // Store as ISO string, tracks last modification

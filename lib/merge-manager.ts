@@ -97,6 +97,7 @@ export class MergeManager {
     return {
       id: cloudTask.id,
       name: cloudTask.name,
+      description: cloudTask.description || undefined,
       completed: cloudTask.completed,
       completionDate: cloudTask.completion_date || undefined,
       lastModificationDate: cloudTask.updated_at,

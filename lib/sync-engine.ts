@@ -695,6 +695,7 @@ class SyncEngine {
     const { error } = await supabase.from('tasks').upsert({
       id: task.id,
       name: task.name,
+      description: task.description || null,
       project_id: projectId,
       parent_id: parentId || null,
       completed: task.completed,
@@ -718,6 +719,7 @@ class SyncEngine {
     
     const updateData: Record<string, unknown> = {
       name: task.name,
+      description: task.description || null,
       completed: task.completed,
       completion_date: task.completionDate || null,
       position: task.position ?? 0,
