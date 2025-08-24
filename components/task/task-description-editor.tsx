@@ -59,7 +59,14 @@ export function TaskDescriptionEditor({
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
           placeholder={placeholder}
-          className="w-full bg-transparent border-0 p-0 resize-none focus:ring-0 focus:outline-none text-foreground placeholder:text-muted-foreground/50 min-h-[80px]"
+          className="w-full bg-transparent border-0 p-0 resize-none text-foreground placeholder:text-muted-foreground/50 min-h-[80px]"
+          style={{
+            outline: 'none !important',
+            border: 'none !important',
+            boxShadow: 'none !important',
+            '--tw-ring-color': 'transparent',
+            '--tw-ring-shadow': 'none'
+          } as React.CSSProperties}
         />
       </div>
     </div>

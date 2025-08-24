@@ -49,7 +49,7 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
   }
 
   const handleDetailsClick = () => {
-    setShowDescriptionEditor(true)
+    setShowDescriptionEditor(prev => !prev)
   }
 
   const handleDueDateClick = () => {
