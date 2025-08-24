@@ -27,7 +27,7 @@ import { SearchResults } from "@/components/search-results"
 import { type EditableTitleRef } from "@/components/editable-title"
 import { useRef, useMemo, useState } from "react"
 import { SidebarLayout } from "@/components/sidebar/sidebar-layout"
-import { countSubtasksRecursively, findTaskAtPath, findProjectAtPath, getProjectId, isProject, isProjectList } from "@/lib/task-utils"
+import { countSubtasksRecursively, findTaskAtPath, findProjectAtPath, getProjectId, isProject, isProjectList, isTask } from "@/lib/task-utils"
 import { searchAllTasks, groupSearchResults } from "@/lib/search-utils"
 
 export default function HomePage() {
@@ -40,6 +40,7 @@ export default function HomePage() {
     selectProject,
     updateProjectName,
     updateTaskName,
+    updateTaskDescription,
     toggleTaskCompletion, // Still needed for uncompleting tasks (no confirmation needed)
     toggleTaskDefer,
     toggleTaskPrefer,
@@ -176,6 +177,12 @@ export default function HomePage() {
     } else {
       // Editing task name
       updateTaskName(currentPath, newTitle)
+    }
+  }
+
+  const handleDescriptionChange = (newDescription: string) => {
+    if (isTask(currentPath)) {
+      updateTaskDescription(currentPath, newDescription)
     }
   }
 
@@ -317,6 +324,8 @@ export default function HomePage() {
             ref={titleRef}
             title={taskChain[taskChain.length - 1]?.name || ""}
             onTitleChange={handleTitleChange}
+            description={currentTask?.description}
+            onDescriptionChange={handleDescriptionChange}
             isCompleted={isCurrentTaskCompleted}
             isDeferred={taskChain[taskChain.length - 1]?.priority === -1}
             isPreferred={taskChain[taskChain.length - 1]?.priority === 1}

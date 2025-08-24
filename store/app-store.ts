@@ -61,6 +61,7 @@ interface AppState {
   addSubtaskToParent: (parentPath: string[], subtaskName: string) => void
   updateProjectName: (projectId: string, newName: string) => void
   updateTaskName: (taskPath: string[], newName: string) => void
+  updateTaskDescription: (taskPath: string[], newDescription: string) => void
   addProject: (projectName: string) => void
   reorderTasks: (parentPath: string[], fromIndex: number, toIndex: number) => void
   reorderProjects: (fromIndex: number, toIndex: number) => void
@@ -311,6 +312,19 @@ export const useAppStore = create<AppState>()(
         updateTaskAtPath(draft.projects, taskPath, (task) => {
           const oldName = task.name
           task.name = newName
+          task.lastModificationDate = new Date().toISOString()
+        })
+      }),
+    )
+
+    trackTaskUpdated(taskPath)
+  },
+
+  updateTaskDescription: (taskPath, newDescription) => {
+    set(
+      produce((draft: AppState) => {
+        updateTaskAtPath(draft.projects, taskPath, (task) => {
+          task.description = newDescription || undefined
           task.lastModificationDate = new Date().toISOString()
         })
       }),

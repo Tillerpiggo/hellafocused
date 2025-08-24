@@ -1,13 +1,16 @@
 import { PageHeader } from "@/components/page/page-header"
 import { TaskOptionsMenu } from "./task-options-menu"
+import { TaskDescriptionEditor } from "./task-description-editor"
 import { Button } from "@/components/ui/button"
 import { Check, X, Search, Edit2, Calendar } from "lucide-react"
-import { forwardRef } from "react"
+import { forwardRef, useState } from "react"
 import type { EditableTitleRef } from "@/components/editable-title"
 
 interface TaskPageHeaderProps {
   title: string
   onTitleChange: (newTitle: string) => void
+  description?: string
+  onDescriptionChange: (newDescription: string) => void
   isCompleted: boolean
   isDeferred: boolean
   isPreferred: boolean
@@ -25,6 +28,8 @@ interface TaskPageHeaderProps {
 export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(({
   title,
   onTitleChange,
+  description,
+  onDescriptionChange,
   isCompleted,
   isDeferred,
   isPreferred,
@@ -38,16 +43,26 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
   onComplete,
   onUncomplete,
 }, ref) => {
+  const [showDescriptionEditor, setShowDescriptionEditor] = useState(false)
   const handleSearchClick = () => {
     console.log("Search subtasks - coming soon")
   }
 
   const handleDetailsClick = () => {
-    console.log("Edit details/description - coming soon")
+    setShowDescriptionEditor(true)
   }
 
   const handleDueDateClick = () => {
     console.log("Set due date - coming soon")
+  }
+
+  const handleDescriptionSave = (newDescription: string) => {
+    onDescriptionChange(newDescription)
+    setShowDescriptionEditor(false)
+  }
+
+  const handleDescriptionCancel = () => {
+    setShowDescriptionEditor(false)
   }
 
   const iconButtons = (
@@ -110,26 +125,35 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
   )
 
   return (
-    <PageHeader
-      ref={ref}
-      title={title}
-      onTitleChange={onTitleChange}
-      isCompleted={isCompleted}
-      iconButtons={iconButtons}
-      optionsMenu={
-        <TaskOptionsMenu
-          onRename={onRename}
-          onDelete={onDelete}
-          onToggleDefer={onToggleDefer}
-          onTogglePrefer={onTogglePrefer}
-          onFocus={onFocus}
-          showCompleted={showCompleted}
-          isDeferred={isDeferred}
-          isPreferred={isPreferred}
+    <>
+      <PageHeader
+        ref={ref}
+        title={title}
+        onTitleChange={onTitleChange}
+        isCompleted={isCompleted}
+        iconButtons={iconButtons}
+        optionsMenu={
+          <TaskOptionsMenu
+            onRename={onRename}
+            onDelete={onDelete}
+            onToggleDefer={onToggleDefer}
+            onTogglePrefer={onTogglePrefer}
+            onFocus={onFocus}
+            showCompleted={showCompleted}
+            isDeferred={isDeferred}
+            isPreferred={isPreferred}
+          />
+        }
+        actionButtons={actionButtons}
+      />
+      {showDescriptionEditor && (
+        <TaskDescriptionEditor
+          description={description}
+          onSave={handleDescriptionSave}
+          onCancel={handleDescriptionCancel}
         />
-      }
-      actionButtons={actionButtons}
-    />
+      )}
+    </>
   )
 })
 
