@@ -59,7 +59,7 @@ export function TaskDescriptionEditor({
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
           placeholder={placeholder}
-          className="w-full bg-transparent border-0 p-0 resize-none text-foreground placeholder:text-muted-foreground/50 min-h-[80px]"
+          className="w-full bg-transparent border-0 p-0 resize-none text-foreground placeholder:text-muted-foreground/50 min-h-[80px] rounded-none"
           style={{
             outline: 'none !important',
             border: 'none !important',
