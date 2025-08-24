@@ -80,7 +80,11 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
         variant="ghost"
         size="icon"
         onClick={handleDetailsClick}
-        className="h-8 w-8 rounded-full opacity-60 hover:opacity-100 transition-opacity"
+        className={`h-8 w-8 rounded-full transition-all ${
+          showDescriptionEditor 
+            ? "bg-primary/20 opacity-100 hover:bg-primary/30" 
+            : "opacity-60 hover:opacity-100"
+        }`}
         title="Edit details"
       >
         <Edit2 className="h-4 w-4" />

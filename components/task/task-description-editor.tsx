@@ -45,10 +45,6 @@ export function TaskDescriptionEditor({
     }
   }
 
-  const handleBlur = () => {
-    handleSave()
-  }
-
   return (
     <div className="mt-4 animate-in slide-in-from-top-2 duration-300">
       <div className="bg-gradient-to-br from-white/40 to-white/20 dark:from-gray-900/40 dark:to-gray-900/20 backdrop-blur-md rounded-2xl p-6 border border-white/30">
@@ -57,7 +53,6 @@ export function TaskDescriptionEditor({
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          onBlur={handleBlur}
           placeholder={placeholder}
           className="w-full bg-transparent border-0 p-0 resize-none text-foreground placeholder:text-muted-foreground/50 min-h-[80px] rounded-none"
           style={{
