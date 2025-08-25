@@ -25,25 +25,25 @@
 
 @layer base {
   :root {
-    --background: 340 30% 97%;
-    --foreground: 340 15% 15%;
-    --card: 340 40% 95%;
-    --card-foreground: 340 15% 20%;
-    --popover: 340 40% 95%;
-    --popover-foreground: 340 15% 20%;
-    --primary: 340 50% 50%;
-    --primary-foreground: 340 95% 95%;
-    --secondary: 340 20% 92%;
-    --secondary-foreground: 340 15% 25%;
-    --muted: 340 15% 90%;
-    --muted-foreground: 340 10% 50%;
-    --accent: 340 25% 88%;
-    --accent-foreground: 340 20% 30%;
+    --background: 345 25% 97%;
+    --foreground: 345 12% 18%;
+    --card: 345 35% 96%;
+    --card-foreground: 345 15% 22%;
+    --popover: 345 35% 96%;
+    --popover-foreground: 345 15% 22%;
+    --primary: 345 45% 52%;
+    --primary-foreground: 345 100% 98%;
+    --secondary: 345 18% 93%;
+    --secondary-foreground: 345 15% 27%;
+    --muted: 345 12% 91%;
+    --muted-foreground: 345 8% 48%;
+    --accent: 345 22% 89%;
+    --accent-foreground: 345 18% 32%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-    --border: 340 20% 85%;
-    --input: 340 20% 85%;
-    --ring: 340 50% 50%;
+    --border: 345 15% 87%;
+    --input: 345 15% 87%;
+    --ring: 345 45% 52%;
     --radius: 0.75rem;
     --chart-1: 340 76% 61%;
     --chart-2: 320 58% 59%;
@@ -53,25 +53,25 @@
   }
 
   .dark {
-    --background: 340 25% 8%;
-    --foreground: 340 15% 90%;
-    --card: 340 20% 12%;
-    --card-foreground: 340 15% 85%;
-    --popover: 340 20% 12%;
-    --popover-foreground: 340 15% 85%;
-    --primary: 340 60% 70%;
-    --primary-foreground: 340 25% 10%;
-    --secondary: 340 15% 18%;
-    --secondary-foreground: 340 15% 80%;
-    --muted: 340 15% 15%;
-    --muted-foreground: 340 10% 60%;
-    --accent: 340 20% 20%;
-    --accent-foreground: 340 15% 85%;
+    --background: 345 22% 7%;
+    --foreground: 345 10% 92%;
+    --card: 345 18% 11%;
+    --card-foreground: 345 10% 88%;
+    --popover: 345 18% 11%;
+    --popover-foreground: 345 10% 88%;
+    --primary: 345 55% 68%;
+    --primary-foreground: 345 20% 8%;
+    --secondary: 345 12% 16%;
+    --secondary-foreground: 345 10% 82%;
+    --muted: 345 12% 14%;
+    --muted-foreground: 345 8% 58%;
+    --accent: 345 18% 19%;
+    --accent-foreground: 345 10% 87%;
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 340 15% 90%;
-    --border: 340 15% 20%;
-    --input: 340 15% 20%;
-    --ring: 340 60% 70%;
+    --border: 345 12% 18%;
+    --input: 345 12% 18%;
+    --ring: 345 55% 68%;
     --chart-1: 340 70% 60%;
     --chart-2: 320 60% 55%;
     --chart-3: 300 70% 65%;
@@ -115,74 +115,74 @@
 
 
   .glass-card {
-    background: rgba(255, 240, 245, 0.25);
-    border: 1px solid rgba(255, 192, 203, 0.3);
-    box-shadow: 0 8px 32px rgba(255, 192, 203, 0.1);
+    background: rgba(255, 245, 248, 0.22);
+    border: 1px solid rgba(255, 182, 193, 0.25);
+    box-shadow: 0 10px 40px rgba(255, 182, 193, 0.08), 0 2px 8px rgba(255, 192, 203, 0.06);
   }
   
-  @supports (-webkit-backdrop-filter: blur(16px)) {
+  @supports (-webkit-backdrop-filter: blur(20px)) {
     .glass-card {
-      -webkit-backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(20px) saturate(1.2);
     }
   }
   
-  @supports (backdrop-filter: blur(16px)) {
+  @supports (backdrop-filter: blur(20px)) {
     .glass-card {
-      backdrop-filter: blur(16px);
+      backdrop-filter: blur(20px) saturate(1.2);
     }
   }
 
   .dark .glass-card {
-    background: rgba(139, 69, 19, 0.15);
-    border: 1px solid rgba(255, 192, 203, 0.15);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    background: rgba(139, 69, 19, 0.12);
+    border: 1px solid rgba(255, 182, 193, 0.12);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35), 0 2px 8px rgba(0, 0, 0, 0.2);
   }
   
-  @supports (-webkit-backdrop-filter: blur(16px)) {
+  @supports (-webkit-backdrop-filter: blur(20px)) {
     .dark .glass-card {
-      -webkit-backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(20px) saturate(1.1);
     }
   }
   
-  @supports (backdrop-filter: blur(16px)) {
+  @supports (backdrop-filter: blur(20px)) {
     .dark .glass-card {
-      backdrop-filter: blur(16px);
+      backdrop-filter: blur(20px) saturate(1.1);
     }
   }
 
   .glass-morphism {
-    background: rgba(255, 255, 255, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
   }
   
-  @supports (-webkit-backdrop-filter: blur(12px)) {
+  @supports (-webkit-backdrop-filter: blur(14px)) {
     .glass-morphism {
-      -webkit-backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(14px) saturate(1.15);
     }
   }
   
-  @supports (backdrop-filter: blur(12px)) {
+  @supports (backdrop-filter: blur(14px)) {
     .glass-morphism {
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(14px) saturate(1.15);
     }
   }
 
   .dark .glass-morphism {
-    background: rgba(0, 0, 0, 0.15);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    background: rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.15);
   }
   
-  @supports (-webkit-backdrop-filter: blur(12px)) {
+  @supports (-webkit-backdrop-filter: blur(14px)) {
     .dark .glass-morphism {
-      -webkit-backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(14px) saturate(1.05);
     }
   }
   
-  @supports (backdrop-filter: blur(12px)) {
+  @supports (backdrop-filter: blur(14px)) {
     .dark .glass-morphism {
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(14px) saturate(1.05);
     }
   }
 

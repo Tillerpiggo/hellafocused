@@ -22,7 +22,7 @@ import { FocusPointsBadge } from "@/components/progress/focus-points-badge"
 import { TodaysProgressCard } from "@/components/progress/todays-progress-card"
 import { ProgressChart } from "@/components/progress/progress-chart"
 import { AddTaskForm } from "@/components/task/add-task-form"
-import { SearchInput } from "@/components/search-input"
+// import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
 import { type EditableTitleRef } from "@/components/editable-title"
 import { useRef, useMemo, useState } from "react"
@@ -95,6 +95,7 @@ export default function HomePage() {
   const taskChain = getCurrentTaskChain(store)
   const currentTask = taskChain.length > 0 ? taskChain[taskChain.length - 1] : null
   const isCurrentTaskCompleted = currentTask?.completed || false
+  console.log('Page: currentTask description:', currentTask?.description)
 
   // Search results
   const searchResults = searchAllTasks(projects, searchQuery, currentPath)
@@ -181,6 +182,8 @@ export default function HomePage() {
   }
 
   const handleDescriptionChange = (newDescription: string) => {
+    console.log('currentPath:', currentPath)
+    console.log('isTask(currentPath):', isTask(currentPath))
     if (isTask(currentPath)) {
       updateTaskDescription(currentPath, newDescription)
     }
@@ -343,12 +346,12 @@ export default function HomePage() {
 
 
         {/* Search Input */}
-        <SearchInput
+        {/* <SearchInput
           value={searchQuery}
           onChange={setSearchQuery}
           placeholder="Search tasks and subtasks..."
           className="w-full"
-        />
+        /> */}
 
         {/* Search Results or Regular Tasks */}
         {hasSearchResults ? (

@@ -63,7 +63,7 @@ export function ProgressTask({ task, depth }: ProgressTaskProps) {
         )}
 
         {/* Focus points badge */}
-        <div className="px-2 py-1 bg-pink-600 text-white text-xs font-medium rounded-full flex-shrink-0">
+        <div className="px-2 py-1 bg-gradient-to-r from-amber-500 to-orange-600 text-white text-xs font-medium rounded-full flex-shrink-0 shadow-sm">
           +{task.focusPoints}
         </div>
 
@@ -83,7 +83,7 @@ export function ProgressTask({ task, depth }: ProgressTaskProps) {
           
           {/* Fixed-width badge container */}
           <div className="w-20 flex justify-center">
-            <div className="px-2 py-1 bg-pink-100 dark:bg-pink-900 text-pink-800 dark:text-pink-200 text-xs font-medium rounded-full">
+            <div className="px-2 py-1 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/30 dark:to-orange-900/30 text-amber-700 dark:text-amber-300 text-xs font-medium rounded-full border border-amber-200 dark:border-amber-800/50">
               {task.focusPoints} point{task.focusPoints !== 1 ? 's' : ''}
             </div>
           </div>

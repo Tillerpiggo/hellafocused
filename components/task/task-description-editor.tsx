@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react"
 import { Textarea } from "@/components/ui/textarea"
 
 interface TaskDescriptionEditorProps {
@@ -10,12 +10,16 @@ interface TaskDescriptionEditorProps {
   placeholder?: string
 }
 
-export function TaskDescriptionEditor({
+export interface TaskDescriptionEditorRef {
+  save: () => void
+}
+
+export const TaskDescriptionEditor = forwardRef<TaskDescriptionEditorRef, TaskDescriptionEditorProps>(({
   description = "",
   onSave,
   onCancel,
   placeholder = "Add a description..."
-}: TaskDescriptionEditorProps) {
+}, ref) => {
   const [value, setValue] = useState(description)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
@@ -27,10 +31,16 @@ export function TaskDescriptionEditor({
   }, [])
 
   const handleSave = () => {
+    console.log('TaskDescriptionEditor: handleSave called with value:', value.trim())
     onSave(value.trim())
   }
 
+  useImperativeHandle(ref, () => ({
+    save: handleSave
+  }), [value])
+
   const handleCancel = () => {
+    console.log('TaskDescriptionEditor: handleCancel called')
     setValue(description)
     onCancel()
   }
@@ -54,7 +64,7 @@ export function TaskDescriptionEditor({
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className="w-full bg-transparent border-0 p-0 resize-none text-foreground placeholder:text-muted-foreground/50 min-h-[80px] rounded-none"
+          className="w-full bg-transparent border-0 p-0 resize-none text-muted-foreground placeholder:text-muted-foreground/50 min-h-[80px] rounded-none"
           style={{
             outline: 'none !important',
             border: 'none !important',
@@ -66,4 +76,6 @@ export function TaskDescriptionEditor({
       </div>
     </div>
   )
-}
+})
+
+TaskDescriptionEditor.displayName = "TaskDescriptionEditor"

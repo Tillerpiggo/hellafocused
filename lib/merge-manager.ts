@@ -192,6 +192,7 @@ export class MergeManager {
     return {
       id: cloudTask.id,
       name: useCloudTask ? cloudTask.name : localTask.name,
+      description: useCloudTask ? (cloudTask.description || undefined) : localTask.description,
       completed: useCloudTask ? cloudTask.completed : localTask.completed,
       completionDate: useCloudTask ? (cloudTask.completion_date || undefined) : localTask.completionDate,
       lastModificationDate: useCloudTask ? cloudUpdateDate : localTask.lastModificationDate,

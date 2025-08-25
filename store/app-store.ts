@@ -321,12 +321,21 @@ export const useAppStore = create<AppState>()(
   },
 
   updateTaskDescription: (taskPath, newDescription) => {
+    console.log('Store: updateTaskDescription called with:', { taskPath, newDescription })
+    
     set(
       produce((draft: AppState) => {
+        const taskBefore = findTaskAtPath(draft.projects, taskPath)
+        console.log('Store: Task before update:', taskBefore)
+        
         updateTaskAtPath(draft.projects, taskPath, (task) => {
           task.description = newDescription || undefined
           task.lastModificationDate = new Date().toISOString()
+          console.log('Store: Task after update in callback:', task)
         })
+        
+        const taskAfter = findTaskAtPath(draft.projects, taskPath)
+        console.log('Store: Task after update:', taskAfter)
       }),
     )
 

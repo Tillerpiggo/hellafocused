@@ -1,9 +1,9 @@
 import { PageHeader } from "@/components/page/page-header"
 import { TaskOptionsMenu } from "./task-options-menu"
-import { TaskDescriptionEditor } from "./task-description-editor"
+import { TaskDescriptionEditor, type TaskDescriptionEditorRef } from "./task-description-editor"
 import { Button } from "@/components/ui/button"
 import { Check, X, Search, Edit2, Calendar } from "lucide-react"
-import { forwardRef, useState } from "react"
+import { forwardRef, useState, useRef } from "react"
 import type { EditableTitleRef } from "@/components/editable-title"
 
 interface TaskPageHeaderProps {
@@ -44,12 +44,21 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
   onUncomplete,
 }, ref) => {
   const [showDescriptionEditor, setShowDescriptionEditor] = useState(false)
+  const descriptionEditorRef = useRef<TaskDescriptionEditorRef>(null)
+  
   const handleSearchClick = () => {
     console.log("Search subtasks - coming soon")
   }
 
   const handleDetailsClick = () => {
-    setShowDescriptionEditor(prev => !prev)
+    console.log('TaskPageHeader: handleDetailsClick called, showDescriptionEditor:', showDescriptionEditor)
+    if (showDescriptionEditor && descriptionEditorRef.current) {
+      // Save the description before closing
+      console.log('TaskPageHeader: Saving description before closing editor')
+      descriptionEditorRef.current.save()
+    } else {
+      setShowDescriptionEditor(true)
+    }
   }
 
   const handleDueDateClick = () => {
@@ -57,11 +66,14 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
   }
 
   const handleDescriptionSave = (newDescription: string) => {
+    console.log('TaskPageHeader: handleDescriptionSave called with:', newDescription)
+    console.log('TaskPageHeader: calling onDescriptionChange')
     onDescriptionChange(newDescription)
     setShowDescriptionEditor(false)
   }
 
   const handleDescriptionCancel = () => {
+    console.log('TaskPageHeader: handleDescriptionCancel called')
     setShowDescriptionEditor(false)
   }
 
@@ -151,11 +163,15 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
         actionButtons={actionButtons}
       />
       {showDescriptionEditor && (
-        <TaskDescriptionEditor
-          description={description}
-          onSave={handleDescriptionSave}
-          onCancel={handleDescriptionCancel}
-        />
+        <>
+          {console.log('TaskPageHeader: Rendering TaskDescriptionEditor with description:', description)}
+          <TaskDescriptionEditor
+            ref={descriptionEditorRef}
+            description={description}
+            onSave={handleDescriptionSave}
+            onCancel={handleDescriptionCancel}
+          />
+        </>
       )}
     </>
   )

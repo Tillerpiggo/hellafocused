@@ -227,6 +227,12 @@ export function ProgressChart({ projects }: ProgressChartProps) {
               }
             }}
           >
+            <defs>
+              <linearGradient id="colorGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#818cf8" stopOpacity={0.9} />
+                <stop offset="100%" stopColor="#c084fc" stopOpacity={0.9} />
+              </linearGradient>
+            </defs>
             <CartesianGrid 
               strokeDasharray="3 3" 
               stroke={theme === 'dark' ? '#374151' : '#e2e8f0'} 
@@ -247,7 +253,7 @@ export function ProgressChart({ projects }: ProgressChartProps) {
               allowDecimals={false}
             />
             <Tooltip 
-              cursor={{ fill: 'rgba(244, 114, 182, 0.12)' }}
+              cursor={{ fill: 'rgba(99, 102, 241, 0.08)' }}
               allowEscapeViewBox={{ x: false, y: true }}
               animationDuration={200}
               position={{ x: undefined, y: 160 - toolTipYPosition }}
@@ -273,7 +279,7 @@ export function ProgressChart({ projects }: ProgressChartProps) {
                       color: theme === 'dark' ? '#f9fafb' : '#111827'
                     }}>
                       <p style={{ margin: 0, fontWeight: 'bold' }}>{getTooltipLabel(String(label || ''))}</p>
-                      <p style={{ margin: 0, color: '#f472b6' }}>Tasks completed: {payload[0].value}</p>
+                      <p style={{ margin: 0, fontWeight: 600, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Tasks completed: {payload[0].value}</p>
                     </div>
                   )
                 }
@@ -282,7 +288,7 @@ export function ProgressChart({ projects }: ProgressChartProps) {
             />
             <Bar
               dataKey="tasks"
-              fill="#f472b6"
+              fill="url(#colorGradient)"
               radius={[4, 4, 0, 0]}
               animationDuration={300}
             />
