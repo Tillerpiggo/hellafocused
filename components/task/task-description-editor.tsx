@@ -46,7 +46,7 @@ export const TaskDescriptionEditor = forwardRef<TaskDescriptionEditorRef, TaskDe
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSave()
     } else if (e.key === 'Escape') {

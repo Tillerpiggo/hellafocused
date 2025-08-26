@@ -163,7 +163,7 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
         actionButtons={actionButtons}
       />
       {!showDescriptionEditor && description && description.trim() && (
-        <div className="mt-3">
+        <div className="mt-1">
           <p 
             className="text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
             onClick={() => setShowDescriptionEditor(true)}
