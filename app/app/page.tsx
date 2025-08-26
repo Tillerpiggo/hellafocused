@@ -88,10 +88,9 @@ export default function HomePage() {
   // Show loading until authentication is complete
   const shouldShowLoading = !isInitialized
 
-  // Clear search when navigating
+  // Clear search query when navigating
   useEffect(() => {
     setSearchQuery("")
-    setShowSearch(false)
   }, [currentPath, setSearchQuery])
 
   // Focus search input when showSearch becomes true
@@ -339,6 +338,8 @@ export default function HomePage() {
             onRename={handleRename}
             onDelete={handleDelete}
             showCompleted={showCompleted}
+            showSearch={showSearch}
+            setShowSearch={setShowSearch}
           />
         ) : (
           <TaskPageHeader
