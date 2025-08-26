@@ -2,9 +2,16 @@ import { PageHeader } from "@/components/page/page-header"
 import { TaskOptionsMenu } from "./task-options-menu"
 import { TaskDescriptionEditor, type TaskDescriptionEditorRef } from "./task-description-editor"
 import { Button } from "@/components/ui/button"
-import { Check, X, Search, Edit2, Calendar } from "lucide-react"
+import { Check, X, Search, Edit2 } from "lucide-react"
+// import { Calendar } from "lucide-react" // Will add due dates later
 import { forwardRef, useState, useRef } from "react"
 import type { EditableTitleRef } from "@/components/editable-title"
+// import { DayPicker } from "react-day-picker" // Will add due dates later
+// import {
+//   Popover,
+//   PopoverContent,
+//   PopoverTrigger,
+// } from "@/components/ui/popover" // Will add due dates later
 
 interface TaskPageHeaderProps {
   title: string
@@ -49,6 +56,7 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
 }, ref) => {
   const [showDescriptionEditor, setShowDescriptionEditor] = useState(false)
   const descriptionEditorRef = useRef<TaskDescriptionEditorRef>(null)
+  // const [selectedDate, setSelectedDate] = useState<Date | undefined>() // Will add due dates later
   
   const handleSearchClick = () => {
     // Close description editor if it's open
@@ -74,9 +82,10 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
     }
   }
 
-  const handleDueDateClick = () => {
-    console.log("Set due date - coming soon")
-  }
+  // Will add due date handler later
+  // const handleDueDateClick = () => {
+  //   console.log("Set due date - coming soon")
+  // }
 
   const handleDescriptionSave = (newDescription: string) => {
     console.log('TaskPageHeader: handleDescriptionSave called with:', newDescription)
@@ -118,15 +127,27 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
       >
         <Edit2 className="h-4 w-4" />
       </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleDueDateClick}
-        className="h-8 w-8 rounded-full opacity-60 hover:opacity-100 transition-opacity"
-        title="Set due date"
-      >
-        <Calendar className="h-4 w-4" />
-      </Button>
+      {/* Will add due date button later
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full opacity-60 hover:opacity-100 transition-opacity"
+            title="Set due date"
+          >
+            <Calendar className="h-4 w-4" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0">
+          <DayPicker
+            mode="single"
+            selected={selectedDate}
+            onSelect={setSelectedDate}
+          />
+        </PopoverContent>
+      </Popover>
+      */}
     </div>
   )
 

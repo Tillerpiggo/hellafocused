@@ -2,6 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Outfit } from "next/font/google"
 import "./globals.css"
+// import "react-day-picker/style.css" // Will add due dates later
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from "next-themes"
 
