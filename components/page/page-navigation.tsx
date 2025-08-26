@@ -2,12 +2,14 @@ import { Button } from "@/components/ui/button"
 import { ChevronLeft, Target } from "lucide-react"
 
 interface PageNavigationProps {
+  backButtonText: string
   onBackClick: () => void
   isFocusMode: boolean
   onFocusClick: () => void
 }
 
 export function PageNavigation({
+  backButtonText,
   onBackClick,
   isFocusMode,
   onFocusClick,
@@ -16,11 +18,11 @@ export function PageNavigation({
     <div className="flex items-center justify-between">
       <Button
         variant="ghost"
-        size="icon"
         onClick={onBackClick}
-        className="rounded-full"
+        className="text-muted-foreground hover:text-foreground px-0 py-3 h-auto font-normal -ml-2 pl-2 pr-4 rounded-lg max-w-[calc(100%-120px)] min-w-0"
       >
-        <ChevronLeft className="h-5 w-5" />
+        <ChevronLeft className="h-4 w-4 mr-2 flex-shrink-0" />
+        <span className="truncate">{backButtonText}</span>
       </Button>
       <Button
         variant={isFocusMode ? "secondary" : "outline"}

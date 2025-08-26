@@ -22,7 +22,7 @@ import { FocusPointsBadge } from "@/components/progress/focus-points-badge"
 import { TodaysProgressCard } from "@/components/progress/todays-progress-card"
 import { ProgressChart } from "@/components/progress/progress-chart"
 import { AddTaskForm } from "@/components/task/add-task-form"
-// import { SearchInput } from "@/components/search-input"
+import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
 import { type EditableTitleRef } from "@/components/editable-title"
 import { useRef, useMemo, useState } from "react"
@@ -144,6 +144,19 @@ export default function HomePage() {
     )
   }
 
+  const getBackButtonText = () => {
+    if (isProjectList(currentPath)) return ""
+
+    if (isProject(currentPath)) {
+      return "Projects"
+    } else if (currentPath.length === 2) {
+      return currentProject?.name || "Project"
+    } else {
+      // Get the parent task name
+      const parentTask = taskChain[taskChain.length - 2]
+      return parentTask?.name || "Back"
+    }
+  }
 
   const handleBackClick = () => {
     if (isProject(currentPath)) {
@@ -285,6 +298,7 @@ export default function HomePage() {
       <div className="space-y-6 pb-32">
         {/* Navigation and Focus button */}
         <PageNavigation
+          backButtonText={getBackButtonText()}
           onBackClick={handleBackClick}
           isFocusMode={isFocusMode}
           onFocusClick={() => setFocusMode(!isFocusMode, currentPath)}
@@ -332,12 +346,12 @@ export default function HomePage() {
 
 
         {/* Search Input */}
-        {/* <SearchInput
+        <SearchInput
           value={searchQuery}
           onChange={setSearchQuery}
           placeholder="Search tasks and subtasks..."
           className="w-full"
-        /> */}
+        />
 
         {/* Search Results or Regular Tasks */}
         {hasSearchResults ? (
