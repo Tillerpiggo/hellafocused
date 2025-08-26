@@ -223,6 +223,47 @@
     }
   }
 
+  /* Glass morphism dropdown for better readability */
+  .glass-dropdown {
+    background: rgba(255, 255, 255, 0.75) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12), 0 2px 8px rgba(0, 0, 0, 0.06);
+  }
+  
+  @supports (-webkit-backdrop-filter: blur(16px)) {
+    .glass-dropdown {
+      background: rgba(255, 255, 255, 0.65) !important;
+      -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    }
+  }
+  
+  @supports (backdrop-filter: blur(16px)) {
+    .glass-dropdown {
+      background: rgba(255, 255, 255, 0.65) !important;
+      backdrop-filter: blur(16px) saturate(1.2);
+    }
+  }
+
+  .dark .glass-dropdown {
+    background: rgba(17, 17, 17, 0.75) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  @supports (-webkit-backdrop-filter: blur(16px)) {
+    .dark .glass-dropdown {
+      background: rgba(17, 17, 17, 0.65) !important;
+      -webkit-backdrop-filter: blur(16px) saturate(1.1);
+    }
+  }
+  
+  @supports (backdrop-filter: blur(16px)) {
+    .dark .glass-dropdown {
+      background: rgba(17, 17, 17, 0.65) !important;
+      backdrop-filter: blur(16px) saturate(1.1);
+    }
+  }
+
   .animate-slide-up-in {
     animation: slideUpIn 0.6s ease-out forwards;
   }

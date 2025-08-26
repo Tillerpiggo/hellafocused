@@ -100,7 +100,7 @@ export function BreadcrumbPath({ projectName, taskChain }: BreadcrumbPathProps) 
         </button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent align="start" className="w-64 md:w-80 bg-background/95 backdrop-blur-sm border-border/50 shadow-lg animate-in slide-in-from-top-2 duration-200">
+      <DropdownMenuContent align="start" className="w-64 md:w-80 !bg-transparent glass-dropdown animate-in slide-in-from-top-2 duration-200">
         {/* Project level */}
         <DropdownMenuItem 
           onClick={handleNavigateToProject}
