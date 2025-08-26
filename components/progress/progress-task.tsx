@@ -27,7 +27,18 @@ export function ProgressTask({ task, depth }: ProgressTaskProps) {
   const hasCompletedSubtasks = todaysCompletedSubtasks.length > 0
 
   const calculateSubtaskFocusPoints = (subtask: TaskData): number => {
-    let points = subtask.completed ? 1 : 0
+    const today = new Date().toDateString()
+    
+    // Only count this subtask if it was completed today
+    let points = 0
+    if (subtask.completed && subtask.completionDate) {
+      const taskDate = new Date(subtask.completionDate).toDateString()
+      if (taskDate === today) {
+        points = 1
+      }
+    }
+    
+    // Recursively count subtasks that were completed today
     subtask.subtasks.forEach(subSubtask => {
       points += calculateSubtaskFocusPoints(subSubtask)
     })

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { ChevronLeft, Target } from "lucide-react"
+import { ArrowLeft, Target } from "lucide-react"
 
 interface PageNavigationProps {
   backButtonText: string
@@ -21,7 +21,7 @@ export function PageNavigation({
         onClick={onBackClick}
         className="text-muted-foreground hover:text-foreground px-0 py-3 h-auto font-normal -ml-2 pl-2 pr-4 rounded-lg max-w-[calc(100%-120px)] min-w-0"
       >
-        <ChevronLeft className="h-4 w-4 mr-2 flex-shrink-0" />
+        <ArrowLeft className="h-4 w-4 mr-2 flex-shrink-0" />
         <span className="truncate">{backButtonText}</span>
       </Button>
       <Button
