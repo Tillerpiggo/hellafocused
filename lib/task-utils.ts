@@ -771,4 +771,27 @@ export const calculateTaskFocusPoints = (task: TaskData): number => {
     points += calculateTaskFocusPoints(subtask)
   })
   return points
+}
+
+/**
+ * Calculate focus points for a task and all its subtasks, but only count tasks completed today
+ */
+export const calculateTodaysTaskFocusPoints = (task: TaskData): number => {
+  const today = new Date().toDateString()
+  let points = 0
+  
+  // Count this task if it was completed today
+  if (task.completed && task.completionDate) {
+    const taskDate = new Date(task.completionDate).toDateString()
+    if (taskDate === today) {
+      points = 1
+    }
+  }
+  
+  // Count subtasks completed today
+  task.subtasks.forEach(subtask => {
+    points += calculateTodaysTaskFocusPoints(subtask)
+  })
+  
+  return points
 } 

@@ -23,6 +23,8 @@ interface TaskPageHeaderProps {
   shouldShowCompleteButton: boolean
   onComplete: () => void
   onUncomplete: () => void
+  showSearch: boolean
+  setShowSearch: (show: boolean) => void
 }
 
 export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(({
@@ -42,12 +44,14 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
   shouldShowCompleteButton,
   onComplete,
   onUncomplete,
+  showSearch,
+  setShowSearch,
 }, ref) => {
   const [showDescriptionEditor, setShowDescriptionEditor] = useState(false)
   const descriptionEditorRef = useRef<TaskDescriptionEditorRef>(null)
   
   const handleSearchClick = () => {
-    console.log("Search subtasks - coming soon")
+    setShowSearch(!showSearch)
   }
 
   const handleDetailsClick = () => {
@@ -83,7 +87,11 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
         variant="ghost"
         size="icon"
         onClick={handleSearchClick}
-        className="h-8 w-8 rounded-full opacity-60 hover:opacity-100 transition-opacity"
+        className={`h-8 w-8 rounded-full transition-all ${
+          showSearch 
+            ? "bg-primary/20 opacity-100 hover:bg-primary/30" 
+            : "opacity-60 hover:opacity-100"
+        }`}
         title="Search subtasks"
       >
         <Search className="h-4 w-4" />

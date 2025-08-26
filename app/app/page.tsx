@@ -25,7 +25,7 @@ import { AddTaskForm } from "@/components/task/add-task-form"
 import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
 import { type EditableTitleRef } from "@/components/editable-title"
-import { useRef, useMemo, useState } from "react"
+import { useRef, useMemo, useState, useEffect } from "react"
 import { SidebarLayout } from "@/components/sidebar/sidebar-layout"
 import { countSubtasksRecursively, findTaskAtPath, findProjectAtPath, getProjectId, isProject, isProjectList, isTask } from "@/lib/task-utils"
 import { searchAllTasks, groupSearchResults } from "@/lib/search-utils"
@@ -76,6 +76,9 @@ export default function HomePage() {
   // Mobile menu state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   
+  // Search state
+  const [showSearch, setShowSearch] = useState(false)
+  
   const tabs = [
     { value: 'tasks', label: 'Tasks', icon: CheckSquare },
     { value: 'progress', label: 'Progress', icon: TrendingUp }
@@ -83,6 +86,12 @@ export default function HomePage() {
 
   // Show loading until authentication is complete
   const shouldShowLoading = !isInitialized
+
+  // Clear search when navigating
+  useEffect(() => {
+    setSearchQuery("")
+    setShowSearch(false)
+  }, [currentPath, setSearchQuery])
 
   const tasksToDisplay = useMemo(() => getCurrentTasksForView(store), [
     projects,
@@ -207,8 +216,9 @@ export default function HomePage() {
   }
 
   const handleNavigateToSearchResult = (result: { path: string[] }) => {
-    // Clear search query when navigating to a result
+    // Clear search when navigating to a result
     setSearchQuery("")
+    setShowSearch(false)
     // Navigate to the task
     navigateToPath(result.path)
   }
@@ -341,34 +351,40 @@ export default function HomePage() {
             shouldShowCompleteButton={shouldShowCompleteButton()}
             onComplete={() => attemptTaskCompletion(currentPath)}
             onUncomplete={() => toggleTaskCompletion(currentPath)}
+            showSearch={showSearch}
+            setShowSearch={setShowSearch}
           />
         )}
 
-
-        {/* Search Input */}
-        <SearchInput
-          value={searchQuery}
-          onChange={setSearchQuery}
-          placeholder="Search tasks and subtasks..."
-          className="w-full"
-        />
-
-        {/* Search Results or Regular Tasks */}
-        {hasSearchResults ? (
-          <SearchResults
-            results={searchResults}
-            currentProjectResults={currentProjectResults}
-            otherProjectResults={otherProjectResults}
-            onNavigateToResult={handleNavigateToSearchResult}
-            currentPath={currentPath}
-            isInProject={isProject(currentPath)}
-            query={searchQuery}
-          />
-        ) : searchQuery.trim() ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">No tasks found matching &quot;{searchQuery}&quot;</p>
+        {/* Search Input and Results */}
+        {showSearch && (
+          <div className="space-y-4">
+            <SearchInput
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search tasks and subtasks..."
+              className="w-full"
+            />
+            {hasSearchResults ? (
+              <SearchResults
+                results={searchResults}
+                currentProjectResults={currentProjectResults}
+                otherProjectResults={otherProjectResults}
+                onNavigateToResult={handleNavigateToSearchResult}
+                currentPath={currentPath}
+                isInProject={isProject(currentPath)}
+                query={searchQuery}
+              />
+            ) : searchQuery.trim() ? (
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">No tasks found matching &quot;{searchQuery}&quot;</p>
+              </div>
+            ) : null}
           </div>
-        ) : (
+        )}
+
+        {/* Tasks */}
+        {(!showSearch || !hasSearchResults) && (
           <div className="space-y-2">
             <TaskListView tasks={tasksToDisplay} currentPath={currentPath} />
           </div>

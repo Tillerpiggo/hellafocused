@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { ProjectData, TaskData } from '@/lib/types'
+import { calculateTodaysTaskFocusPoints } from '@/lib/task-utils'
 import { ProgressTask } from './progress-task'
 import { Button } from '@/components/ui/button'
 
@@ -26,24 +27,8 @@ export function TodaysProgressCard({ projects }: TodaysProgressCardProps) {
           // Count this task as 1 focus point (don't double count subtasks)
           totalFocusPoints += 1
           
-          // Calculate focus points only for subtasks completed today
-          const calculateTodaysFocusPoints = (task: TaskData): number => {
-            let points = 0
-            // Count this task (already verified it was completed today)
-            if (task.completed && task.completionDate) {
-              const taskDate = new Date(task.completionDate).toDateString()
-              if (taskDate === today) {
-                points = 1
-              }
-            }
-            // Count subtasks completed today
-            task.subtasks.forEach(subtask => {
-              points += calculateTodaysFocusPoints(subtask)
-            })
-            return points
-          }
-          
-          const taskFocusPoints = calculateTodaysFocusPoints(task)
+          // Calculate focus points for this task and all its subtasks completed today
+          const taskFocusPoints = calculateTodaysTaskFocusPoints(task)
           
           // Add to completed tasks with metadata
           completedTasks.push({
