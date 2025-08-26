@@ -51,11 +51,20 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
   const descriptionEditorRef = useRef<TaskDescriptionEditorRef>(null)
   
   const handleSearchClick = () => {
+    // Close description editor if it's open
+    if (showDescriptionEditor && descriptionEditorRef.current) {
+      descriptionEditorRef.current.save()
+      setShowDescriptionEditor(false)
+    }
     setShowSearch(!showSearch)
   }
 
   const handleDetailsClick = () => {
     console.log('TaskPageHeader: handleDetailsClick called, showDescriptionEditor:', showDescriptionEditor)
+    // Close search if it's open
+    if (showSearch) {
+      setShowSearch(false)
+    }
     if (showDescriptionEditor && descriptionEditorRef.current) {
       // Save the description before closing
       console.log('TaskPageHeader: Saving description before closing editor')
