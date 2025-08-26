@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, forwardRef } from "react"
 import { Search, X } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -13,12 +13,12 @@ interface SearchInputProps {
   className?: string
 }
 
-export function SearchInput({ 
+export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(({ 
   value, 
   onChange, 
   placeholder = "Search tasks and subtasks...",
   className 
-}: SearchInputProps) {
+}, ref) => {
   const [localValue, setLocalValue] = useState(value)
 
   // Sync local value with prop value
@@ -44,6 +44,7 @@ export function SearchInput({
     <div className={cn("relative flex items-center", className)}>
       <Search className="absolute left-3 h-4 w-4 text-muted-foreground pointer-events-none" />
       <Input
+        ref={ref}
         type="text"
         value={localValue}
         onChange={(e) => setLocalValue(e.target.value)}
@@ -62,4 +63,6 @@ export function SearchInput({
       )}
     </div>
   )
-} 
+})
+
+SearchInput.displayName = "SearchInput" 

@@ -69,6 +69,7 @@ export default function HomePage() {
     focusStartPath,
   } = uiStore
   const titleRef = useRef<EditableTitleRef>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
   
   // Tab state for sidebar navigation
   const [activeTab, setActiveTab] = useState('tasks')
@@ -92,6 +93,13 @@ export default function HomePage() {
     setSearchQuery("")
     setShowSearch(false)
   }, [currentPath, setSearchQuery])
+
+  // Focus search input when showSearch becomes true
+  useEffect(() => {
+    if (showSearch && searchInputRef.current) {
+      searchInputRef.current.focus()
+    }
+  }, [showSearch])
 
   const tasksToDisplay = useMemo(() => getCurrentTasksForView(store), [
     projects,
@@ -360,6 +368,7 @@ export default function HomePage() {
         {showSearch && (
           <div className="space-y-4">
             <SearchInput
+              ref={searchInputRef}
               value={searchQuery}
               onChange={setSearchQuery}
               placeholder="Search tasks and subtasks..."
