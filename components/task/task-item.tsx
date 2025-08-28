@@ -58,7 +58,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
   const taskContent = (
     <div
       className={cn(
-        "flex items-start justify-between p-4 rounded-2xl group glass-card",
+        "flex items-center justify-between p-4 rounded-2xl group glass-card",
         // Only add transitions when not dragging to avoid conflicts with drop animation
         !isDragging && "transition-all duration-200",
         // Dragging state - avoid scale transform to prevent conflicts with drop animation
@@ -86,8 +86,8 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
       )}
       onClick={handleNavigate}
     >
-      <div className="flex items-start gap-4 flex-grow min-w-0">
-        <div className="flex items-center min-h-[2rem] pt-0">
+      <div className="flex items-center gap-4 flex-grow min-w-0">
+        <div className="flex items-center flex-shrink-0">
           <Button
             variant="ghost"
             size="icon"
@@ -111,35 +111,50 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
             )}
           </Button>
         </div>
-        <div className="flex items-center min-h-[2rem] flex-grow min-w-0">
-          {isEditing ? (
-            <EditableTitle
-              ref={editableTitleRef}
-              value={task.name}
-              onChange={handleTaskNameChange}
-              className={cn(
-                "text-base font-medium", 
-                task.completed && "line-through text-muted-foreground",
-                effectivePriority === 1 && !task.completed && "text-amber-800/80 dark:text-amber-200/90 font-medium",
-                effectivePriority === -1 && !task.completed && "text-muted-foreground"
-              )}
-              isCompleted={task.completed}
-            />
-          ) : (
-            <span
-              className={cn(
-                "text-base font-medium break-words", 
-                task.completed && "line-through text-muted-foreground",
-                effectivePriority === 1 && !task.completed && "text-amber-800/80 dark:text-amber-200/90 font-medium",
-                effectivePriority === -1 && !task.completed && "text-muted-foreground"
-              )}
-            >
-              {task.name}
-            </span>
+        <div className="flex-grow min-w-0">
+          <div className="flex items-center min-h-[2rem]">
+            {isEditing ? (
+              <EditableTitle
+                ref={editableTitleRef}
+                value={task.name}
+                onChange={handleTaskNameChange}
+                className={cn(
+                  "text-base font-medium", 
+                  task.completed && "line-through text-muted-foreground",
+                  effectivePriority === 1 && !task.completed && "text-amber-800/80 dark:text-amber-200/90 font-medium",
+                  effectivePriority === -1 && !task.completed && "text-muted-foreground"
+                )}
+                isCompleted={task.completed}
+              />
+            ) : (
+              <span
+                className={cn(
+                  "text-base font-medium break-words", 
+                  task.completed && "line-through text-muted-foreground",
+                  effectivePriority === 1 && !task.completed && "text-amber-800/80 dark:text-amber-200/90 font-medium",
+                  effectivePriority === -1 && !task.completed && "text-muted-foreground"
+                )}
+              >
+                {task.name}
+              </span>
+            )}
+          </div>
+          {/* Description - truncated to 80 characters */}
+          {!isEditing && task.description && task.description.trim() && (
+            <div className="mt-0.5">
+              <p className={cn(
+                "text-xs text-muted-foreground truncate",
+                task.completed && "line-through"
+              )}>
+                {task.description.length > 80 
+                  ? task.description.substring(0, 80).trimEnd() + '...'
+                  : task.description}
+              </p>
+            </div>
           )}
         </div>
       </div>
-      <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2 min-h-[2rem]">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2">
         {/* Priority indicators */}
         {effectivePriority === 1 && !task.completed && (
           <Star className="h-4 w-4 text-amber-600/60 fill-amber-600/60 dark:text-amber-400/70 dark:fill-amber-400/70" />
