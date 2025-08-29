@@ -3,7 +3,10 @@ import { Check, Shuffle, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { triggerConfetti } from "@/lib/confetti"
 import { FocusContextMenu } from "./focus-context-menu"
+import { TaskBreadcrumb } from "./task-breadcrumb"
 import { cn } from "@/lib/utils"
+import { useAppStore } from "@/store/app-store"
+import { getTaskParentChain } from "@/lib/task-utils"
 
 interface FocusTaskViewProps {
   currentTask: { id: string; name: string; priority: number; description?: string } | null
@@ -37,6 +40,10 @@ export function FocusTaskView({
   // Use external control if provided, otherwise use internal state
   const showInfoOverlay = externalShowInfoOverlay !== undefined ? externalShowInfoOverlay : internalShowInfoOverlay
   const setShowInfoOverlay = onShowInfoOverlay || setInternalShowInfoOverlay
+  
+  // Get parent chain for breadcrumb
+  const projects = useAppStore((state) => state.projects)
+  const parentChain = currentTask ? getTaskParentChain(projects, currentTask.id) : []
 
   // Update displayed task name when current task changes (but not during completion or transition)
   useEffect(() => {
@@ -176,7 +183,7 @@ export function FocusTaskView({
           {/* Content card - glass-morphism with transitions instead of animations */}
           <div 
             className={cn(
-              "relative max-w-2xl w-full glass-morphism rounded-3xl p-8 shadow-2xl",
+              "relative max-w-3xl w-full glass-morphism rounded-3xl p-8 shadow-2xl",
               "transition-all duration-300 transform",
               isOverlayClosing ? "scale-95 opacity-0" : "scale-100 opacity-100"
             )}
@@ -192,7 +199,18 @@ export function FocusTaskView({
                 <X className="h-5 w-5" />
               </Button>
               
-              {/* Task name */}
+              {/* Breadcrumb navigation - with margin to avoid close button */}
+              {parentChain.length > 0 && (
+                <div className="mb-4">
+                  <TaskBreadcrumb 
+                    items={parentChain}
+                    currentTaskName={currentTask.name}
+                    className="animate-in fade-in slide-in-from-top-2 duration-500"
+                  />
+                </div>
+              )}
+              
+              {/* Task name - always with right padding for close button */}
               <h2 className="text-2xl font-medium mb-6 pr-12">
                 {currentTask.name}
               </h2>

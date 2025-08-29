@@ -26,6 +26,21 @@ export function FocusHeaderButtons({
   const [justBecamePreferred, setJustBecamePreferred] = useState(false)
   const [justBecameUnpreferred, setJustBecameUnpreferred] = useState(false)
   const [prevPriority, setPrevPriority] = useState(currentTaskPriority)
+  const [showDescriptionIcon, setShowDescriptionIcon] = useState(hasDescription)
+  const [prevHasDescription, setPrevHasDescription] = useState(hasDescription)
+
+  // Handle description icon animation during transitions
+  useEffect(() => {
+    // When transition starts, begin animating if description state will change
+    if (isTransitioning && hasDescription !== prevHasDescription) {
+      // Start animating immediately when transition begins
+      setShowDescriptionIcon(hasDescription)
+    } else if (!isTransitioning) {
+      // Update state when not transitioning
+      setShowDescriptionIcon(hasDescription)
+      setPrevHasDescription(hasDescription)
+    }
+  }, [hasDescription, isTransitioning, prevHasDescription])
 
   // Track when task becomes preferred/unpreferred to trigger animations
   useEffect(() => {
@@ -86,7 +101,7 @@ export function FocusHeaderButtons({
               "rounded-full px-3 py-2 h-10",
               "bg-rose-100/40 dark:bg-rose-900/10",
               "hover:bg-rose-200/50 dark:hover:bg-rose-800/20",
-              "backdrop-blur-sm transition-all duration-500 ease-out",
+              "backdrop-blur-sm transition-all duration-[2500ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]",
               "border border-rose-200/30 dark:border-rose-800/20",
               "opacity-80 hover:opacity-100",
               isTransitioning && "pointer-events-none"
@@ -99,16 +114,16 @@ export function FocusHeaderButtons({
             
             {/* Icons showing available details with smooth transitions */}
             <div className={cn(
-              "flex items-center transition-all duration-300 ease-out overflow-hidden",
-              hasDescription ? "ml-3 max-w-[40px] opacity-100" : "ml-0 max-w-0 opacity-0"
+              "flex items-center transition-all duration-[2500ms] ease-[cubic-bezier(0.25,0.1,0.25,1)] overflow-hidden",
+              showDescriptionIcon ? "ml-3 max-w-[40px] opacity-100" : "ml-0 max-w-0 opacity-0"
             )}>
               <div className={cn(
-                "pl-3 border-l flex items-center transition-all duration-300",
-                hasDescription ? "border-rose-300/30 dark:border-rose-700/30" : "border-transparent"
+                "pl-3 border-l flex items-center transition-all duration-[2500ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]",
+                showDescriptionIcon ? "border-rose-300/30 dark:border-rose-700/30" : "border-transparent"
               )}>
                 <FileText className={cn(
-                  "h-4 w-4 text-rose-600/60 dark:text-rose-400/60 transition-transform duration-300 ease-out",
-                  hasDescription ? "scale-100" : "scale-75 opacity-0"
+                  "h-4 w-4 text-rose-600/60 dark:text-rose-400/60 transition-all duration-[2500ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]",
+                  showDescriptionIcon ? "scale-100" : "scale-75 opacity-0"
                 )} />
               </div>
             </div>

@@ -763,6 +763,37 @@ export const isTask = (taskPath: string[]): boolean => taskPath && taskPath.leng
 export const isProjectList = (taskPath: string[]): boolean => !taskPath || taskPath.length === 0
 
 /**
+ * Get the parent chain (breadcrumb) for a task
+ * Returns array of {id, name} objects from root to parent (excluding the task itself)
+ */
+export const getTaskParentChain = (projects: ProjectData[], taskId: string): { id: string; name: string }[] => {
+  // Find which project contains this task
+  for (const project of projects) {
+    const taskPath = findTaskPath(project.tasks, taskId)
+    if (taskPath) {
+      const chain: { id: string; name: string }[] = []
+      
+      // Add project as root
+      chain.push({ id: project.id, name: project.name })
+      
+      // Add each parent task in the path (excluding the target task itself)
+      let currentTasks = project.tasks
+      for (let i = 0; i < taskPath.length - 1; i++) {
+        const parentTask = currentTasks.find(t => t.id === taskPath[i])
+        if (parentTask) {
+          chain.push({ id: parentTask.id, name: parentTask.name })
+          currentTasks = parentTask.subtasks
+        }
+      }
+      
+      return chain
+    }
+  }
+  
+  return []
+}
+
+/**
  * Calculate focus points for a task and all its subtasks recursively
  */
 export const calculateTaskFocusPoints = (task: TaskData): number => {

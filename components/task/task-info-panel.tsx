@@ -37,7 +37,7 @@ export function TaskInfoPanel({ taskPath, taskName }: TaskInfoPanelProps) {
       setTimeout(() => {
         setExpandedSection(null)
         setIsAnimating(false)
-      }, 500)
+      }, 800)
     } else {
       setExpandedSection(section)
     }
@@ -90,7 +90,7 @@ export function TaskInfoPanel({ taskPath, taskName }: TaskInfoPanelProps) {
               onClick={() => section.available && toggleSection(section.id)}
               disabled={!section.available}
               className={cn(
-                "flex items-center gap-2 rounded-xl transition-all duration-500 ease-out",
+                "flex items-center gap-2 rounded-xl transition-all duration-1000 ease-in-out",
                 section.available 
                   ? "hover:bg-pink-100/30 dark:hover:bg-pink-900/20" 
                   : "opacity-50 cursor-not-allowed",
@@ -98,10 +98,10 @@ export function TaskInfoPanel({ taskPath, taskName }: TaskInfoPanelProps) {
               )}
               title={!section.available ? "Coming soon" : section.label}
             >
-              <Icon className="h-4 w-4 transition-all duration-500 ease-out" />
+              <Icon className="h-4 w-4 transition-all duration-1000 ease-in-out" />
               <span className="text-sm hidden sm:inline">{section.label}</span>
               {section.available && (
-                <div className="ml-1 transition-transform duration-500 ease-out" style={{
+                <div className="ml-1 transition-transform duration-1000 ease-in-out" style={{
                   transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
                 }}>
                   <ChevronDown className="h-3 w-3" />
@@ -118,8 +118,8 @@ export function TaskInfoPanel({ taskPath, taskName }: TaskInfoPanelProps) {
           className="p-4 rounded-2xl glass-card overflow-hidden"
           style={{
             animation: expandedSection 
-              ? 'gracefulSlideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards'
-              : 'gracefulSlideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+              ? 'gracefulSlideDown 1.2s cubic-bezier(0.25, 0.1, 0.25, 1) forwards'
+              : 'gracefulSlideUp 0.8s cubic-bezier(0.25, 0.1, 0.25, 1) forwards',
             transformOrigin: 'top'
           }}
         >
