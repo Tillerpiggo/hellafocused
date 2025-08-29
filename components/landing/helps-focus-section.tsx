@@ -4,7 +4,7 @@ import { Target } from "lucide-react"
 
 export function HelpsFocusSection() {
   return (
-    <section className="pt-8 pb-32 bg-gradient-to-b from-background via-blue-50/5 to-background dark:from-background dark:via-blue-950/10 dark:to-background">
+    <section className="pt-0 pb-32 bg-gradient-to-b from-background via-blue-50/5 to-background dark:from-background dark:via-blue-950/10 dark:to-background">
       <div className="container max-w-5xl mx-auto px-8">
         {/* Section title */}
         <div className="text-center mb-16">
@@ -64,7 +64,7 @@ export function HelpsFocusSection() {
         {/* Additional context */}
         <div className="text-center mt-16">
           <p className="text-lg text-muted-foreground">
-            You can also use it like a normal to-do app - it&apos;s beautiful there, too!
+            You can also use it like a normal to-do app - it&apos;s beautiful either way!
           </p>
         </div>
       </div>

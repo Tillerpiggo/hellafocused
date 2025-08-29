@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-// import { Check } from "lucide-react"
 import { useTheme } from "next-themes"
 
 const examples = [
@@ -24,20 +23,15 @@ interface HeroSectionProps {
 
 export function HeroSection({ hasSession }: HeroSectionProps) {
   const [currentExample, setCurrentExample] = useState(0)
-  // const [isTaskChecked, setIsTaskChecked] = useState(false)
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
 
   useEffect(() => {
     const interval = setInterval(() => {
-      // setIsTaskChecked(true)
-      
-      // After a brief pause, move to next example and uncheck
+      // Move to next example
       setTimeout(() => {
         const nextExample = (currentExample + 1) % examples.length
         setCurrentExample(nextExample)
-        // Always reset to unchecked, and ensure first example stays unchecked
-        // setIsTaskChecked(false)
       }, 1000)
     }, 4000)
 
@@ -53,7 +47,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
             {/* Pill badge */}
             <div className="flex justify-center mb-6">
               <div className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium bg-primary/10 text-primary border border-primary/20">
-                Everything is overwhelming
+                A great app!
               </div>
             </div>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground leading-tight mb-4">
@@ -64,12 +58,12 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
               {/* Focus on one tiny task at a time. */}
               {/* Big tasks are hard. Make them smaller. */}
               {/* Bite-sized productivity.*/}
-              Focus on one task at a time.
+              The to-do app designed for focus.
             </h1>
             
             {/* Subtitle text description */}
             <p className="text-xl sm:text-2xl text-muted-foreground leading-relaxed">
-              The to-do app designed for focus, at every level.
+              Focus on one task at a time, break down tasks, and accomplish more.
             </p>
           </div>
 
@@ -98,52 +92,6 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
               )}
             </div>
           </div>
-
-
-
-          {/* Typing effect animation - commented out for now */}
-          {/*
-          <div className="mt-20 mb-16">
-            <div className="text-lg sm:text-xl lg:text-2xl font-normal text-muted-foreground leading-tight">
-              <div 
-                key={`example-${currentExample}`}
-                className="flex flex-col sm:inline-flex sm:flex-row items-center justify-center gap-3 sm:gap-4 animate-wipe-in"
-                style={{
-                  animation: 'wipe-in 0.8s ease-out forwards'
-                }}
-              >
-                <div className="flex items-center gap-3 sm:gap-2 bg-muted/20 rounded-lg px-6 py-3 sm:px-4 sm:py-2 border border-border/30">
-                  <div className="h-5 w-5 sm:h-4 sm:w-4 rounded-sm border-2 border-muted-foreground bg-transparent flex items-center justify-center">
-                  </div>
-                  <span className="text-muted-foreground">
-                    {examples[currentExample].goal}
-                  </span>
-                </div>
-
-                <span className="text-muted-foreground mx-0 sm:mx-2">becomes</span>
-
-                <div className="flex items-center gap-3 sm:gap-2 bg-muted/20 rounded-lg px-6 py-3 sm:px-4 sm:py-2 border border-border/30">
-                  <div 
-                    className={`h-5 w-5 sm:h-4 sm:w-4 rounded-sm border-2 transition-all duration-300 flex items-center justify-center ${
-                      isTaskChecked ? 'border-blue-500 bg-blue-500' : 'border-muted-foreground bg-transparent'
-                    }`}
-                  >
-                    {isTaskChecked && (
-                      <Check className="h-4 w-4 sm:h-3 sm:w-3 text-white animate-in zoom-in duration-200" />
-                    )}
-                  </div>
-                  <span 
-                    className={`text-muted-foreground transition-all duration-300 ${
-                      isTaskChecked ? 'line-through' : ''
-                    }`}
-                  >
-                    {examples[currentExample].task}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-          */}
 
           {/* Visual Demo */}
           <div className="-mx-4 sm:-mx-6 lg:-mx-8 relative mt-16">

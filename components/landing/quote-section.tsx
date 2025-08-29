@@ -66,6 +66,50 @@ export function QuoteSection() {
           </div>
         </div>
       </div>
+      
+      {/* Static wave transition */}
+      <div className="relative py-28 overflow-hidden">
+        <div className="absolute inset-0">
+          {/* Layered gradient waves - static with updated colors */}
+          <div className="absolute inset-0">
+            {/* First wave layer */}
+            <div className="absolute top-0 left-0 w-full h-48 opacity-[0.25]">
+              <div className="absolute inset-0 bg-gradient-to-b from-blue-500/40 to-transparent transform -skew-y-3"></div>
+            </div>
+            
+            {/* Second wave layer */}
+            <div className="absolute top-10 left-0 w-full h-48 opacity-[0.20]">
+              <div className="absolute inset-0 bg-gradient-to-b from-purple-500/35 to-transparent transform skew-y-2"></div>
+            </div>
+            
+            {/* Third wave layer */}
+            <div className="absolute top-20 left-0 w-full h-48 opacity-[0.18]">
+              <div className="absolute inset-0 bg-gradient-to-b from-pink-500/30 to-transparent transform -skew-y-2"></div>
+            </div>
+            
+            {/* Fourth wave layer */}
+            <div className="absolute top-32 left-0 w-full h-48 opacity-[0.15]">
+              <div className="absolute inset-0 bg-gradient-to-b from-indigo-500/25 to-transparent transform skew-y-3"></div>
+            </div>
+            
+            {/* Bottom wave layer */}
+            <div className="absolute top-44 left-0 w-full h-48 opacity-[0.12]">
+              <div className="absolute inset-0 bg-gradient-to-b from-primary/20 to-transparent transform -skew-y-1"></div>
+            </div>
+          </div>
+          
+          {/* Center accent lines */}
+          <div className="absolute top-1/2 left-0 right-0 flex justify-center">
+            <div className="w-full max-w-5xl px-8 space-y-2">
+              <div className="h-px bg-gradient-to-r from-transparent via-border/20 to-transparent"></div>
+              <div className="h-px bg-gradient-to-r from-transparent via-primary/10 to-transparent"></div>
+            </div>
+          </div>
+          
+          {/* Gentle fade to next section */}
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-background to-transparent"></div>
+        </div>
+      </div>
     </section>
   )
 }

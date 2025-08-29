@@ -91,7 +91,7 @@ export default function Mockup2Page() {
         {/* Expanded Feature Sections */}
         {expandedSection === 'search' && (
           <div className={cn(
-            "mb-6 p-4 rounded-2xl glass-card backdrop-blur-md border-white/30",
+            "mb-6 p-4 rounded-2xl glass-card border-white/30",
             "animate-in slide-in-from-top-2 duration-200"
           )}>
             <div className="relative">
@@ -107,7 +107,7 @@ export default function Mockup2Page() {
 
         {expandedSection === 'description' && (
           <div className={cn(
-            "mb-6 p-4 rounded-2xl glass-card backdrop-blur-md border-white/30",
+            "mb-6 p-4 rounded-2xl glass-card border-white/30",
             "animate-in slide-in-from-top-2 duration-200"
           )}>
             <div className="space-y-3">
@@ -126,7 +126,7 @@ export default function Mockup2Page() {
 
         {expandedSection === 'attachments' && (
           <div className={cn(
-            "mb-6 p-4 rounded-2xl glass-card backdrop-blur-md border-white/30",
+            "mb-6 p-4 rounded-2xl glass-card border-white/30",
             "animate-in slide-in-from-top-2 duration-200"
           )}>
             <div className="text-center py-8">
@@ -141,7 +141,7 @@ export default function Mockup2Page() {
 
         {expandedSection === 'duedate' && (
           <div className={cn(
-            "mb-6 p-4 rounded-2xl glass-card backdrop-blur-md border-white/30",
+            "mb-6 p-4 rounded-2xl glass-card border-white/30",
             "animate-in slide-in-from-top-2 duration-200"
           )}>
             <div className="text-center py-8">
@@ -161,7 +161,7 @@ export default function Mockup2Page() {
               key={subtask.id}
               className={cn(
                 "flex items-start gap-4 p-4 rounded-2xl group glass-card",
-                "backdrop-blur-md bg-gradient-to-br transition-all duration-200",
+                "bg-gradient-to-br transition-all duration-200",
                 subtask.completed
                   ? "from-green-50/30 to-emerald-50/30 border-green-200/40 opacity-70"
                   : mockTask.priority === 1
@@ -197,7 +197,7 @@ export default function Mockup2Page() {
         </div>
 
         {/* Add New Subtask */}
-        <div className="mt-6 p-4 rounded-2xl glass-card backdrop-blur-md border-white/30 border-dashed">
+        <div className="mt-6 p-4 rounded-2xl glass-card border-white/30 border-dashed">
           <div className="flex items-center gap-4">
             <Circle className="h-5 w-5 text-muted-foreground/50" />
             <input

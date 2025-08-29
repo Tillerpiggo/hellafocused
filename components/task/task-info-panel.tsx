@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { FileText, Link, Paperclip, Calendar, ChevronDown, ChevronUp } from "lucide-react"
+import { FileText, Link, Paperclip, Calendar, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
@@ -12,6 +12,7 @@ interface TaskInfoPanelProps {
 
 export function TaskInfoPanel({ taskPath, taskName }: TaskInfoPanelProps) {
   const [expandedSection, setExpandedSection] = useState<string | null>(null)
+  const [isAnimating, setIsAnimating] = useState(false)
   
   // Generate fake description based on task name
   const generateFakeDescription = () => {
@@ -29,7 +30,17 @@ export function TaskInfoPanel({ taskPath, taskName }: TaskInfoPanelProps) {
   }
   
   const toggleSection = (section: string) => {
-    setExpandedSection(expandedSection === section ? null : section)
+    if (isAnimating) return
+    
+    if (expandedSection === section) {
+      setIsAnimating(true)
+      setTimeout(() => {
+        setExpandedSection(null)
+        setIsAnimating(false)
+      }, 500)
+    } else {
+      setExpandedSection(section)
+    }
   }
   
   const sections = [
@@ -66,7 +77,7 @@ export function TaskInfoPanel({ taskPath, taskName }: TaskInfoPanelProps) {
   return (
     <div className="space-y-2">
       {/* Icon Bar */}
-      <div className="flex items-center gap-2 p-2 rounded-2xl glass-card backdrop-blur-md">
+      <div className="flex items-center gap-2 p-2 rounded-2xl glass-card">
         {sections.map((section) => {
           const Icon = section.icon
           const isExpanded = expandedSection === section.id
@@ -79,7 +90,7 @@ export function TaskInfoPanel({ taskPath, taskName }: TaskInfoPanelProps) {
               onClick={() => section.available && toggleSection(section.id)}
               disabled={!section.available}
               className={cn(
-                "flex items-center gap-2 rounded-xl transition-all",
+                "flex items-center gap-2 rounded-xl transition-all duration-500 ease-out",
                 section.available 
                   ? "hover:bg-pink-100/30 dark:hover:bg-pink-900/20" 
                   : "opacity-50 cursor-not-allowed",
@@ -87,14 +98,14 @@ export function TaskInfoPanel({ taskPath, taskName }: TaskInfoPanelProps) {
               )}
               title={!section.available ? "Coming soon" : section.label}
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-4 w-4 transition-all duration-500 ease-out" />
               <span className="text-sm hidden sm:inline">{section.label}</span>
               {section.available && (
-                isExpanded ? (
-                  <ChevronUp className="h-3 w-3 ml-1" />
-                ) : (
-                  <ChevronDown className="h-3 w-3 ml-1" />
-                )
+                <div className="ml-1 transition-transform duration-500 ease-out" style={{
+                  transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)'
+                }}>
+                  <ChevronDown className="h-3 w-3" />
+                </div>
               )}
             </Button>
           )
@@ -102,11 +113,16 @@ export function TaskInfoPanel({ taskPath, taskName }: TaskInfoPanelProps) {
       </div>
       
       {/* Expanded Content */}
-      {expandedSection === 'description' && (
-        <div className={cn(
-          "p-4 rounded-2xl glass-card backdrop-blur-md",
-          "animate-in slide-in-from-top-2 duration-200"
-        )}>
+      {(expandedSection === 'description' || (isAnimating && !expandedSection)) && (
+        <div 
+          className="p-4 rounded-2xl glass-card overflow-hidden"
+          style={{
+            animation: expandedSection 
+              ? 'gracefulSlideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards'
+              : 'gracefulSlideUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards',
+            transformOrigin: 'top'
+          }}
+        >
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-medium text-muted-foreground">Description</h3>

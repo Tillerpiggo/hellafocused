@@ -102,14 +102,46 @@ export function FocusTaskView({
         isDeferred={currentTask?.priority === -1}
         isPreferred={currentTask?.priority === 1}
       >
-        <div className={`flex-1 flex items-center justify-center p-8 overflow-hidden transition-colors duration-500 ease-out ${
+        <div className={`flex-1 flex items-center justify-center p-8 overflow-hidden transition-colors duration-500 ease-out relative ${
           priority === 1 
             ? "bg-amber-50/30 dark:bg-amber-950/10" 
             : priority === -1 
             ? "bg-muted/20 dark:bg-muted/10" 
             : ""
         }`}>
-          <div className="relative max-w-4xl w-full">
+          {/* Subtle gradient glow effect */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            {/* Top left glow - balanced subtlety */}
+            <div className="absolute -top-60 -left-60 w-[500px] h-[500px] bg-gradient-to-br from-blue-400/12 via-blue-300/5 to-transparent rounded-full blur-[100px] opacity-40 dark:from-blue-500/8 dark:via-blue-400/3"></div>
+            
+            {/* Bottom right glow - balanced subtlety */}
+            <div className="absolute -bottom-60 -right-60 w-[500px] h-[500px] bg-gradient-to-tl from-purple-400/12 via-purple-300/5 to-transparent rounded-full blur-[100px] opacity-40 dark:from-purple-500/8 dark:via-purple-400/3"></div>
+            
+            {/* Center subtle radial gradient */}
+            <div className="absolute inset-0 bg-radial-gradient from-primary/[0.03] via-transparent to-transparent"></div>
+            
+            {/* Subtle animated floating orb - top center */}
+            <div className="absolute top-32 left-1/2 -translate-x-1/2 w-[400px] h-[400px] opacity-20">
+              <div className="w-full h-full bg-gradient-to-br from-pink-300/10 to-orange-300/10 rounded-full blur-[80px] animate-pulse" style={{ animationDuration: '12s' }}></div>
+            </div>
+            
+            {/* Priority-specific enhanced glows - balanced */}
+            {priority === 1 && (
+              <>
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-300/[0.06] via-transparent to-transparent"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-gradient-radial from-amber-400/[0.07] to-transparent rounded-full blur-[120px]"></div>
+              </>
+            )}
+            
+            {priority === -1 && (
+              <>
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-400/[0.03] via-transparent to-transparent"></div>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-radial from-slate-300/[0.04] to-transparent rounded-full blur-[120px]"></div>
+              </>
+            )}
+          </div>
+          
+          <div className="relative max-w-4xl w-full z-10">
             <h1
               key={taskKey}
               className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-center leading-relaxed break-words transition-colors duration-500 ease-out ${
@@ -133,52 +165,54 @@ export function FocusTaskView({
         <div 
           className={cn(
             "fixed inset-0 z-50 flex items-center justify-center p-8",
-            isOverlayClosing ? "animate-fade-out" : "animate-fade-in"
+            "transition-opacity duration-300",
+            isOverlayClosing ? "opacity-0" : "opacity-100"
           )}
           onClick={handleCloseOverlay}
         >
           {/* Backdrop blur with subtle darkening - cross-browser support */}
           <div className="absolute inset-0 overlay-backdrop" />
           
-          {/* Content card - using glass-morphism class */}
+          {/* Content card - glass-morphism with transitions instead of animations */}
           <div 
             className={cn(
               "relative max-w-2xl w-full glass-morphism rounded-3xl p-8 shadow-2xl",
-              isOverlayClosing ? "animate-scale-out" : "animate-scale-in"
+              "transition-all duration-300 transform",
+              isOverlayClosing ? "scale-95 opacity-0" : "scale-100 opacity-100"
             )}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Close button */}
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleCloseOverlay}
-              className="absolute top-4 right-4 rounded-full hover:bg-white/20 dark:hover:bg-black/20"
-            >
-              <X className="h-5 w-5" />
-            </Button>
-            
-            {/* Task name */}
-            <h2 className="text-2xl font-medium mb-6 pr-12">
-              {currentTask.name}
-            </h2>
-            
-            {/* Description section */}
-            <div className="space-y-2">
-              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                Description
-              </h3>
-              <p className="text-base leading-relaxed whitespace-pre-wrap">
-                {currentTask.description || "No description."}
-              </p>
-            </div>
-            
-            {/* Placeholder for future sections */}
-            <div className="mt-8 pt-6 border-t border-white/10 dark:border-white/5">
-              <p className="text-xs text-muted-foreground text-center">
-                Attachments, due dates, and more coming soon
-              </p>
-            </div>
+              {/* Close button */}
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleCloseOverlay}
+                className="absolute top-4 right-4 rounded-full hover:bg-white/20 dark:hover:bg-black/20"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+              
+              {/* Task name */}
+              <h2 className="text-2xl font-medium mb-6 pr-12">
+                {currentTask.name}
+              </h2>
+              
+              {/* Description section */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                  Description
+                </h3>
+                <p className="text-base leading-relaxed whitespace-pre-wrap">
+                  {currentTask.description || "No description."}
+                </p>
+              </div>
+              
+              {/* Placeholder for future sections */}
+              <div className="mt-8 pt-6 border-t border-white/10 dark:border-white/5">
+                <p className="text-xs text-muted-foreground text-center">
+                  Attachments, due dates, and more coming soon
+                </p>
+              </div>
           </div>
         </div>
       )}
