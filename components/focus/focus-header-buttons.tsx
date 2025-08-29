@@ -1,16 +1,28 @@
 import { Button } from "@/components/ui/button"
-import { X, Plus, Star, Clock } from "lucide-react"
+import { X, Plus, Star, Clock, Info, FileText } from "lucide-react"
 import { useEffect, useState } from "react"
 import { PriorityDropdown } from "./priority-dropdown"
+import { cn } from "@/lib/utils"
 
 interface FocusHeaderButtonsProps {
   onExitFocus: () => void
   onShowAddTasks: () => void
   currentTaskPriority?: number
   onPriorityChange?: (priority: number) => void
+  onShowTaskDetails?: () => void
+  hasDescription?: boolean
+  isTransitioning?: boolean
 }
 
-export function FocusHeaderButtons({ onExitFocus, onShowAddTasks, currentTaskPriority = 0, onPriorityChange }: FocusHeaderButtonsProps) {
+export function FocusHeaderButtons({ 
+  onExitFocus, 
+  onShowAddTasks, 
+  currentTaskPriority = 0, 
+  onPriorityChange,
+  onShowTaskDetails,
+  hasDescription,
+  isTransitioning
+}: FocusHeaderButtonsProps) {
   const [justBecamePreferred, setJustBecamePreferred] = useState(false)
   const [justBecameUnpreferred, setJustBecameUnpreferred] = useState(false)
   const [prevPriority, setPrevPriority] = useState(currentTaskPriority)
@@ -44,7 +56,7 @@ export function FocusHeaderButtons({ onExitFocus, onShowAddTasks, currentTaskPri
         <span className="sr-only">Exit focus mode</span>
       </Button>
 
-      {/* Add tasks button in top right */}
+      {/* Buttons in top right */}
       <div className="absolute top-6 right-6 flex items-center gap-2 z-10">
         {/* Priority indicator */}
         {(currentTaskPriority === 1 || justBecameUnpreferred) && onPriorityChange && (
@@ -63,6 +75,44 @@ export function FocusHeaderButtons({ onExitFocus, onShowAddTasks, currentTaskPri
               <Clock className="h-4 w-4 text-slate-500/80 dark:text-slate-400/80" />
             </div>
           </PriorityDropdown>
+        )}
+        
+        {/* Task details button */}
+        {onShowTaskDetails && (
+          <Button
+            variant="ghost"
+            onClick={onShowTaskDetails}
+            className={cn(
+              "rounded-full px-3 py-2 h-10",
+              "bg-rose-100/40 dark:bg-rose-900/10",
+              "hover:bg-rose-200/50 dark:hover:bg-rose-800/20",
+              "backdrop-blur-sm transition-all duration-500 ease-out",
+              "border border-rose-200/30 dark:border-rose-800/20",
+              "opacity-80 hover:opacity-100",
+              isTransitioning && "pointer-events-none"
+            )}
+          >
+            <Info className="h-4 w-4 text-rose-700 dark:text-rose-300 mr-2" />
+            <span className="text-sm font-medium text-rose-700 dark:text-rose-300">
+              Show task details
+            </span>
+            
+            {/* Icons showing available details with smooth transitions */}
+            <div className={cn(
+              "flex items-center transition-all duration-300 ease-out overflow-hidden",
+              hasDescription ? "ml-3 max-w-[40px] opacity-100" : "ml-0 max-w-0 opacity-0"
+            )}>
+              <div className={cn(
+                "pl-3 border-l flex items-center transition-all duration-300",
+                hasDescription ? "border-rose-300/30 dark:border-rose-700/30" : "border-transparent"
+              )}>
+                <FileText className={cn(
+                  "h-4 w-4 text-rose-600/60 dark:text-rose-400/60 transition-transform duration-300 ease-out",
+                  hasDescription ? "scale-100" : "scale-75 opacity-0"
+                )} />
+              </div>
+            </div>
+          </Button>
         )}
         
         <Button

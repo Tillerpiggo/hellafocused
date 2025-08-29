@@ -139,19 +139,6 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
               </span>
             )}
           </div>
-          {/* Description - truncated to 80 characters */}
-          {!isEditing && task.description && task.description.trim() && (
-            <div className="mt-0.5">
-              <p className={cn(
-                "text-xs text-muted-foreground truncate",
-                task.completed && "line-through"
-              )}>
-                {task.description.length > 80 
-                  ? task.description.substring(0, 80).trimEnd() + '...'
-                  : task.description}
-              </p>
-            </div>
-          )}
         </div>
       </div>
       <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2">

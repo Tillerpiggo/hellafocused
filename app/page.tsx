@@ -5,11 +5,11 @@ import { useRouter, useSearchParams } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { LandingNavigation } from "@/components/landing/landing-navigation"
 import { HeroSection } from "@/components/landing/hero-section"
-import { VideoDemoSection } from "@/components/landing/video-demo-section"
-import { FocusShowcaseSection } from "@/components/landing/focus-showcase-section"
-import { StickyScrollSection } from "@/components/landing/sticky-scroll-section"
-import { RecursiveBreakdownSection } from "@/components/landing/recursive-breakdown-section"
-import { FlowSection } from "@/components/landing/flow-section"
+import { ProblemSection } from "@/components/landing/problem-section"
+import { QuoteSection } from "@/components/landing/quote-section"
+import { HelpsFocusSection } from "@/components/landing/helps-focus-section"
+import { ButFirstSection } from "@/components/landing/but-first-section"
+import { ReliefSection } from "@/components/landing/relief-section"
 import { FinalCTASection } from "@/components/landing/final-cta-section"
 import { FAQSection } from "@/components/landing/faq-section"
 import { LandingFooter } from "@/components/landing/landing-footer"
@@ -25,11 +25,17 @@ function LandingContent({ user, hasSession }: LandingContentProps) {
     <div className="min-h-screen bg-background">
       <LandingNavigation hasSession={hasSession} user={user} />
       <HeroSection hasSession={hasSession} />
-      <VideoDemoSection />
-      <StickyScrollSection />
-      <RecursiveBreakdownSection />
-      <FlowSection />
-      <FocusShowcaseSection />
+      <QuoteSection />
+      <HelpsFocusSection />
+      <ButFirstSection />
+      <ReliefSection />
+      {/* <FocusModeSection /> */}
+      {/* <VideoDemoSection /> */}
+      {/* <StickyScrollSection /> */}
+      {/* <RecursiveBreakdownSection /> */}
+      {/* <FlowSection /> */}
+      {/* <FocusShowcaseSection /> */}
+      <ProblemSection />
       <FinalCTASection hasSession={hasSession} />
       <FAQSection />
       <LandingFooter />

@@ -1,15 +1,18 @@
 import { Button } from "@/components/ui/button"
-import { Check, Shuffle } from "lucide-react"
+import { Check, Shuffle, X } from "lucide-react"
 import { useEffect, useState } from "react"
 import { triggerConfetti } from "@/lib/confetti"
 import { FocusContextMenu } from "./focus-context-menu"
+import { cn } from "@/lib/utils"
 
 interface FocusTaskViewProps {
-  currentTask: { id: string; name: string; priority: number } | null
+  currentTask: { id: string; name: string; priority: number; description?: string } | null
   completeFocusTask: () => void
   getNextFocusTask: () => void
   onToggleDefer: () => void
   onTogglePrefer: () => void
+  showInfoOverlay?: boolean
+  onShowInfoOverlay?: (show: boolean) => void
 }
 
 export function FocusTaskView({
@@ -17,7 +20,9 @@ export function FocusTaskView({
   completeFocusTask,
   getNextFocusTask,
   onToggleDefer,
-  onTogglePrefer
+  onTogglePrefer,
+  showInfoOverlay: externalShowInfoOverlay,
+  onShowInfoOverlay
 }: FocusTaskViewProps) {
   const priority = currentTask?.priority ?? 0
   const [isCompleting, setIsCompleting] = useState(false)
@@ -25,6 +30,13 @@ export function FocusTaskView({
   const [taskKey, setTaskKey] = useState(0)
   const [displayedTaskName, setDisplayedTaskName] = useState("")
   const [displayedTaskId, setDisplayedTaskId] = useState("")
+  // const [displayedTaskDescription, setDisplayedTaskDescription] = useState<string | undefined>(undefined)
+  const [internalShowInfoOverlay, setInternalShowInfoOverlay] = useState(false)
+  const [isOverlayClosing, setIsOverlayClosing] = useState(false)
+  
+  // Use external control if provided, otherwise use internal state
+  const showInfoOverlay = externalShowInfoOverlay !== undefined ? externalShowInfoOverlay : internalShowInfoOverlay
+  const setShowInfoOverlay = onShowInfoOverlay || setInternalShowInfoOverlay
 
   // Update displayed task name when current task changes (but not during completion or transition)
   useEffect(() => {
@@ -32,6 +44,7 @@ export function FocusTaskView({
       // Only update taskKey (trigger animation) if the task ID actually changed
       if (currentTask.id !== displayedTaskId) {
         setDisplayedTaskName(currentTask.name)
+        // setDisplayedTaskDescription(currentTask.description)
         setDisplayedTaskId(currentTask.id)
         setTaskKey((prev) => prev + 1)
       }
@@ -67,6 +80,14 @@ export function FocusTaskView({
     setTimeout(() => {
       getNextFocusTask()
       setIsTransitioning(false)
+    }, 450)
+  }
+
+  const handleCloseOverlay = () => {
+    setIsOverlayClosing(true)
+    setTimeout(() => {
+      setShowInfoOverlay(false)
+      setIsOverlayClosing(false)
     }, 450)
   }
 
@@ -106,6 +127,61 @@ export function FocusTaskView({
           </div>
         </div>
       </FocusContextMenu>
+
+      {/* Glassy Info Overlay */}
+      {showInfoOverlay && currentTask && (
+        <div 
+          className={cn(
+            "fixed inset-0 z-50 flex items-center justify-center p-8",
+            isOverlayClosing ? "animate-fade-out" : "animate-fade-in"
+          )}
+          onClick={handleCloseOverlay}
+        >
+          {/* Backdrop blur with subtle darkening - cross-browser support */}
+          <div className="absolute inset-0 overlay-backdrop" />
+          
+          {/* Content card - using glass-morphism class */}
+          <div 
+            className={cn(
+              "relative max-w-2xl w-full glass-morphism rounded-3xl p-8 shadow-2xl",
+              isOverlayClosing ? "animate-scale-out" : "animate-scale-in"
+            )}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCloseOverlay}
+              className="absolute top-4 right-4 rounded-full hover:bg-white/20 dark:hover:bg-black/20"
+            >
+              <X className="h-5 w-5" />
+            </Button>
+            
+            {/* Task name */}
+            <h2 className="text-2xl font-medium mb-6 pr-12">
+              {currentTask.name}
+            </h2>
+            
+            {/* Description section */}
+            <div className="space-y-2">
+              <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
+                Description
+              </h3>
+              <p className="text-base leading-relaxed whitespace-pre-wrap">
+                {currentTask.description || "No description."}
+              </p>
+            </div>
+            
+            {/* Placeholder for future sections */}
+            <div className="mt-8 pt-6 border-t border-white/10 dark:border-white/5">
+              <p className="text-xs text-muted-foreground text-center">
+                Attachments, due dates, and more coming soon
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bottom action buttons */}
       <div className="flex flex-col sm:flex-row gap-6 p-8 max-w-md mx-auto w-full">

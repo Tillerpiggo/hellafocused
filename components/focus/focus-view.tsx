@@ -38,6 +38,8 @@ export function FocusView({ startPath }: FocusViewProps) {
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [isExiting, setIsExiting] = useState(false)
   const [currentTaskPriority, setCurrentTaskPriority] = useState(0)
+  const [showInfoOverlay, setShowInfoOverlay] = useState(false)
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
   const handleExitFocusMode = useCallback(() => {
     setIsExiting(true)
@@ -205,9 +207,15 @@ export function FocusView({ startPath }: FocusViewProps) {
         <FocusTaskView
           currentTask={currentFocusTask}
           completeFocusTask={completeFocusTask}
-          getNextFocusTask={getNextFocusTask}
+          getNextFocusTask={() => {
+            setIsTransitioning(true)
+            getNextFocusTask()
+            setTimeout(() => setIsTransitioning(false), 500)
+          }}
           onToggleDefer={handleToggleDefer}
           onTogglePrefer={handleTogglePrefer}
+          showInfoOverlay={showInfoOverlay}
+          onShowInfoOverlay={setShowInfoOverlay}
         />
       )
     }
@@ -226,6 +234,9 @@ export function FocusView({ startPath }: FocusViewProps) {
           onShowAddTasks={() => setShowAddTasksView(true)}
           currentTaskPriority={showSubtaskCelebration ? 0 : currentTaskPriority} // 0 hides icons on celebration page
           onPriorityChange={handleSetPriority}
+          onShowTaskDetails={currentFocusTask ? () => setShowInfoOverlay(true) : undefined}
+          hasDescription={!!currentFocusTask?.description}
+          isTransitioning={isTransitioning}
         />
 
         {/* Conditional main content */}

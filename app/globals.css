@@ -151,19 +151,21 @@
   }
 
   .glass-morphism {
-    background: rgba(255, 255, 255, 0.12);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
+    background: rgba(255, 250, 252, 0.75);
+    border: 1px solid rgba(255, 228, 230, 0.3);
+    box-shadow: 0 10px 35px rgba(255, 182, 193, 0.15), 0 2px 6px rgba(255, 192, 203, 0.08);
   }
   
   @supports (-webkit-backdrop-filter: blur(14px)) {
     .glass-morphism {
+      background: rgba(255, 250, 252, 0.65);
       -webkit-backdrop-filter: blur(14px) saturate(1.15);
     }
   }
   
   @supports (backdrop-filter: blur(14px)) {
     .glass-morphism {
+      background: rgba(255, 250, 252, 0.65);
       backdrop-filter: blur(14px) saturate(1.15);
     }
   }
@@ -183,6 +185,39 @@
   @supports (backdrop-filter: blur(14px)) {
     .dark .glass-morphism {
       backdrop-filter: blur(14px) saturate(1.05);
+    }
+  }
+
+  /* Overlay backdrop blur */
+  .overlay-backdrop {
+    background: rgba(0, 0, 0, 0.1);
+  }
+
+  @supports (-webkit-backdrop-filter: blur(20px)) {
+    .overlay-backdrop {
+      -webkit-backdrop-filter: blur(20px);
+    }
+  }
+
+  @supports (backdrop-filter: blur(20px)) {
+    .overlay-backdrop {
+      backdrop-filter: blur(20px);
+    }
+  }
+
+  .dark .overlay-backdrop {
+    background: rgba(0, 0, 0, 0.2);
+  }
+
+  @supports (-webkit-backdrop-filter: blur(20px)) {
+    .dark .overlay-backdrop {
+      -webkit-backdrop-filter: blur(20px);
+    }
+  }
+
+  @supports (backdrop-filter: blur(20px)) {
+    .dark .overlay-backdrop {
+      backdrop-filter: blur(20px);
     }
   }
 
@@ -420,5 +455,61 @@
   100% {
     transform: scale(0.3);
     opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-fade-out {
+  animation: fadeOut 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.3s ease-out forwards;
+}
+
+.animate-scale-out {
+  animation: scaleOut 0.45s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.98);
   }
 }

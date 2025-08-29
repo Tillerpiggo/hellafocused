@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { Bug, Lightbulb, Send, CheckCircle, X } from 'lucide-react'
+import { Send, CheckCircle } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { triggerConfetti } from '@/lib/confetti'
 
 interface FeedbackPopupProps {
   isOpen: boolean
@@ -12,12 +13,10 @@ interface FeedbackPopupProps {
   buttonRef: React.RefObject<HTMLButtonElement | null>
 }
 
-type FeedbackStage = 'select' | 'form' | 'success'
-type FeedbackType = 'issue' | 'idea'
+type FeedbackStage = 'form' | 'success'
 
 export function FeedbackPopup({ isOpen, onClose, buttonRef }: FeedbackPopupProps) {
-  const [stage, setStage] = useState<FeedbackStage>('select')
-  const [feedbackType, setFeedbackType] = useState<FeedbackType | null>(null)
+  const [stage, setStage] = useState<FeedbackStage>('form')
   const [feedback, setFeedback] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const popupRef = useRef<HTMLDivElement>(null)
@@ -71,21 +70,15 @@ export function FeedbackPopup({ isOpen, onClose, buttonRef }: FeedbackPopupProps
     if (!isOpen) {
       // Reset after animation completes
       setTimeout(() => {
-        setStage('select')
-        setFeedbackType(null)
+        setStage('form')
         setFeedback('')
         setIsSubmitting(false)
       }, 200)
     }
   }, [isOpen])
 
-  const handleTypeSelect = (type: FeedbackType) => {
-    setFeedbackType(type)
-    setStage('form')
-  }
-
   const handleSubmit = async () => {
-    if (!feedback.trim() || !feedbackType) return
+    if (!feedback.trim()) return
 
     setIsSubmitting(true)
     
@@ -94,7 +87,7 @@ export function FeedbackPopup({ isOpen, onClose, buttonRef }: FeedbackPopupProps
       const { data: { user } } = await supabase.auth.getUser()
       
       const { error } = await supabase.from('feedback').insert({
-        type: feedbackType,
+        type: 'issue',
         message: feedback.trim(),
         user_email: user?.email || null,
         user_id: user?.id || null,
@@ -106,17 +99,14 @@ export function FeedbackPopup({ isOpen, onClose, buttonRef }: FeedbackPopupProps
       }
 
       setStage('success')
+      triggerConfetti()
     } catch (error) {
       console.error('Error submitting feedback:', error)
       setStage('success') // Show success anyway
+      triggerConfetti()
     } finally {
       setIsSubmitting(false)
     }
-  }
-
-  const handleBack = () => {
-    setStage('select')
-    setFeedbackType(null)
   }
 
   if (!isOpen) {
@@ -141,88 +131,21 @@ export function FeedbackPopup({ isOpen, onClose, buttonRef }: FeedbackPopupProps
       }}
     >
       <div className="p-4">
-        {stage === 'select' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium">What would you like to share?</h3>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5"
-                onClick={onClose}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-            
-            <div className="space-y-2">
-              <Button
-                variant="outline"
-                className="w-full justify-start h-auto p-3 text-left"
-                onClick={() => handleTypeSelect('issue')}
-              >
-                <Bug className="h-4 w-4 mr-3 text-red-500" />
-                <div>
-                  <div className="font-medium">Issue</div>
-                  <div className="text-xs text-muted-foreground">Report a bug or problem</div>
-                </div>
-              </Button>
-              
-              <Button
-                variant="outline"
-                className="w-full justify-start h-auto p-3 text-left"
-                onClick={() => handleTypeSelect('idea')}
-              >
-                <Lightbulb className="h-4 w-4 mr-3 text-yellow-500" />
-                <div>
-                  <div className="font-medium">Idea</div>
-                  <div className="text-xs text-muted-foreground">Suggest an improvement</div>
-                </div>
-              </Button>
-            </div>
-          </div>
-        )}
-
         {stage === 'form' && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs px-0"
-                onClick={handleBack}
-              >
-                ←  Back
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5"
-                onClick={onClose}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              {feedbackType === 'issue' ? (
-                <Bug className="h-4 w-4 text-red-500" />
-              ) : (
-                <Lightbulb className="h-4 w-4 text-yellow-500" />
-              )}
-              <h3 className="text-sm font-medium">
-                {feedbackType === 'issue' ? 'Report Issue' : 'Share Idea'}
-              </h3>
-            </div>
-            
+          <div className="space-y-3">
+            <h3 className="text-sm font-medium">Feedback</h3>
             <Textarea
-              placeholder={
-                feedbackType === 'issue'
-                  ? 'Describe the issue you encountered...'
-                  : 'Tell us about your idea...'
-              }
+              placeholder="Share anything - bugs, ideas, or just thoughts..."
               value={feedback}
               onChange={(e) => setFeedback(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault()
+                  if (feedback.trim()) {
+                    handleSubmit()
+                  }
+                }
+              }}
               className="min-h-[80px] resize-none text-sm"
               autoFocus
             />
@@ -231,6 +154,7 @@ export function FeedbackPopup({ isOpen, onClose, buttonRef }: FeedbackPopupProps
               onClick={handleSubmit}
               disabled={!feedback.trim() || isSubmitting}
               className="w-full"
+              size="sm"
             >
               {isSubmitting ? (
                 <>
@@ -248,24 +172,18 @@ export function FeedbackPopup({ isOpen, onClose, buttonRef }: FeedbackPopupProps
         )}
 
         {stage === 'success' && (
-          <div className="space-y-4 text-center">
-            <div className="flex items-center justify-end">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5"
-                onClick={onClose}
-              >
-                <X className="h-3 w-3" />
-              </Button>
-            </div>
-            
+          <div className="space-y-3 text-center py-2">
             <div className="space-y-2">
-              <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
-              <h3 className="text-sm font-medium">Thank you!</h3>
-              <p className="text-xs text-muted-foreground">
-                Feedback like yours helps us improve.
-              </p>
+              <div className="relative">
+                <CheckCircle className="h-10 w-10 text-emerald-500 mx-auto animate-in zoom-in-50 fade-in duration-300" />
+                <div className="absolute inset-0 h-10 w-10 bg-emerald-500/20 rounded-full mx-auto animate-ping" />
+              </div>
+              <div className="space-y-1 animate-in slide-in-from-bottom-2 fade-in duration-300 delay-150">
+                <h3 className="text-sm font-medium">Thank you, I really appreciate it!</h3>
+                <p className="text-xs text-muted-foreground">
+                  Your feedback is super helpful as I build hellafocused.
+                </p>
+              </div>
             </div>
           </div>
         )}

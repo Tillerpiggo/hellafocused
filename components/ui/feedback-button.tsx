@@ -28,10 +28,10 @@ export function FeedbackButton({
     <>
       <Button
         ref={buttonRef}
-        variant={variant}
+        variant={isPopupOpen ? 'secondary' : variant}
         size={size}
         onClick={handleClick}
-        className={`text-sm text-muted-foreground hover:text-foreground transition-colors ${className}`}
+        className={`text-sm ${isPopupOpen ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'} transition-colors ${className}`}
       >
         <MessageSquare className="h-4 w-4 mr-2" />
         Feedback

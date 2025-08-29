@@ -57,7 +57,7 @@ export const TaskDescriptionEditor = forwardRef<TaskDescriptionEditorRef, TaskDe
 
   return (
     <div className="mt-4 animate-in slide-in-from-top-2 duration-300">
-      <div className="bg-gradient-to-br from-white/40 to-white/20 dark:from-gray-900/40 dark:to-gray-900/20 backdrop-blur-md rounded-2xl p-6 border border-white/30">
+      <div className="bg-gradient-to-br from-white/40 to-white/20 dark:from-neutral-900/35 dark:to-stone-900/25 backdrop-blur-md rounded-2xl p-6 border border-white/30 dark:border-white/10">
         <Textarea
           ref={textareaRef}
           value={value}

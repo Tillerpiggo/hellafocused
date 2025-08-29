@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Check } from "lucide-react"
+// import { Check } from "lucide-react"
 import { useTheme } from "next-themes"
 
 const examples = [
@@ -24,20 +24,20 @@ interface HeroSectionProps {
 
 export function HeroSection({ hasSession }: HeroSectionProps) {
   const [currentExample, setCurrentExample] = useState(0)
-  const [isTaskChecked, setIsTaskChecked] = useState(false)
+  // const [isTaskChecked, setIsTaskChecked] = useState(false)
   const { resolvedTheme } = useTheme()
   const isDark = resolvedTheme === 'dark'
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setIsTaskChecked(true)
+      // setIsTaskChecked(true)
       
       // After a brief pause, move to next example and uncheck
       setTimeout(() => {
         const nextExample = (currentExample + 1) % examples.length
         setCurrentExample(nextExample)
         // Always reset to unchecked, and ensure first example stays unchecked
-        setIsTaskChecked(false)
+        // setIsTaskChecked(false)
       }, 1000)
     }, 4000)
 
@@ -49,7 +49,13 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
       <div className="container max-w-screen-xl mx-auto px-8 sm:px-12 lg:px-16">
         <div className="text-center">
           {/* Hero Title - Bottom aligned to midpoint */}
-          <div className="flex flex-col justify-end h-96 sm:h-80 lg:h-96 mb-8 pt-12 sm:pt-16">
+          <div className="flex flex-col justify-end h-80 sm:h-72 lg:h-80 mb-8 pt-12 sm:pt-16">
+            {/* Pill badge */}
+            <div className="flex justify-center mb-6">
+              <div className="inline-flex items-center rounded-full px-4 py-1.5 text-sm font-medium bg-primary/10 text-primary border border-primary/20">
+                Everything is overwhelming
+              </div>
+            </div>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground leading-tight mb-4">
               {/* Break down <span className="text-primary font-bold italic">any goal.</span> */}
               {/* One task. Full screen. */}
@@ -61,16 +67,51 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
               Focus on one task at a time.
             </h1>
             
-            {/* Typing effect subtitle with todo styling */}
-            <div className="text-xl sm:text-2xl lg:text-3xl font-normal text-muted-foreground leading-tight">
+            {/* Subtitle text description */}
+            <p className="text-xl sm:text-2xl text-muted-foreground leading-relaxed">
+              The to-do app designed for focus, at every level.
+            </p>
+          </div>
+
+          {/* CTA - Top aligned to midpoint */}
+          <div className="flex flex-col justify-start">
+            <div className="flex flex-col items-center mt-6">
+              <Link href="/app">
+                <Button size="lg" className="text-lg px-8 py-6">
+                  {hasSession ? (
+                    <>
+                      <span className="sm:hidden">Continue to app</span>
+                      <span className="hidden sm:inline">Continue to app</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="sm:hidden">Start now for free</span>
+                      <span className="hidden sm:inline">Start now for free</span>
+                    </>
+                  )}
+                </Button>
+              </Link>
+              {!hasSession && (
+                <p className="text-sm text-muted-foreground mt-2">
+                  No signup required.
+                </p>
+              )}
+            </div>
+          </div>
+
+
+
+          {/* Typing effect animation - commented out for now */}
+          {/*
+          <div className="mt-20 mb-16">
+            <div className="text-lg sm:text-xl lg:text-2xl font-normal text-muted-foreground leading-tight">
               <div 
                 key={`example-${currentExample}`}
-                className="flex flex-col sm:inline-flex sm:flex-row items-center gap-3 sm:gap-4 animate-wipe-in"
+                className="flex flex-col sm:inline-flex sm:flex-row items-center justify-center gap-3 sm:gap-4 animate-wipe-in"
                 style={{
                   animation: 'wipe-in 0.8s ease-out forwards'
                 }}
               >
-                {/* Goal todo item */}
                 <div className="flex items-center gap-3 sm:gap-2 bg-muted/20 rounded-lg px-6 py-3 sm:px-4 sm:py-2 border border-border/30">
                   <div className="h-5 w-5 sm:h-4 sm:w-4 rounded-sm border-2 border-muted-foreground bg-transparent flex items-center justify-center">
                   </div>
@@ -81,7 +122,6 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
 
                 <span className="text-muted-foreground mx-0 sm:mx-2">becomes</span>
 
-                {/* Task todo item */}
                 <div className="flex items-center gap-3 sm:gap-2 bg-muted/20 rounded-lg px-6 py-3 sm:px-4 sm:py-2 border border-border/30">
                   <div 
                     className={`h-5 w-5 sm:h-4 sm:w-4 rounded-sm border-2 transition-all duration-300 flex items-center justify-center ${
@@ -103,34 +143,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
               </div>
             </div>
           </div>
-
-          {/* CTA - Top aligned to midpoint */}
-          <div className="flex flex-col justify-start">
-            <div className="flex flex-col items-center mt-6">
-              <Link href="/app">
-                <Button size="lg" className="text-lg px-8 py-6">
-                  {hasSession ? (
-                    <>
-                      <span className="sm:hidden">Continue to app</span>
-                      <span className="hidden sm:inline">Continue to app</span>
-                    </>
-                  ) : (
-                    <>
-                      <span className="sm:hidden">Get started for free</span>
-                      <span className="hidden sm:inline">Get started for free</span>
-                    </>
-                  )}
-                </Button>
-              </Link>
-              {!hasSession && (
-                <p className="text-sm text-muted-foreground mt-2">
-                  No signup required.
-                </p>
-              )}
-            </div>
-          </div>
-
-
+          */}
 
           {/* Visual Demo */}
           <div className="-mx-4 sm:-mx-6 lg:-mx-8 relative mt-16">
