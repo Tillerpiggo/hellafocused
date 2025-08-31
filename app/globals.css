@@ -162,45 +162,39 @@
     }
   }
 
-  /* Glass morphism - simplified approach */
+  /* Glass morphism */
   .glass-morphism {
-    position: relative;
-    /* Use RGBA for background instead of opacity */
-    background: rgba(255, 250, 252, 0.75);
-    border: 1px solid rgba(255, 228, 230, 0.3);
-    box-shadow: 0 10px 35px rgba(255, 182, 193, 0.15), 0 2px 6px rgba(255, 192, 203, 0.08);
+    background: rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04);
   }
   
   @supports (-webkit-backdrop-filter: blur(14px)) {
     .glass-morphism {
-      background: rgba(255, 250, 252, 0.65);
       -webkit-backdrop-filter: blur(14px) saturate(1.15);
     }
   }
   
   @supports (backdrop-filter: blur(14px)) {
     .glass-morphism {
-      background: rgba(255, 250, 252, 0.65);
       backdrop-filter: blur(14px) saturate(1.15);
     }
   }
 
   .dark .glass-morphism {
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(0, 0, 0, 0.12);
     border: 1px solid rgba(255, 255, 255, 0.08);
     box-shadow: 0 10px 35px rgba(0, 0, 0, 0.25), 0 2px 6px rgba(0, 0, 0, 0.15);
   }
   
   @supports (-webkit-backdrop-filter: blur(14px)) {
     .dark .glass-morphism {
-      background: rgba(0, 0, 0, 0.55);
       -webkit-backdrop-filter: blur(14px) saturate(1.05);
     }
   }
   
   @supports (backdrop-filter: blur(14px)) {
     .dark .glass-morphism {
-      background: rgba(0, 0, 0, 0.55);
       backdrop-filter: blur(14px) saturate(1.05);
     }
   }

@@ -7,6 +7,7 @@ import { TaskBreadcrumb } from "./task-breadcrumb"
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/store/app-store"
 import { getTaskParentChain } from "@/lib/task-utils"
+import { LinkifiedText } from "@/components/ui/linkified-text"
 
 interface FocusTaskViewProps {
   currentTask: { id: string; name: string; priority: number; description?: string } | null
@@ -95,12 +96,12 @@ export function FocusTaskView({
     setTimeout(() => {
       setShowInfoOverlay(false)
       setIsOverlayClosing(false)
-    }, 450)
+    }, 200) // Match animation duration
   }
 
   return (
     <>
-      {/* Main content area with task title - centered vertically and horizontally */}
+      {/* Main content area with task title and action buttons - centered vertically and horizontally */}
       <FocusContextMenu
         onComplete={handleCompleteTask}
         onNext={handleGetNextTask}
@@ -148,10 +149,10 @@ export function FocusTaskView({
             )}
           </div>
           
-          <div className="relative max-w-4xl w-full z-10">
+          <div className="relative max-w-4xl w-full z-10 flex flex-col items-center">
             <h1
               key={taskKey}
-              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-center leading-relaxed break-words transition-colors duration-500 ease-out ${
+              className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-center leading-relaxed break-words transition-colors duration-500 ease-out mb-12 ${
                 isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"
               } ${
                 priority === 1 
@@ -163,6 +164,47 @@ export function FocusTaskView({
             >
               {displayedTaskName || (currentTask?.name || "")}
             </h1>
+            
+            {/* Action buttons centered under the text */}
+            <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
+              <Button
+                size="lg"
+                className={cn(
+                  "flex-1 py-5 px-8 rounded-2xl transition-all duration-300",
+                  "bg-gradient-to-r from-pink-500/90 to-rose-500/90",
+                  "hover:from-pink-600/90 hover:to-rose-600/90",
+                  "dark:from-pink-600/80 dark:to-rose-600/80",
+                  "dark:hover:from-pink-700/80 dark:hover:to-rose-700/80",
+                  "text-white font-medium shadow-lg hover:shadow-xl",
+                  "hover:scale-[1.02] active:scale-[0.98]",
+                  "border border-white/20"
+                )}
+                onClick={handleCompleteTask}
+                disabled={isCompleting}
+              >
+                <Check className="mr-2 h-5 w-5" />
+                Complete
+              </Button>
+              <Button
+                size="lg"
+                variant="ghost"
+                className={cn(
+                  "flex-1 py-5 px-8 rounded-2xl transition-all duration-300",
+                  "bg-white/50 hover:bg-white/70",
+                  "dark:bg-white/10 dark:hover:bg-white/20",
+                  "backdrop-blur-sm border border-pink-200/30",
+                  "dark:border-pink-400/20",
+                  "text-foreground font-medium",
+                  "hover:scale-[1.02] active:scale-[0.98]",
+                  "shadow-sm hover:shadow-md"
+                )}
+                onClick={handleGetNextTask}
+                disabled={isCompleting}
+              >
+                <Shuffle className="mr-2 h-5 w-5" />
+                Next
+              </Button>
+            </div>
           </div>
         </div>
       </FocusContextMenu>
@@ -172,20 +214,28 @@ export function FocusTaskView({
         <div 
           className={cn(
             "fixed inset-0 z-50 flex items-center justify-center p-8",
-            "transition-opacity duration-300",
-            isOverlayClosing ? "opacity-0" : "opacity-100"
+            isOverlayClosing 
+              ? "animate-out fade-out duration-200" 
+              : "animate-in fade-in duration-200"
           )}
           onClick={handleCloseOverlay}
         >
           {/* Backdrop blur with subtle darkening - cross-browser support */}
-          <div className="absolute inset-0 overlay-backdrop" />
+          <div className={cn(
+            "absolute inset-0 overlay-backdrop",
+            isOverlayClosing 
+              ? "animate-out fade-out duration-200" 
+              : "animate-in fade-in duration-200"
+          )} />
           
-          {/* Content card - glass-morphism with transitions instead of animations */}
+          {/* Content card - opaque with fade/scale animations */}
           <div 
             className={cn(
-              "relative max-w-3xl w-full glass-morphism rounded-3xl p-8 shadow-2xl",
-              "transition-all duration-300 transform",
-              isOverlayClosing ? "scale-95 opacity-0" : "scale-100 opacity-100"
+              "relative max-w-3xl w-full bg-background rounded-3xl p-8 shadow-2xl",
+              "border border-border",
+              isOverlayClosing 
+                ? "animate-out fade-out zoom-out-95 duration-200" 
+                : "animate-in fade-in zoom-in-95 duration-200"
             )}
             onClick={(e) => e.stopPropagation()}
           >
@@ -220,9 +270,9 @@ export function FocusTaskView({
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                   Description
                 </h3>
-                <p className="text-base leading-relaxed whitespace-pre-wrap">
-                  {currentTask.description || "No description."}
-                </p>
+                <div className="text-base leading-relaxed whitespace-pre-wrap">
+                  <LinkifiedText text={currentTask.description || "No description."} />
+                </div>
               </div>
               
               {/* Placeholder for future sections */}
@@ -234,29 +284,6 @@ export function FocusTaskView({
           </div>
         </div>
       )}
-
-      {/* Bottom action buttons */}
-      <div className="flex flex-col sm:flex-row gap-6 p-8 max-w-md mx-auto w-full">
-        <Button
-          size="lg"
-          className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground py-4 rounded-full transition-all duration-300 hover:scale-105 shadow-lg"
-          onClick={handleCompleteTask}
-          disabled={isCompleting}
-        >
-          <Check className="mr-2 h-5 w-5" />
-          Complete
-        </Button>
-        <Button
-          size="lg"
-          variant="outline"
-          className="flex-1 py-4 rounded-full transition-all duration-300 hover:scale-105 border-2"
-          onClick={handleGetNextTask}
-          disabled={isCompleting}
-        >
-          <Shuffle className="mr-2 h-5 w-5" />
-          Next
-        </Button>
-      </div>
     </>
   )
 } 

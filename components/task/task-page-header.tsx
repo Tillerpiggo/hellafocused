@@ -6,6 +6,7 @@ import { Check, X, Search, Edit2 } from "lucide-react"
 // import { Calendar } from "lucide-react" // Will add due dates later
 import { forwardRef, useState, useRef } from "react"
 import type { EditableTitleRef } from "@/components/editable-title"
+import { LinkifiedText } from "@/components/ui/linkified-text"
 // import { DayPicker } from "react-day-picker" // Will add due dates later
 // import {
 //   Popover,
@@ -202,12 +203,12 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
       />
       {!showDescriptionEditor && description && description.trim() && (
         <div className="mt-1">
-          <p 
+          <div 
             className="text-sm text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
             onClick={() => setShowDescriptionEditor(true)}
           >
-            {description}
-          </p>
+            <LinkifiedText text={description} />
+          </div>
         </div>
       )}
       {showDescriptionEditor && (
