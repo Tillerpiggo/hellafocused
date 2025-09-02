@@ -56,7 +56,13 @@ module.exports = {
   				'3': 'hsl(var(--chart-3))',
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
-  			}
+  			},
+  			// Test colors
+  			testcolor: 'hsl(var(--accent))',
+  			pink: 'hsl(var(--highlight-button-bg))',
+  			pinkhover: 'hsl(var(--highlight-button-bg-hover))',
+  			pinkborder: 'hsl(var(--highlight-button-border))',
+  			pinktext: 'hsl(var(--highlight-button-text))'
   		}
   	}
   },

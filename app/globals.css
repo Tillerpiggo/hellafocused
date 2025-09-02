@@ -24,60 +24,13 @@
 }
 
 @layer base {
+  /* The --radius remains constant across all themes */
   :root {
-    --background: 345 25% 97%;
-    --foreground: 345 12% 18%;
-    --card: 345 35% 96%;
-    --card-foreground: 345 15% 22%;
-    --popover: 345 35% 96%;
-    --popover-foreground: 345 15% 22%;
-    --primary: 345 45% 52%;
-    --primary-foreground: 345 100% 98%;
-    --secondary: 345 18% 93%;
-    --secondary-foreground: 345 15% 27%;
-    --muted: 345 12% 91%;
-    --muted-foreground: 345 8% 48%;
-    --accent: 345 22% 89%;
-    --accent-foreground: 345 18% 32%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 345 15% 87%;
-    --input: 345 15% 87%;
-    --ring: 345 45% 52%;
     --radius: 0.75rem;
-    --chart-1: 340 76% 61%;
-    --chart-2: 320 58% 59%;
-    --chart-3: 300 47% 54%;
-    --chart-4: 280 54% 66%;
-    --chart-5: 260 67% 67%;
   }
-
-  .dark {
-    --background: 345 22% 7%;
-    --foreground: 345 10% 92%;
-    --card: 345 18% 11%;
-    --card-foreground: 345 10% 88%;
-    --popover: 345 18% 11%;
-    --popover-foreground: 345 10% 88%;
-    --primary: 345 55% 68%;
-    --primary-foreground: 345 20% 8%;
-    --secondary: 345 12% 16%;
-    --secondary-foreground: 345 10% 82%;
-    --muted: 345 12% 14%;
-    --muted-foreground: 345 8% 58%;
-    --accent: 345 18% 19%;
-    --accent-foreground: 345 10% 87%;
-    --destructive: 0 62.8% 50%;
-    --destructive-foreground: 340 15% 90%;
-    --border: 345 12% 18%;
-    --input: 345 12% 18%;
-    --ring: 345 55% 68%;
-    --chart-1: 340 70% 60%;
-    --chart-2: 320 60% 55%;
-    --chart-3: 300 70% 65%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 260 75% 65%;
-  }
+  
+  /* Theme colors are now defined in theme files */
+  /* Default theme (pink-zen) is set in base.css as fallback */
 }
 
 @layer base {

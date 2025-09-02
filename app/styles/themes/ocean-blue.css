@@ -1,0 +1,131 @@
+/* Ocean Blue Theme - Deep blues for clarity and depth */
+
+[data-theme="ocean-blue"] {
+  /* Core colors - Light mode */
+  --background: 210 40% 98%;
+  --foreground: 222 84% 5%;
+  --card: 210 40% 96%;
+  --card-foreground: 222 84% 5%;
+  --popover: 210 40% 96%;
+  --popover-foreground: 222 84% 5%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 93%;
+  --secondary-foreground: 222 47% 11%;
+  --muted: 210 40% 91%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 210 40% 89%;
+  --accent-foreground: 222 47% 11%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 214 32% 87%;
+  --input: 214 32% 87%;
+  --ring: 217 91% 60%;
+  
+  /* Semantic colors */
+  --color-prefer: 38 92% 50%;        /* amber - kept consistent */
+  --color-prefer-light: 48 96% 89%;
+  --color-prefer-dark: 32 95% 44%;
+  --color-defer: 215 25% 27%;        /* blue-gray */
+  --color-defer-light: 210 40% 96%;
+  --color-success: 160 84% 39%;      /* teal-600 */
+  --color-success-light: 160 84% 95%; /* teal-50 */
+  --color-warning: 25 95% 53%;       /* orange */
+  --color-error: 0 84% 60%;          /* red */
+  --color-info: 199 89% 48%;         /* cyan-500 */
+  --color-highlight: 199 89% 85%;    /* cyan-200 */
+  
+  /* Glass morphism */
+  --glass-bg: rgba(219, 234, 254, 0.22);
+  --glass-border: rgba(147, 197, 253, 0.25);
+  --glass-card: rgba(255, 255, 255, 0.92);
+  
+  /* Focus mode gradients */
+  --focus-gradient-from: 217 91% 60%;  /* blue */
+  --focus-gradient-to: 199 89% 48%;    /* cyan */
+  --focus-prefer-from: 38 92% 50%;     /* amber */
+  --focus-prefer-to: 217 91% 60%;      /* blue */
+  
+  /* Chart colors - ocean palette */
+  --chart-1: 221 83% 53%;  /* indigo */
+  --chart-2: 212 95% 68%;  /* sky */
+  --chart-3: 199 89% 48%;  /* cyan */
+  --chart-4: 187 85% 53%;  /* teal */
+  --chart-5: 174 77% 46%;  /* emerald-ish */
+  
+  /* Special effects - blue themed */
+  --confetti-1: #3b82f6;  /* blue-500 */
+  --confetti-2: #60a5fa;  /* blue-400 */
+  --confetti-3: #93c5fd;  /* blue-300 */
+  --confetti-4: #dbeafe;  /* blue-100 */
+  --confetti-5: #1e40af;  /* blue-800 */
+  --confetti-6: #1e3a8a;  /* blue-900 */
+  
+  /* Special UI elements */
+  --google-bg: 214 95% 97%;       /* Light blue bg (blue-50) */
+  --google-bg-hover: 214 95% 93%; /* Slightly darker on hover (blue-100) */
+  --google-border: 213 94% 87%;   /* Blue border (blue-200) */
+  --google-text: 215 25% 27%;     /* Dark blue-gray text */
+  --google-logo: 217 89% 61%;     /* Classic Google blue */
+}
+
+/* Ocean Blue - Dark mode */
+[data-theme="ocean-blue"].dark {
+  --background: 222 84% 5%;
+  --foreground: 210 40% 98%;
+  --card: 222 70% 8%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222 70% 8%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 217 91% 60%;
+  --primary-foreground: 222 47% 11%;
+  --secondary: 217 33% 18%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 217 33% 15%;
+  --muted-foreground: 215 20% 65%;
+  --accent: 217 33% 20%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 63% 50%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217 33% 18%;
+  --input: 217 33% 18%;
+  --ring: 217 91% 60%;
+  
+  /* Semantic colors - dark mode */
+  --color-prefer: 38 92% 50%;
+  --color-prefer-light: 32 95% 20%;
+  --color-prefer-dark: 38 92% 65%;
+  --color-defer: 215 20% 50%;
+  --color-defer-light: 215 20% 20%;
+  --color-success: 160 84% 45%;
+  --color-success-light: 160 84% 20%;
+  --color-warning: 25 90% 48%;
+  --color-error: 0 72% 51%;
+  --color-info: 199 89% 58%;
+  --color-highlight: 199 89% 25%;
+  
+  /* Glass morphism - dark mode */
+  --glass-bg: rgba(30, 58, 138, 0.12);
+  --glass-border: rgba(59, 130, 246, 0.25);
+  --glass-card: rgba(0, 0, 0, 0.85);
+  
+  /* Focus mode gradients - dark */
+  --focus-gradient-from: 217 91% 60%;
+  --focus-gradient-to: 199 89% 58%;
+  --focus-prefer-from: 38 92% 45%;
+  --focus-prefer-to: 217 91% 60%;
+  
+  /* Chart colors - dark mode ocean */
+  --chart-1: 220 70% 50%;
+  --chart-2: 210 80% 60%;
+  --chart-3: 200 75% 55%;
+  --chart-4: 190 70% 50%;
+  --chart-5: 180 65% 45%;
+  
+  /* Special UI elements - dark */
+  --google-bg: 222 89% 10%;       /* Dark blue bg (blue-950/30) */
+  --google-bg-hover: 221 83% 14%; /* Slightly lighter on hover (blue-900/50) */
+  --google-border: 221 68% 22%;   /* Blue border (blue-800) */
+  --google-text: 214 94% 85%;     /* Light blue text (blue-100) */
+  --google-logo: 217 89% 65%;     /* Bright blue logo for dark mode */
+}

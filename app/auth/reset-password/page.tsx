@@ -69,7 +69,7 @@ export default function ResetPassword() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="max-w-md w-full mx-auto p-6">
           <div className="text-center space-y-4">
-            <div className="text-lg font-medium text-green-600">Password Reset Successful!</div>
+            <div className="text-lg font-medium text-success">Password Reset Successful!</div>
             <div className="text-muted-foreground">
               Your password has been updated. You&apos;ll be redirected to the home page shortly.
             </div>

@@ -27,7 +27,7 @@ export default function TermsPage() {
         <div className="space-y-8">
           <div className="text-center space-y-4">
             <h1 className="text-3xl font-bold">Terms of Service</h1>
-            <p className="text-muted-foreground">Last updated: {new Date().toLocaleDateString()}</p>
+            <p className="text-muted-foreground">Last updated: August 10, 2025</p>
           </div>
 
           <div className="prose prose-gray dark:prose-invert max-w-none space-y-6">

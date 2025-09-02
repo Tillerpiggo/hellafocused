@@ -1,0 +1,144 @@
+/* Base theme structure - defines all CSS variables that themes must provide */
+
+/* Default to pink-zen if no theme specified */
+:root {
+  /* Core colors */
+  --background: 345 25% 97%;
+  --foreground: 345 12% 18%;
+  --card: 345 35% 96%;
+  --card-foreground: 345 15% 22%;
+  --popover: 345 35% 96%;
+  --popover-foreground: 345 15% 22%;
+  --primary: 345 45% 52%;
+  --primary-foreground: 345 100% 98%;
+  --secondary: 345 18% 93%;
+  --secondary-foreground: 345 15% 27%;
+  --muted: 345 12% 91%;
+  --muted-foreground: 345 8% 48%;
+  --accent: 345 22% 89%;
+  --accent-foreground: 345 18% 32%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 345 15% 87%;
+  --input: 345 15% 87%;
+  --ring: 345 45% 52%;
+  
+  /* Semantic colors */
+  --color-prefer: 38 92% 50%;        /* amber-500 */
+  --color-prefer-light: 48 96% 89%;  /* amber-100 */
+  --color-prefer-dark: 32 95% 44%;   /* amber-600 */
+  --color-defer: 215 14% 34%;        /* slate-700 */
+  --color-defer-light: 210 40% 96%;  /* slate-100 */
+  --color-success: 142 76% 36%;      /* green-600 */
+  --color-success-light: 138 76% 97%; /* green-50 */
+  --color-warning: 25 95% 53%;       /* orange-500 */
+  --color-error: 0 84% 60%;          /* red-500 */
+  --color-info: 217 91% 60%;         /* blue-500 */
+  --color-highlight: 50 98% 64%;     /* yellow-300 */
+  
+  /* Glass morphism */
+  --glass-bg: rgba(255, 245, 248, 0.22);
+  --glass-border: rgba(255, 182, 193, 0.25);
+  --glass-card: rgba(255, 255, 255, 0.92);
+  
+  /* Focus mode gradients */
+  --focus-gradient-from: 345 45% 52%;  /* matches primary */
+  --focus-gradient-to: 340 60% 65%;    /* slightly different pink */
+  --focus-prefer-from: 38 92% 50%;     /* amber */
+  --focus-prefer-to: 345 45% 52%;      /* pink */
+  
+  /* Chart colors */
+  --chart-1: 340 76% 61%;
+  --chart-2: 320 58% 59%;
+  --chart-3: 300 47% 54%;
+  --chart-4: 280 54% 66%;
+  --chart-5: 260 67% 67%;
+  
+  /* Special effects */
+  --confetti-1: #ec4899;
+  --confetti-2: #f472b6;
+  --confetti-3: #f9a8d4;
+  --confetti-4: #fce7f3;
+  --confetti-5: #be185d;
+  --confetti-6: #9d174d;
+  
+  /* Special UI elements */
+  --google-bg: 340 82% 96%;
+  --google-bg-hover: 340 85% 92%;
+  --google-border: 340 65% 82%;
+  --google-text: 345 25% 35%;
+  --google-logo: 345 65% 55%;
+  
+  /* Highlight button colors */
+  --highlight-button-bg: 340 82% 96%;
+  --highlight-button-bg-hover: 340 85% 92%;
+  --highlight-button-border: 340 65% 82%;
+  --highlight-button-text: 345 25% 35%;
+}
+
+/* Dark mode defaults */
+.dark {
+  --background: 345 22% 7%;
+  --foreground: 345 10% 92%;
+  --card: 345 18% 11%;
+  --card-foreground: 345 10% 88%;
+  --popover: 345 18% 11%;
+  --popover-foreground: 345 10% 88%;
+  --primary: 345 55% 68%;
+  --primary-foreground: 345 20% 8%;
+  --secondary: 345 12% 16%;
+  --secondary-foreground: 345 10% 82%;
+  --muted: 345 12% 14%;
+  --muted-foreground: 345 8% 58%;
+  --accent: 345 18% 19%;
+  --accent-foreground: 345 10% 87%;
+  --destructive: 0 62.8% 50%;
+  --destructive-foreground: 340 15% 90%;
+  --border: 345 12% 18%;
+  --input: 345 12% 18%;
+  --ring: 345 55% 68%;
+  
+  /* Semantic colors - dark mode */
+  --color-prefer: 38 92% 50%;
+  --color-prefer-light: 32 95% 20%;
+  --color-prefer-dark: 38 92% 65%;
+  --color-defer: 215 14% 50%;
+  --color-defer-light: 215 14% 20%;
+  --color-success: 142 71% 45%;
+  --color-success-light: 142 76% 20%;
+  --color-warning: 25 90% 48%;
+  --color-error: 0 72% 51%;
+  --color-info: 217 91% 65%;
+  --color-highlight: 50 90% 30%;
+  
+  /* Glass morphism - dark mode */
+  --glass-bg: rgba(139, 69, 19, 0.12);
+  --glass-border: rgba(180, 83, 9, 0.25);
+  --glass-card: rgba(0, 0, 0, 0.85);
+  
+  /* Focus mode gradients - dark */
+  --focus-gradient-from: 345 55% 68%;
+  --focus-gradient-to: 340 60% 75%;
+  --focus-prefer-from: 38 92% 45%;
+  --focus-prefer-to: 345 55% 68%;
+  
+  /* Chart colors - dark mode */
+  --chart-1: 340 70% 60%;
+  --chart-2: 320 60% 55%;
+  --chart-3: 300 70% 65%;
+  --chart-4: 280 65% 60%;
+  --chart-5: 260 75% 65%;
+  
+  /* Special UI elements - dark */
+  --google-bg: 340 55% 12%;
+  --google-bg-hover: 340 60% 16%;
+  --google-border: 340 50% 25%;
+  --google-text: 340 65% 85%;
+  --google-logo: 345 70% 70%;
+  
+  /* Highlight button colors - dark */
+  --highlight-button-bg: 340 55% 12%;
+  --highlight-button-bg-hover: 340 60% 16%;
+  --highlight-button-border: 340 50% 25%;
+  --highlight-button-text: 340 65% 85%;
+}

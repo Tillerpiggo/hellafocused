@@ -2,6 +2,9 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Outfit } from "next/font/google"
 import "./globals.css"
+import "./styles/themes/base.css"
+import "./styles/themes/pink-zen.css"
+import "./styles/themes/ocean-blue.css"
 // import "react-day-picker/style.css" // Will add due dates later
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from "next-themes"
@@ -25,7 +28,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning data-theme="pink-zen">
       <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           {children}
