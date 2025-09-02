@@ -8,6 +8,7 @@ interface TaskDescriptionEditorProps {
   onSave: (description: string) => void
   onCancel: () => void
   placeholder?: string
+  minimal?: boolean
 }
 
 export interface TaskDescriptionEditorRef {
@@ -18,7 +19,8 @@ export const TaskDescriptionEditor = forwardRef<TaskDescriptionEditorRef, TaskDe
   description = "",
   onSave,
   onCancel,
-  placeholder = "Add a description..."
+  placeholder = "Add a description...",
+  minimal = false
 }, ref) => {
   const [value, setValue] = useState(description)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -53,6 +55,26 @@ export const TaskDescriptionEditor = forwardRef<TaskDescriptionEditorRef, TaskDe
       e.preventDefault()
       handleCancel()
     }
+  }
+
+  if (minimal) {
+    return (
+      <Textarea
+        ref={textareaRef}
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        className="w-full bg-transparent border-0 p-0 resize-none text-base leading-relaxed placeholder:text-muted-foreground/50 min-h-[60px] rounded-none focus-visible:ring-0 focus-visible:ring-offset-0"
+        style={{
+          outline: 'none !important',
+          border: 'none !important',
+          boxShadow: 'none !important',
+          '--tw-ring-color': 'transparent',
+          '--tw-ring-shadow': 'none'
+        } as React.CSSProperties}
+      />
+    )
   }
 
   return (

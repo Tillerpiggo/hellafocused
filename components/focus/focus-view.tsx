@@ -216,6 +216,7 @@ export function FocusView({ startPath }: FocusViewProps) {
           onTogglePrefer={handleTogglePrefer}
           showInfoOverlay={showInfoOverlay}
           onShowInfoOverlay={setShowInfoOverlay}
+          startPath={startPath}
         />
       )
     }

@@ -1,22 +1,27 @@
 import { Button } from "@/components/ui/button"
 import { Check, Shuffle, X } from "lucide-react"
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { triggerConfetti } from "@/lib/confetti"
 import { FocusContextMenu } from "./focus-context-menu"
 import { TaskBreadcrumb } from "./task-breadcrumb"
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/store/app-store"
-import { getTaskParentChain } from "@/lib/task-utils"
+import { useFocusStore } from "@/store/focus-store"
+import { getTaskParentChain, findTaskPath, getProjectId } from "@/lib/task-utils"
 import { LinkifiedText } from "@/components/ui/linkified-text"
+import { EditableTitle } from "@/components/editable-title"
+import { TaskDescriptionEditor, type TaskDescriptionEditorRef } from "@/components/task/task-description-editor"
+import type { TaskData } from "@/lib/types"
 
 interface FocusTaskViewProps {
-  currentTask: { id: string; name: string; priority: number; description?: string } | null
+  currentTask: TaskData | null
   completeFocusTask: () => void
   getNextFocusTask: () => void
   onToggleDefer: () => void
   onTogglePrefer: () => void
   showInfoOverlay?: boolean
   onShowInfoOverlay?: (show: boolean) => void
+  startPath: string[]
 }
 
 export function FocusTaskView({
@@ -26,7 +31,8 @@ export function FocusTaskView({
   onToggleDefer,
   onTogglePrefer,
   showInfoOverlay: externalShowInfoOverlay,
-  onShowInfoOverlay
+  onShowInfoOverlay,
+  startPath
 }: FocusTaskViewProps) {
   const priority = currentTask?.priority ?? 0
   const [isCompleting, setIsCompleting] = useState(false)
@@ -37,13 +43,17 @@ export function FocusTaskView({
   // const [displayedTaskDescription, setDisplayedTaskDescription] = useState<string | undefined>(undefined)
   const [internalShowInfoOverlay, setInternalShowInfoOverlay] = useState(false)
   const [isOverlayClosing, setIsOverlayClosing] = useState(false)
+  const [showDescriptionEditor, setShowDescriptionEditor] = useState(false)
+  const descriptionEditorRef = useRef<TaskDescriptionEditorRef>(null)
   
   // Use external control if provided, otherwise use internal state
   const showInfoOverlay = externalShowInfoOverlay !== undefined ? externalShowInfoOverlay : internalShowInfoOverlay
   const setShowInfoOverlay = onShowInfoOverlay || setInternalShowInfoOverlay
   
-  // Get parent chain for breadcrumb
+  // Get parent chain for breadcrumb and store functions
   const projects = useAppStore((state) => state.projects)
+  const updateTaskName = useAppStore((state) => state.updateTaskName)
+  const updateTaskDescription = useAppStore((state) => state.updateTaskDescription)
   const parentChain = currentTask ? getTaskParentChain(projects, currentTask.id) : []
 
   // Update displayed task name when current task changes (but not during completion or transition)
@@ -55,9 +65,12 @@ export function FocusTaskView({
         // setDisplayedTaskDescription(currentTask.description)
         setDisplayedTaskId(currentTask.id)
         setTaskKey((prev) => prev + 1)
+      } else if (currentTask.name !== displayedTaskName) {
+        // Update name without animation if only the name changed (e.g., after editing)
+        setDisplayedTaskName(currentTask.name)
       }
     }
-  }, [currentTask, isCompleting, isTransitioning, displayedTaskId])
+  }, [currentTask, isCompleting, isTransitioning, displayedTaskId, displayedTaskName])
 
   const handleCompleteTask = () => {
     if (isCompleting || !currentTask) return
@@ -97,6 +110,53 @@ export function FocusTaskView({
       setShowInfoOverlay(false)
       setIsOverlayClosing(false)
     }, 200) // Match animation duration
+  }
+
+  const handleTitleChange = (newTitle: string) => {
+    if (!currentTask || !newTitle.trim()) return
+    
+    const projectId = getProjectId(startPath)
+    if (!projectId) return
+    
+    const project = projects.find((p) => p.id === projectId)
+    if (project) {
+      const taskPathInProject = findTaskPath(project.tasks, currentTask.id)
+      if (taskPathInProject) {
+        const fullTaskPath = [projectId, ...taskPathInProject]
+        updateTaskName(fullTaskPath, newTitle)
+        
+        // Update the local currentFocusTask to reflect the change immediately
+        useFocusStore.setState({ 
+          currentFocusTask: { ...currentTask, name: newTitle } 
+        })
+      }
+    }
+  }
+
+  const handleDescriptionSave = (newDescription: string) => {
+    if (!currentTask) return
+    
+    const projectId = getProjectId(startPath)
+    if (!projectId) return
+    
+    const project = projects.find((p) => p.id === projectId)
+    if (project) {
+      const taskPathInProject = findTaskPath(project.tasks, currentTask.id)
+      if (taskPathInProject) {
+        const fullTaskPath = [projectId, ...taskPathInProject]
+        updateTaskDescription(fullTaskPath, newDescription)
+        
+        // Update the local currentFocusTask to reflect the change immediately
+        useFocusStore.setState({ 
+          currentFocusTask: { ...currentTask, description: newDescription || undefined } 
+        })
+      }
+    }
+    setShowDescriptionEditor(false)
+  }
+
+  const handleDescriptionCancel = () => {
+    setShowDescriptionEditor(false)
   }
 
   return (
@@ -260,19 +320,36 @@ export function FocusTaskView({
                 </div>
               )}
               
-              {/* Task name - always with right padding for close button */}
-              <h2 className="text-2xl font-medium mb-6 pr-12">
-                {currentTask.name}
-              </h2>
+              {/* Task name - editable with right padding for close button */}
+              <EditableTitle
+                value={currentTask.name}
+                onChange={handleTitleChange}
+                className="text-2xl font-medium mb-6 pr-12"
+                placeholder="Task name"
+              />
               
               {/* Description section */}
               <div className="space-y-2">
                 <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
                   Description
                 </h3>
-                <div className="text-base leading-relaxed whitespace-pre-wrap">
-                  <LinkifiedText text={currentTask.description || "No description."} />
-                </div>
+                {!showDescriptionEditor ? (
+                  <div 
+                    className="text-base leading-relaxed whitespace-pre-wrap cursor-pointer hover:text-muted-foreground transition-colors min-h-[24px]"
+                    onClick={() => setShowDescriptionEditor(true)}
+                  >
+                    <LinkifiedText text={currentTask.description || "No description. Click to add one."} />
+                  </div>
+                ) : (
+                  <TaskDescriptionEditor
+                    ref={descriptionEditorRef}
+                    description={currentTask.description}
+                    onSave={handleDescriptionSave}
+                    onCancel={handleDescriptionCancel}
+                    placeholder="Add a description..."
+                    minimal
+                  />
+                )}
               </div>
               
               {/* Placeholder for future sections */}
