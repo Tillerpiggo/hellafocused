@@ -112,6 +112,20 @@ export function FocusTaskView({
     }, 200) // Match animation duration
   }
 
+  // Handle Escape key for overlay closing with animation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && showInfoOverlay) {
+        handleCloseOverlay()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown)
+    }
+  }, [showInfoOverlay])
+
   const handleTitleChange = (newTitle: string) => {
     if (!currentTask || !newTitle.trim()) return
     

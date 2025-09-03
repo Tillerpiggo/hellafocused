@@ -154,17 +154,12 @@ export function FocusView({ startPath }: FocusViewProps) {
     return () => clearTimeout(timer)
   }, [])
 
-  // Handle Escape key contextually
+  // Handle Escape key to exit focus mode
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        // Check if the overlay is open first
-        if (showInfoOverlay) {
-          setShowInfoOverlay(false)
-        } else {
-          // Only exit focus mode if overlay is not open
-          handleExitFocusMode()
-        }
+      if (e.key === "Escape" && !showInfoOverlay) {
+        // Only exit focus mode if overlay is not open
+        handleExitFocusMode()
       }
     }
 
