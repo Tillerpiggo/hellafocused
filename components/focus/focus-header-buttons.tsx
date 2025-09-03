@@ -119,10 +119,10 @@ export function FocusHeaderButtons({
             )}>
               <div className={cn(
                 "pl-3 border-l flex items-center transition-all duration-[2500ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]",
-                showDescriptionIcon ? "border-rose-300/30 dark:border-rose-700/30" : "border-transparent"
+                showDescriptionIcon ? "border-focusAction/30 dark:border-focusAction/30" : "border-transparent"
               )}>
                 <FileText className={cn(
-                  "h-4 w-4 text-rose-600/60 dark:text-rose-400/60 transition-all duration-[2500ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]",
+                  "h-4 w-4 text-focusAction/60 dark:text-focusAction/60 transition-all duration-[2500ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]",
                   showDescriptionIcon ? "scale-100" : "scale-75 opacity-0"
                 )} />
               </div>

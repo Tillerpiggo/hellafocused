@@ -68,21 +68,21 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
               task.completed
                 ? "backdrop-blur-sm bg-muted/40"
                 : effectivePriority === 1
-                ? "backdrop-blur-md bg-gradient-to-br from-amber-200/30 to-pink-200/30 border-amber-300/50"
+                ? "backdrop-blur-md bg-gradient-to-br from-taskPriority-hoverFrom/30 to-taskPriority-hoverTo/30 border-priority/50"
                 : effectivePriority === -1
                 ? "backdrop-blur-sm bg-muted/20"
-                : "backdrop-blur-md bg-gradient-to-br from-pink-100/30 to-rose-100/30"
+                : "backdrop-blur-md bg-gradient-to-br from-taskNormal-from/30 to-taskNormal-to/30"
             ]
           : [
               task.completed
                 ? "backdrop-blur-sm bg-muted/30 opacity-60"
                 : effectivePriority === 1
-                ? "backdrop-blur-md bg-gradient-to-br from-amber-100/40 to-pink-100/40 hover:from-amber-200/50 hover:to-pink-200/50 border-amber-200/60 hover:border-amber-300/70 dark:from-amber-900/30 dark:to-pink-900/30 dark:hover:from-amber-800/40 dark:hover:to-pink-800/40 dark:border-amber-700/50 dark:hover:border-amber-600/60"
+                ? "backdrop-blur-md bg-gradient-to-br from-taskPriority-from/40 to-taskPriority-to/40 hover:from-taskPriority-hoverFrom/50 hover:to-taskPriority-hoverTo/50 border-priority-light/60 hover:border-priority/70 dark:from-taskPriority-from/30 dark:to-taskPriority-to/30 dark:hover:from-taskPriority-hoverFrom/40 dark:hover:to-taskPriority-hoverTo/40 dark:border-priority-dark/50 dark:hover:border-priority/60"
                 : effectivePriority === -1
                 ? "backdrop-blur-sm bg-muted/20 opacity-70 hover:bg-muted/30"
-                : "backdrop-blur-md hover:backdrop-blur-lg hover:bg-gradient-to-br hover:from-pink-100/40 hover:to-rose-100/40 dark:hover:from-pink-900/30 dark:hover:to-rose-900/30",
+                : "backdrop-blur-md hover:backdrop-blur-lg bg-gradient-to-br from-taskNormal-from/30 to-taskNormal-to/30 hover:from-taskHover-from/40 hover:to-taskHover-to/40 dark:from-taskNormal-from/20 dark:to-taskNormal-to/20 dark:hover:from-taskHover-from/30 dark:hover:to-taskHover-to/30",
             ],
-        "cursor-pointer border-white/30 shadow-lg hover:shadow-xl",
+        "cursor-pointer shadow-lg hover:shadow-xl",
       )}
       onClick={handleNavigate}
     >

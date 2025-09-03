@@ -204,7 +204,7 @@ export function FocusTaskView({
             
             {/* Subtle animated floating orb - top center */}
             <div className="absolute top-32 left-1/2 -translate-x-1/2 w-[400px] h-[400px] opacity-20">
-              <div className="w-full h-full bg-gradient-to-br from-pink-300/10 to-orange-300/10 rounded-full blur-[80px] animate-pulse" style={{ animationDuration: '12s' }}></div>
+              <div className="w-full h-full bg-gradient-to-br from-primary/10 to-landing-warning/10 rounded-full blur-[80px] animate-pulse" style={{ animationDuration: '12s' }}></div>
             </div>
             
             {/* Priority-specific enhanced glows - balanced */}
@@ -264,8 +264,8 @@ export function FocusTaskView({
                   "flex-1 py-5 px-8 rounded-2xl transition-all duration-300",
                   "bg-white/50 hover:bg-white/70",
                   "dark:bg-white/10 dark:hover:bg-white/20",
-                  "backdrop-blur-sm border border-pink-200/30",
-                  "dark:border-pink-400/20",
+                  "backdrop-blur-sm border border-primary/30",
+                  "dark:border-primary/20",
                   "text-foreground font-medium",
                   "hover:scale-[1.02] active:scale-[0.98]",
                   "shadow-sm hover:shadow-md"

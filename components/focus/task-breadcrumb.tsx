@@ -151,11 +151,11 @@ export function TaskBreadcrumb({
               onMouseLeave={() => setHoveredIndex(null)}
               className={cn(
                 "px-3 py-1.5 rounded-full",
-                "bg-gradient-to-r from-rose-500/10 to-pink-500/10",
-                "border border-rose-200/20 dark:border-rose-800/20",
+                "bg-gradient-to-r from-currentTask-from/10 to-currentTask-to/10",
+                "border border-currentTask-border/20 dark:border-currentTask-border/20",
                 "transition-all duration-300",
                 "relative overflow-hidden",
-                hoveredIndex === displayItems.length && "scale-105 shadow-lg shadow-rose-500/10"
+                hoveredIndex === displayItems.length && "scale-105 shadow-lg shadow-currentTask-shadow/10"
               )}
             >
               {/* Animated shimmer effect */}
@@ -171,7 +171,7 @@ export function TaskBreadcrumb({
               
               <span className={cn(
                 "relative z-10 font-semibold whitespace-nowrap",
-                "text-rose-700 dark:text-rose-300",
+                "text-currentTask-text dark:text-currentTask-text",
                 "transition-all duration-300"
               )}>
                 {currentTaskName}

@@ -92,9 +92,9 @@ export function TaskInfoPanel({ taskPath, taskName }: TaskInfoPanelProps) {
               className={cn(
                 "flex items-center gap-2 rounded-xl transition-all duration-1000 ease-in-out",
                 section.available 
-                  ? "hover:bg-pink-100/30 dark:hover:bg-pink-900/20" 
+                  ? "hover:bg-taskNormal-from/30 dark:hover:bg-taskNormal-from/20" 
                   : "opacity-50 cursor-not-allowed",
-                isExpanded && "bg-pink-100/40 dark:bg-pink-900/30"
+                isExpanded && "bg-taskNormal-from/40 dark:bg-taskNormal-from/30"
               )}
               title={!section.available ? "Coming soon" : section.label}
             >

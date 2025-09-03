@@ -116,6 +116,28 @@
   --color-disabled: 220 9% 46%;           /* gray-500 */
   --color-disabled-bg: 210 20% 93%;       /* gray-200 */
   --color-success-bg: 138 76% 97%;        /* green-50 */
+  
+  /* Task item backgrounds */
+  --task-normal-from: 328 100% 97%;       /* pink-100 */
+  --task-normal-to: 356 100% 97%;         /* rose-100 */
+  --task-priority-from: 48 96% 89%;       /* amber-100 */
+  --task-priority-to: 328 100% 97%;       /* pink-100 */
+  --task-hover-from: 328 100% 94%;        /* pink-200 */
+  --task-hover-to: 356 100% 94%;          /* rose-200 */
+  --task-priority-hover-from: 48 95% 83%; /* amber-200 */
+  --task-priority-hover-to: 328 100% 94%; /* pink-200 */
+  
+  /* Current task highlight (breadcrumb) */
+  --current-task-from: 351 84% 60%;       /* rose-500 */
+  --current-task-to: 327 73% 62%;         /* pink-500 */
+  --current-task-border: 356 100% 94%;    /* rose-200 */
+  --current-task-text: 347 83% 31%;       /* rose-700 */
+  --current-task-shadow: 351 84% 60%;     /* rose-500 */
+  
+  /* Link colors */
+  --link-color: 333 71% 51%;              /* pink-600 */
+  --link-hover: 335 78% 42%;              /* pink-700 */
+  --link-decoration: 327 47% 78%;         /* pink-300 */
 }
 
 /* Dark mode defaults */
@@ -225,4 +247,26 @@
   --color-disabled: 220 9% 50%;           /* gray-500 */
   --color-disabled-bg: 217 19% 27%;       /* gray-700 */
   --color-success-bg: 142 76% 20%;        /* green-900 */
+  
+  /* Task item backgrounds - dark */
+  --task-normal-from: 328 70% 14%;        /* pink-900 */
+  --task-normal-to: 356 67% 15%;          /* rose-900 */
+  --task-priority-from: 32 95% 12%;       /* amber-900 */
+  --task-priority-to: 328 70% 14%;        /* pink-900 */
+  --task-hover-from: 328 78% 20%;         /* pink-800 */
+  --task-hover-to: 356 76% 21%;           /* rose-800 */
+  --task-priority-hover-from: 32 95% 16%; /* amber-800 */
+  --task-priority-hover-to: 328 78% 20%;  /* pink-800 */
+  
+  /* Current task highlight (breadcrumb) - dark */
+  --current-task-from: 351 84% 60%;       /* rose-500 (same as light for visibility) */
+  --current-task-to: 327 73% 62%;         /* pink-500 (same as light for visibility) */
+  --current-task-border: 356 76% 21%;     /* rose-800 */
+  --current-task-text: 356 100% 83%;      /* rose-300 */
+  --current-task-shadow: 351 84% 60%;     /* rose-500 */
+  
+  /* Link colors - dark */
+  --link-color: 327 73% 75%;              /* pink-400 */
+  --link-hover: 327 47% 78%;              /* pink-300 */
+  --link-decoration: 333 71% 38%;         /* pink-600 */
 }

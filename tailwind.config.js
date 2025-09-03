@@ -123,7 +123,36 @@ module.exports = {
   				DEFAULT: 'hsl(var(--color-disabled))',
   				bg: 'hsl(var(--color-disabled-bg))'
   			},
-  			successBg: 'hsl(var(--color-success-bg))'
+  			successBg: 'hsl(var(--color-success-bg))',
+  			// Task item backgrounds
+  			taskNormal: {
+  				from: 'hsl(var(--task-normal-from))',
+  				to: 'hsl(var(--task-normal-to))'
+  			},
+  			taskPriority: {
+  				from: 'hsl(var(--task-priority-from))',
+  				to: 'hsl(var(--task-priority-to))',
+  				hoverFrom: 'hsl(var(--task-priority-hover-from))',
+  				hoverTo: 'hsl(var(--task-priority-hover-to))'
+  			},
+  			taskHover: {
+  				from: 'hsl(var(--task-hover-from))',
+  				to: 'hsl(var(--task-hover-to))'
+  			},
+  			// Current task highlight
+  			currentTask: {
+  				from: 'hsl(var(--current-task-from))',
+  				to: 'hsl(var(--current-task-to))',
+  				border: 'hsl(var(--current-task-border))',
+  				text: 'hsl(var(--current-task-text))',
+  				shadow: 'hsl(var(--current-task-shadow))'
+  			},
+  			// Link colors
+  			link: {
+  				DEFAULT: 'hsl(var(--link-color))',
+  				hover: 'hsl(var(--link-hover))',
+  				decoration: 'hsl(var(--link-decoration))'
+  			}
   		}
   	}
   },

@@ -17,8 +17,8 @@ export function LinkifiedText({ text, className }: LinkifiedTextProps) {
           rel: 'noopener noreferrer',
         },
         className: cn(
-          'text-pink-600 dark:text-pink-400 underline decoration-pink-300 dark:decoration-pink-600',
-          'hover:text-pink-700 dark:hover:text-pink-300 transition-colors',
+          'text-link dark:text-link underline decoration-link-decoration dark:decoration-link-decoration',
+          'hover:text-link-hover dark:hover:text-link-hover transition-colors',
         ),
         validate: {
           url: (value) => /^https?:\/\//.test(value) || /^www\./.test(value),
