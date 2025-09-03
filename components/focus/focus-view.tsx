@@ -154,11 +154,17 @@ export function FocusView({ startPath }: FocusViewProps) {
     return () => clearTimeout(timer)
   }, [])
 
-  // Dismiss focus view on esc
+  // Handle Escape key contextually
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        handleExitFocusMode()
+        // Check if the overlay is open first
+        if (showInfoOverlay) {
+          setShowInfoOverlay(false)
+        } else {
+          // Only exit focus mode if overlay is not open
+          handleExitFocusMode()
+        }
       }
     }
 
@@ -166,7 +172,7 @@ export function FocusView({ startPath }: FocusViewProps) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown)
     }
-  }, [handleExitFocusMode])
+  }, [handleExitFocusMode, showInfoOverlay])
 
   // Auto-select initial task if none is set
   useEffect(() => {

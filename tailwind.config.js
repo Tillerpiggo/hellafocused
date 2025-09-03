@@ -65,7 +65,16 @@ module.exports = {
   			// Complete button colors
   			complete: 'hsl(var(--complete-button-bg))',
   			completehover: 'hsl(var(--complete-button-bg-hover))',
-  			completetext: 'hsl(var(--complete-button-text))'
+  			completetext: 'hsl(var(--complete-button-text))',
+  			// Confetti colors (theme-aware)
+  			confetti: {
+  				'1': 'var(--confetti-1)',
+  				'2': 'var(--confetti-2)',
+  				'3': 'var(--confetti-3)',
+  				'4': 'var(--confetti-4)',
+  				'5': 'var(--confetti-5)',
+  				'6': 'var(--confetti-6)'
+  			}
   		}
   	}
   },

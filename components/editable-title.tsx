@@ -71,6 +71,8 @@ export const EditableTitle = forwardRef<EditableTitleRef, EditableTitleProps>(
           textareaRef.current.blur()
         }
       } else if (e.key === "Escape") {
+        e.preventDefault()
+        e.stopPropagation()
         setEditValue(value)
         setIsEditing(false)
         if (textareaRef.current) {

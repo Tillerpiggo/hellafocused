@@ -53,6 +53,7 @@ export const TaskDescriptionEditor = forwardRef<TaskDescriptionEditorRef, TaskDe
       handleSave()
     } else if (e.key === 'Escape') {
       e.preventDefault()
+      e.stopPropagation()
       handleCancel()
     }
   }
