@@ -180,7 +180,7 @@ export default function SignUpPage() {
           {/* Google Sign Up */}
           <Button
             variant="outline"
-            className="w-full bg-testcolor hover:bg-pinkhover border-pinkborder text-pinktext transition-colors"
+            className="w-full bg-pink/90 hover:bg-pinkhover/90 border-pinkborder text-pinktext hover:text-pinktext font-medium transition-all duration-200"
             onClick={handleGoogleSignUp}
             disabled={loading}
           >

@@ -57,8 +57,7 @@ module.exports = {
   				'4': 'hsl(var(--chart-4))',
   				'5': 'hsl(var(--chart-5))'
   			},
-  			// Test colors
-  			testcolor: 'hsl(var(--accent))',
+  			// Google button colors
   			pink: 'hsl(var(--highlight-button-bg))',
   			pinkhover: 'hsl(var(--highlight-button-bg-hover))',
   			pinkborder: 'hsl(var(--highlight-button-border))',

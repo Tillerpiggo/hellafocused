@@ -304,7 +304,7 @@ export function FocusTaskView({
                 variant="ghost"
                 size="icon"
                 onClick={handleCloseOverlay}
-                className="absolute top-4 right-4 rounded-full hover:bg-white/20 dark:hover:bg-black/20"
+                className="absolute top-4 right-4 rounded-full hover:bg-black/10 dark:hover:bg-white/10 z-50"
               >
                 <X className="h-5 w-5" />
               </Button>

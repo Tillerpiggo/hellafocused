@@ -61,18 +61,12 @@
   --confetti-5: #be185d;
   --confetti-6: #9d174d;
   
-  /* Special UI elements */
-  --google-bg: 340 82% 96%;      /* Very light pink-rose bg (analogous to blue-50) */
-  --google-bg-hover: 340 85% 92%; /* Slightly more vibrant on hover (analogous to blue-100) */
-  --google-border: 340 65% 82%;   /* Soft pink-rose border (analogous to blue-200) */
-  --google-text: 345 25% 35%;     /* Rich dark pink text */
-  --google-logo: 345 65% 55%;     /* Pink-themed Google logo */
-  
-  /* Highlight button colors */
-  --highlight-button-bg: 340 82% 96%;       /* Very light pink-rose bg */
-  --highlight-button-bg-hover: 340 85% 92%; /* Slightly more vibrant on hover */
-  --highlight-button-border: 340 65% 82%;   /* Soft pink-rose border */
-  --highlight-button-text: 345 25% 35%;     /* Rich dark pink text */
+  /* Google button colors - vibrant & translucent */
+  --highlight-button-bg: 340 100% 95%;      /* Light pink tint */
+  --highlight-button-bg-hover: 340 92% 92%; /* Subtle pink on hover */
+  --highlight-button-border: 340 70% 82%;   /* More defined pink border */
+  --highlight-button-text: 340 82% 48%;     /* Rich vibrant pink text */
+  --google-logo: 340 82% 48%;               /* Matching vibrant pink logo */
 }
 
 /* Pink Zen - Dark mode */
@@ -128,16 +122,10 @@
   --chart-4: 280 65% 60%;
   --chart-5: 260 75% 65%;
   
-  /* Special UI elements - dark */
-  --google-bg: 340 55% 12%;       /* Dark pink-rose bg (analogous to blue-950/30) */
-  --google-bg-hover: 340 60% 16%; /* Slightly lighter on hover (analogous to blue-900/50) */
-  --google-border: 340 50% 25%;   /* Pink-rose border (analogous to blue-800) */
-  --google-text: 340 65% 85%;     /* Light pink-rose text (analogous to blue-100) */
-  --google-logo: 345 70% 70%;     /* Light pink Google logo for dark mode */
-  
-  /* Highlight button colors - dark */
-  --highlight-button-bg: 340 55% 12%;       /* Dark pink-rose bg */
-  --highlight-button-bg-hover: 340 60% 16%; /* Slightly lighter on hover */
-  --highlight-button-border: 340 50% 25%;   /* Pink-rose border */
-  --highlight-button-text: 340 65% 85%;     /* Light pink-rose text */
+  /* Google button colors - dark */
+  --highlight-button-bg: 340 50% 12%;       /* Deep dark with pink tint */
+  --highlight-button-bg-hover: 340 55% 16%; /* Glowing pink on hover */
+  --highlight-button-border: 340 65% 30%;   /* Vibrant pink border */
+  --highlight-button-text: 340 100% 75%;    /* Bright glowing pink text */
+  --google-logo: 340 100% 75%;              /* Matching bright pink logo */
 }

@@ -30,7 +30,7 @@ export function TaskBreadcrumb({
       {/* Breadcrumb container with horizontal scroll */}
       <div 
         id="breadcrumb-container"
-        className="flex items-center gap-1 text-sm overflow-x-auto scrollbar-hide scroll-smooth pr-12"
+        className="flex items-center gap-1 text-sm overflow-x-auto scrollbar-hide scroll-smooth pr-16"
       >
         {/* Home icon for project root */}
         {displayItems.length > 0 && (

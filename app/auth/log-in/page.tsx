@@ -118,7 +118,7 @@ export default function LogInPage() {
           {/* Google Log In */}
           <Button
             variant="outline"
-            className="w-full bg-accent hover:bg-highlightbghover border-highlightborder text-highlighttext transition-colors"
+            className="w-full bg-pink/90 hover:bg-pinkhover/90 border-pinkborder text-pinktext hover:text-pinktext font-medium transition-all duration-200"
             onClick={handleGoogleSignIn}
             disabled={loading}
           >

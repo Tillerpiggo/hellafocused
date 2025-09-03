@@ -62,18 +62,12 @@
   --confetti-5: #be185d;
   --confetti-6: #9d174d;
   
-  /* Special UI elements */
-  --google-bg: 340 82% 96%;
-  --google-bg-hover: 340 85% 92%;
-  --google-border: 340 65% 82%;
-  --google-text: 345 25% 35%;
-  --google-logo: 345 65% 55%;
-  
-  /* Highlight button colors */
+  /* Google button colors */
   --highlight-button-bg: 340 82% 96%;
   --highlight-button-bg-hover: 340 85% 92%;
   --highlight-button-border: 340 65% 82%;
   --highlight-button-text: 345 25% 35%;
+  --google-logo: 345 65% 55%;
 }
 
 /* Dark mode defaults */
@@ -129,16 +123,10 @@
   --chart-4: 280 65% 60%;
   --chart-5: 260 75% 65%;
   
-  /* Special UI elements - dark */
-  --google-bg: 340 55% 12%;
-  --google-bg-hover: 340 60% 16%;
-  --google-border: 340 50% 25%;
-  --google-text: 340 65% 85%;
-  --google-logo: 345 70% 70%;
-  
-  /* Highlight button colors - dark */
+  /* Google button colors - dark */
   --highlight-button-bg: 340 55% 12%;
   --highlight-button-bg-hover: 340 60% 16%;
   --highlight-button-border: 340 50% 25%;
   --highlight-button-text: 340 65% 85%;
+  --google-logo: 345 70% 70%;
 }

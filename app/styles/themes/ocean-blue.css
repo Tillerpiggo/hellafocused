@@ -61,12 +61,12 @@
   --confetti-5: #1e40af;  /* blue-800 */
   --confetti-6: #1e3a8a;  /* blue-900 */
   
-  /* Special UI elements */
-  --google-bg: 214 95% 97%;       /* Light blue bg (blue-50) */
-  --google-bg-hover: 214 95% 93%; /* Slightly darker on hover (blue-100) */
-  --google-border: 213 94% 87%;   /* Blue border (blue-200) */
-  --google-text: 215 25% 27%;     /* Dark blue-gray text */
-  --google-logo: 217 89% 61%;     /* Classic Google blue */
+  /* Google button colors - blue theme */
+  --highlight-button-bg: 214 95% 97%;       /* Light blue bg */
+  --highlight-button-bg-hover: 214 95% 93%; /* Slightly darker on hover */
+  --highlight-button-border: 213 94% 87%;   /* Blue border */
+  --highlight-button-text: 215 25% 27%;     /* Dark blue-gray text */
+  --google-logo: 217 89% 61%;               /* Classic Google blue */
 }
 
 /* Ocean Blue - Dark mode */
@@ -122,10 +122,10 @@
   --chart-4: 190 70% 50%;
   --chart-5: 180 65% 45%;
   
-  /* Special UI elements - dark */
-  --google-bg: 222 89% 10%;       /* Dark blue bg (blue-950/30) */
-  --google-bg-hover: 221 83% 14%; /* Slightly lighter on hover (blue-900/50) */
-  --google-border: 221 68% 22%;   /* Blue border (blue-800) */
-  --google-text: 214 94% 85%;     /* Light blue text (blue-100) */
-  --google-logo: 217 89% 65%;     /* Bright blue logo for dark mode */
+  /* Google button colors - dark */
+  --highlight-button-bg: 222 89% 10%;       /* Dark blue bg */
+  --highlight-button-bg-hover: 221 83% 14%; /* Slightly lighter on hover */
+  --highlight-button-border: 221 68% 22%;   /* Blue border */
+  --highlight-button-text: 214 94% 85%;     /* Light blue text */
+  --google-logo: 217 89% 65%;               /* Bright blue logo for dark mode */
 }
