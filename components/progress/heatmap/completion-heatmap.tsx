@@ -231,11 +231,11 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
 
 function getColorClass(level: number): string {
   const classes = [
-    'bg-[#ebedf0] dark:bg-[#161b22]',  // Level 0 - Gray (no activity)
-    'bg-[#9be9a8] dark:bg-[#0e4429]',  // Level 1 - Light green
-    'bg-[#40c463] dark:bg-[#006d32]',  // Level 2 - Medium green
-    'bg-[#30a14e] dark:bg-[#26a641]',  // Level 3 - Dark green
-    'bg-[#216e39] dark:bg-[#39d353]',  // Level 4 - Darkest green
+    'bg-heatmap-0',  // Level 0 - Gray (no activity)
+    'bg-heatmap-1',  // Level 1
+    'bg-heatmap-2',  // Level 2
+    'bg-heatmap-3',  // Level 3
+    'bg-heatmap-4',  // Level 4
   ]
   
   const colorIndex = Math.min(level, 4)

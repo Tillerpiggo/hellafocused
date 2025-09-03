@@ -232,7 +232,7 @@ export function FocusTaskView({
                 isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"
               } ${
                 priority === 1 
-                  ? "text-amber-800/90 dark:text-amber-200/95" 
+                  ? "text-priority-dark/90 dark:text-priority-light/95" 
                   : priority === -1 
                   ? "text-muted-foreground" 
                   : "text-foreground"

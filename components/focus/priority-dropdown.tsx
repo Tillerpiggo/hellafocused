@@ -24,7 +24,7 @@ export function PriorityDropdown({ children, currentPriority, onPriorityChange }
             currentPriority === 1 && "bg-accent"
           )}
         >
-          <Star className="h-4 w-4 text-amber-600 fill-amber-600 dark:text-amber-400 dark:fill-amber-400" />
+          <Star className="h-4 w-4 text-priority fill-priority-fill dark:text-priority-dark dark:fill-priority-fill" />
           Prefer
         </DropdownMenuItem>
         <DropdownMenuItem 

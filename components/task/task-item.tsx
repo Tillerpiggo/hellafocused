@@ -105,7 +105,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
               <Circle className={cn(
                 "h-5 w-5 transition-colors",
                 effectivePriority === 1 
-                  ? "text-amber-500/60 dark:text-amber-400/60 group-hover:text-amber-600 dark:group-hover:text-amber-400"
+                  ? "text-priority/60 dark:text-priority-dark/60 group-hover:text-priority-dark dark:group-hover:text-priority-dark"
                   : "text-muted-foreground group-hover:text-primary"
               )} />
             )}
@@ -121,7 +121,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
                 className={cn(
                   "text-base font-medium", 
                   task.completed && "line-through text-muted-foreground",
-                  effectivePriority === 1 && !task.completed && "text-amber-800/80 dark:text-amber-200/90 font-medium",
+                  effectivePriority === 1 && !task.completed && "text-priority-dark/80 dark:text-priority-light/90 font-medium",
                   effectivePriority === -1 && !task.completed && "text-muted-foreground"
                 )}
                 isCompleted={task.completed}
@@ -131,7 +131,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
                 className={cn(
                   "text-base font-medium break-words", 
                   task.completed && "line-through text-muted-foreground",
-                  effectivePriority === 1 && !task.completed && "text-amber-800/80 dark:text-amber-200/90 font-medium",
+                  effectivePriority === 1 && !task.completed && "text-priority-dark/80 dark:text-priority-light/90 font-medium",
                   effectivePriority === -1 && !task.completed && "text-muted-foreground"
                 )}
               >
@@ -144,7 +144,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
       <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2">
         {/* Priority indicators */}
         {effectivePriority === 1 && !task.completed && (
-          <Star className="h-4 w-4 text-amber-600/60 fill-amber-600/60 dark:text-amber-400/70 dark:fill-amber-400/70" />
+          <Star className="h-4 w-4 text-priority/60 fill-priority-fill/60 dark:text-priority-dark/70 dark:fill-priority-fill/70" />
         )}
         {effectivePriority === -1 && !task.completed && (
           <Clock className="h-4 w-4 text-slate-500/60 dark:text-slate-400/70" />

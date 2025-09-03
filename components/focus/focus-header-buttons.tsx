@@ -77,7 +77,7 @@ export function FocusHeaderButtons({
         {(currentTaskPriority === 1 || justBecameUnpreferred) && onPriorityChange && (
           <PriorityDropdown currentPriority={currentTaskPriority} onPriorityChange={onPriorityChange}>
             <div className="h-10 w-10 rounded-full flex items-center justify-center opacity-80 hover:opacity-100 cursor-pointer transition-opacity">
-              <Star className={`h-4 w-4 text-amber-600 fill-amber-600 dark:text-amber-400 dark:fill-amber-400 transition-transform duration-300 ease-out ${
+              <Star className={`h-4 w-4 text-priority fill-priority-fill dark:text-priority-dark dark:fill-priority-fill transition-transform duration-300 ease-out ${
                 justBecamePreferred ? "animate-bounce-scale" : 
                 justBecameUnpreferred ? "animate-shrink-fade" : ""
               }`} />
@@ -99,16 +99,16 @@ export function FocusHeaderButtons({
             onClick={onShowTaskDetails}
             className={cn(
               "rounded-full px-3 py-2 h-10",
-              "bg-rose-100/40 dark:bg-rose-900/10",
-              "hover:bg-rose-200/50 dark:hover:bg-rose-800/20",
+              "bg-focusAction/10 dark:bg-focusAction/10",
+              "hover:bg-focusAction/20 dark:hover:bg-focusAction/20",
               "backdrop-blur-sm transition-all duration-[2500ms] ease-[cubic-bezier(0.25,0.1,0.25,1)]",
-              "border border-rose-200/30 dark:border-rose-800/20",
+              "border border-focusAction/30 dark:border-focusAction/20",
               "opacity-80 hover:opacity-100",
               isTransitioning && "pointer-events-none"
             )}
           >
-            <Info className="h-4 w-4 text-rose-700 dark:text-rose-300 mr-2" />
-            <span className="text-sm font-medium text-rose-700 dark:text-rose-300">
+            <Info className="h-4 w-4 text-focusAction dark:text-focusAction mr-2" />
+            <span className="text-sm font-medium text-focusAction dark:text-focusAction">
               Show task details
             </span>
             

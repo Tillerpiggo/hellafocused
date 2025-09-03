@@ -72,6 +72,49 @@
   --complete-button-bg: 217 89% 51%;        /* Primary blue */
   --complete-button-bg-hover: 217 89% 46%;  /* Deeper blue on hover */
   --complete-button-text: 0 0% 100%;        /* White text */
+  
+  /* Priority indicators (amber - consistent across themes) */
+  --color-priority: 38 92% 50%;           /* amber-500 */
+  --color-priority-light: 48 96% 89%;     /* amber-100 */
+  --color-priority-dark: 32 95% 44%;      /* amber-600 */
+  --color-priority-fill: 38 92% 50%;      /* amber-500 for star fill */
+  
+  /* Focus mode actions - ocean-blue specific */
+  --color-focus-action: 217 91% 60%;      /* blue-500 */
+  --color-focus-action-hover: 217 91% 50%;
+  
+  /* Progress chart colors (diverse colors for ocean theme) */
+  --progress-chart-1: 217 91% 60%;        /* blue */
+  --progress-chart-2: 199 89% 48%;        /* cyan */
+  --progress-chart-3: 174 72% 56%;        /* teal */
+  --progress-chart-4: 142 71% 45%;        /* green */
+  --progress-chart-5: 38 92% 50%;         /* amber */
+  --progress-gradient-from: 199 89% 48%;  /* cyan-500 */
+  --progress-gradient-to: 217 91% 60%;    /* blue-500 */
+  --progress-stroke: 214 14% 34%;         /* gray-700 */
+  --progress-grid: 210 16% 93%;           /* gray-100 */
+  
+  /* Landing page decorative elements (consistent across themes) */
+  --landing-success: 142 76% 36%;         /* green-600 */
+  --landing-success-bg: 138 76% 97%;      /* green-50 */
+  --landing-error: 0 84% 60%;             /* red-500 */
+  --landing-error-bg: 0 86% 97%;          /* red-50 */
+  --landing-info: 217 91% 60%;            /* blue-500 */
+  --landing-info-bg: 214 100% 97%;        /* blue-50 */
+  --landing-warning: 38 92% 50%;          /* amber-500 */
+  --landing-warning-bg: 48 100% 96%;      /* amber-50 */
+  
+  /* Heatmap activity levels - perceptually balanced yellow/gold */
+  --heatmap-0: #ebedf0;                   /* Same gray as GitHub */
+  --heatmap-1: #fff4d6;                   /* Very light gold */
+  --heatmap-2: #ffd93d;                   /* Light gold */
+  --heatmap-3: #f9a825;                   /* Medium gold */
+  --heatmap-4: #f57f17;                   /* Deep gold */
+  
+  /* UI states */
+  --color-disabled: 220 9% 46%;           /* gray-500 */
+  --color-disabled-bg: 210 20% 93%;       /* gray-200 */
+  --color-success-bg: 138 76% 97%;        /* green-50 */
 }
 
 /* Ocean Blue - Dark mode */
@@ -138,4 +181,47 @@
   --complete-button-bg: 217 89% 65%;        /* Bright blue for dark mode */
   --complete-button-bg-hover: 217 89% 70%;  /* Even brighter on hover */
   --complete-button-text: 222 84% 5%;       /* Very dark blue */
+  
+  /* Priority indicators (amber - consistent across themes) - dark */
+  --color-priority: 38 92% 50%;           /* amber-500 */
+  --color-priority-light: 32 95% 20%;     /* amber-900 */
+  --color-priority-dark: 38 92% 65%;      /* amber-400 */
+  --color-priority-fill: 38 92% 50%;      /* amber-500 for star fill */
+  
+  /* Focus mode actions - ocean-blue specific dark */
+  --color-focus-action: 217 91% 65%;      /* blue-400 */
+  --color-focus-action-hover: 217 91% 75%;
+  
+  /* Progress chart colors (diverse for ocean theme) - dark */
+  --progress-chart-1: 217 91% 65%;        /* blue */
+  --progress-chart-2: 199 89% 58%;        /* cyan */
+  --progress-chart-3: 174 72% 66%;        /* teal */
+  --progress-chart-4: 142 71% 55%;        /* green */
+  --progress-chart-5: 38 92% 60%;         /* amber */
+  --progress-gradient-from: 199 89% 58%;  /* cyan-400 */
+  --progress-gradient-to: 217 91% 65%;    /* blue-400 */
+  --progress-stroke: 214 14% 70%;         /* gray-400 */
+  --progress-grid: 214 14% 20%;           /* gray-800 */
+  
+  /* Landing page decorative elements (consistent across themes) - dark */
+  --landing-success: 142 71% 45%;         /* green-500 */
+  --landing-success-bg: 142 76% 20%;      /* green-900 */
+  --landing-error: 0 72% 51%;             /* red-600 */
+  --landing-error-bg: 0 73% 20%;          /* red-900 */
+  --landing-info: 217 91% 65%;            /* blue-400 */
+  --landing-info-bg: 221 83% 20%;         /* blue-900 */
+  --landing-warning: 38 92% 50%;          /* amber-500 */
+  --landing-warning-bg: 32 95% 20%;       /* amber-900 */
+  
+  /* Heatmap activity levels - perceptually balanced yellow/gold dark */
+  --heatmap-0: #161b22;                   /* Same dark gray as GitHub */
+  --heatmap-1: #3d2f00;                   /* Very dark gold */
+  --heatmap-2: #6b5300;                   /* Dark gold */
+  --heatmap-3: #a67c00;                   /* Medium gold */
+  --heatmap-4: #ffb700;                   /* Bright gold */
+  
+  /* UI states - dark */
+  --color-disabled: 220 9% 50%;           /* gray-500 */
+  --color-disabled-bg: 217 19% 27%;       /* gray-700 */
+  --color-success-bg: 142 76% 20%;        /* green-900 */
 }

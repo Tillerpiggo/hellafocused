@@ -74,7 +74,56 @@ module.exports = {
   				'4': 'var(--confetti-4)',
   				'5': 'var(--confetti-5)',
   				'6': 'var(--confetti-6)'
-  			}
+  			},
+  			// Priority colors (amber - consistent)
+  			priority: {
+  				DEFAULT: 'hsl(var(--color-priority))',
+  				light: 'hsl(var(--color-priority-light))',
+  				dark: 'hsl(var(--color-priority-dark))',
+  				fill: 'hsl(var(--color-priority-fill))'
+  			},
+  			// Focus mode actions
+  			focusAction: {
+  				DEFAULT: 'hsl(var(--color-focus-action))',
+  				hover: 'hsl(var(--color-focus-action-hover))'
+  			},
+  			// Progress chart colors
+  			progressChart: {
+  				'1': 'hsl(var(--progress-chart-1))',
+  				'2': 'hsl(var(--progress-chart-2))',
+  				'3': 'hsl(var(--progress-chart-3))',
+  				'4': 'hsl(var(--progress-chart-4))',
+  				'5': 'hsl(var(--progress-chart-5))',
+  				gradientFrom: 'hsl(var(--progress-gradient-from))',
+  				gradientTo: 'hsl(var(--progress-gradient-to))',
+  				stroke: 'hsl(var(--progress-stroke))',
+  				grid: 'hsl(var(--progress-grid))'
+  			},
+  			// Landing page decorative
+  			landing: {
+  				success: 'hsl(var(--landing-success))',
+  				successBg: 'hsl(var(--landing-success-bg))',
+  				error: 'hsl(var(--landing-error))',
+  				errorBg: 'hsl(var(--landing-error-bg))',
+  				info: 'hsl(var(--landing-info))',
+  				infoBg: 'hsl(var(--landing-info-bg))',
+  				warning: 'hsl(var(--landing-warning))',
+  				warningBg: 'hsl(var(--landing-warning-bg))'
+  			},
+  			// Heatmap colors
+  			heatmap: {
+  				'0': 'var(--heatmap-0)',
+  				'1': 'var(--heatmap-1)',
+  				'2': 'var(--heatmap-2)',
+  				'3': 'var(--heatmap-3)',
+  				'4': 'var(--heatmap-4)'
+  			},
+  			// UI states
+  			disabled: {
+  				DEFAULT: 'hsl(var(--color-disabled))',
+  				bg: 'hsl(var(--color-disabled-bg))'
+  			},
+  			successBg: 'hsl(var(--color-success-bg))'
   		}
   	}
   },

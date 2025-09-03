@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState, useEffect } from 'react'
-import { useTheme } from 'next-themes'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { ProjectData, TaskData } from '@/lib/types'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -20,7 +19,6 @@ interface ChartData {
 }
 
 export function ProgressChart({ projects }: ProgressChartProps) {
-  const { theme } = useTheme()
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('weekly')
 
   const TimePeriodOption = ({ value, label }: { value: TimePeriod, label: string }) => (
@@ -229,24 +227,24 @@ export function ProgressChart({ projects }: ProgressChartProps) {
           >
             <defs>
               <linearGradient id="colorGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#818cf8" stopOpacity={0.9} />
-                <stop offset="100%" stopColor="#c084fc" stopOpacity={0.9} />
+                <stop offset="0%" stopColor="hsl(var(--progress-gradient-from))" stopOpacity={0.9} />
+                <stop offset="100%" stopColor="hsl(var(--progress-gradient-to))" stopOpacity={0.9} />
               </linearGradient>
             </defs>
             <CartesianGrid 
               strokeDasharray="3 3" 
-              stroke={theme === 'dark' ? '#374151' : '#e2e8f0'} 
+              stroke="hsl(var(--progress-grid))" 
               opacity={0.5} 
             />
             <XAxis 
               dataKey="period" 
-              stroke="#64748b"
+              stroke="hsl(var(--progress-stroke))"
               fontSize={12}
               tickLine={false}
               axisLine={false}
             />
             <YAxis 
-              stroke="#64748b"
+              stroke="hsl(var(--progress-stroke))"
               fontSize={12}
               tickLine={false}
               axisLine={false}
@@ -259,27 +257,27 @@ export function ProgressChart({ projects }: ProgressChartProps) {
               position={{ x: undefined, y: 160 - toolTipYPosition }}
               offset={tooltipOffset}
               contentStyle={{
-                backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff',
-                border: `1px solid ${theme === 'dark' ? '#374151' : '#e2e8f0'}`,
+                backgroundColor: 'hsl(var(--card))',
+                border: `1px solid hsl(var(--border))`,
                 borderRadius: '8px',
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                 fontSize: '12px',
-                color: theme === 'dark' ? '#f9fafb' : '#111827'
+                color: 'hsl(var(--card-foreground))'
               }}
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
                     <div style={{
-                      backgroundColor: theme === 'dark' ? '#1f2937' : '#ffffff',
-                      border: `1px solid ${theme === 'dark' ? '#374151' : '#e2e8f0'}`,
+                      backgroundColor: 'hsl(var(--card))',
+                      border: `1px solid hsl(var(--border))`,
                       borderRadius: '8px',
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
                       fontSize: '12px',
                       padding: '8px 12px',
-                      color: theme === 'dark' ? '#f9fafb' : '#111827'
+                      color: 'hsl(var(--card-foreground))'
                     }}>
                       <p style={{ margin: 0, fontWeight: 'bold' }}>{getTooltipLabel(String(label || ''))}</p>
-                      <p style={{ margin: 0, fontWeight: 600, background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Tasks completed: {payload[0].value}</p>
+                      <p style={{ margin: 0, fontWeight: 600, background: `linear-gradient(135deg, hsl(var(--progress-gradient-from)) 0%, hsl(var(--progress-gradient-to)) 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Tasks completed: {payload[0].value}</p>
                     </div>
                   )
                 }

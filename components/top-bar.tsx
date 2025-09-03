@@ -117,7 +117,7 @@ export function TopBar({ onMenuToggle, isMenuOpen }: TopBarProps) {
         <Button
           size="sm"
           onClick={() => router.push('/auth/sign-up')}
-          className="bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm"
         >
           Sign up
         </Button>

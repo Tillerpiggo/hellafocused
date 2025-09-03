@@ -194,7 +194,7 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
                         <Circle className={cn(
                           "h-4 w-4 transition-colors",
                           item.priority === 1
-                            ? "text-amber-500/60 dark:text-amber-400/60"
+                            ? "text-priority/60 dark:text-priority-dark/60"
                             : "text-muted-foreground"
                         )} />
                       )}
@@ -202,7 +202,7 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
                     <span className={cn(
                       "font-medium truncate",
                       isOriginalTask && "text-muted-foreground",
-                      item.type === 'task' && item.priority === 1 && !isOriginalTask && "text-amber-800/80 dark:text-amber-200/90",
+                      item.type === 'task' && item.priority === 1 && !isOriginalTask && "text-priority-dark/80 dark:text-priority-light/90",
                       item.type === 'task' && item.priority === -1 && !isOriginalTask && "text-muted-foreground"
                     )}>
                       {item.name}
@@ -212,7 +212,7 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
 
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {item.type === 'task' && item.priority === 1 && (
-                      <Star className="h-4 w-4 text-amber-600/60 fill-amber-600/60 dark:text-amber-400/70 dark:fill-amber-400/70" />
+                      <Star className="h-4 w-4 text-priority/60 fill-priority-fill/60 dark:text-priority-dark/70 dark:fill-priority-fill/70" />
                     )}
                     {item.type === 'task' && item.priority === -1 && (
                       <Clock className="h-4 w-4 text-slate-500/60 dark:text-slate-400/70" />

@@ -39,14 +39,14 @@ export function ButFirstSection() {
           
           {/* Level 2: Medium blocks */}
           <div className="grid grid-cols-3 gap-4 mb-4 px-8">
-            <div className="w-full h-16 bg-gradient-to-br from-amber-500/10 to-yellow-500/10 rounded-xl border border-amber-500/20 flex items-center justify-center">
-              <span className="text-xs text-amber-600/60 dark:text-amber-400/60 text-center px-2">Research</span>
+            <div className="w-full h-16 bg-landing-warningBg/30 rounded-xl border border-landing-warning/20 flex items-center justify-center">
+              <span className="text-xs text-landing-warning/60 text-center px-2">Research</span>
             </div>
-            <div className="w-full h-16 bg-gradient-to-br from-amber-500/10 to-yellow-500/10 rounded-xl border border-amber-500/20 flex items-center justify-center">
-              <span className="text-xs text-amber-600/60 dark:text-amber-400/60 text-center px-2">Write draft</span>
+            <div className="w-full h-16 bg-landing-warningBg/30 rounded-xl border border-landing-warning/20 flex items-center justify-center">
+              <span className="text-xs text-landing-warning/60 text-center px-2">Write draft</span>
             </div>
-            <div className="w-full h-16 bg-gradient-to-br from-amber-500/10 to-yellow-500/10 rounded-xl border border-amber-500/20 flex items-center justify-center">
-              <span className="text-xs text-amber-600/60 dark:text-amber-400/60 text-center px-2">Edit & publish</span>
+            <div className="w-full h-16 bg-landing-warningBg/30 rounded-xl border border-landing-warning/20 flex items-center justify-center">
+              <span className="text-xs text-landing-warning/60 text-center px-2">Edit & publish</span>
             </div>
           </div>
           
