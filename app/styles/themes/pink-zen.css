@@ -67,6 +67,11 @@
   --highlight-button-border: 340 70% 82%;   /* More defined pink border */
   --highlight-button-text: 340 82% 48%;     /* Rich vibrant pink text */
   --google-logo: 340 82% 48%;               /* Matching vibrant pink logo */
+  
+  /* Complete button colors - thematic pink */
+  --complete-button-bg: 345 45% 52%;        /* Primary pink */
+  --complete-button-bg-hover: 345 45% 46%;  /* Deeper pink on hover */
+  --complete-button-text: 345 100% 98%;     /* Very light pink-white */
 }
 
 /* Pink Zen - Dark mode */
@@ -128,4 +133,9 @@
   --highlight-button-border: 340 65% 30%;   /* Vibrant pink border */
   --highlight-button-text: 340 100% 75%;    /* Bright glowing pink text */
   --google-logo: 340 100% 75%;              /* Matching bright pink logo */
+  
+  /* Complete button colors - dark thematic pink */
+  --complete-button-bg: 345 55% 68%;        /* Lighter pink for dark mode */
+  --complete-button-bg-hover: 345 55% 73%;  /* Even lighter on hover */
+  --complete-button-text: 345 20% 8%;       /* Very dark pink */
 }

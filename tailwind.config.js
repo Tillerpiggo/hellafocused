@@ -61,7 +61,11 @@ module.exports = {
   			pink: 'hsl(var(--highlight-button-bg))',
   			pinkhover: 'hsl(var(--highlight-button-bg-hover))',
   			pinkborder: 'hsl(var(--highlight-button-border))',
-  			pinktext: 'hsl(var(--highlight-button-text))'
+  			pinktext: 'hsl(var(--highlight-button-text))',
+  			// Complete button colors
+  			complete: 'hsl(var(--complete-button-bg))',
+  			completehover: 'hsl(var(--complete-button-bg-hover))',
+  			completetext: 'hsl(var(--complete-button-text))'
   		}
   	}
   },

@@ -68,6 +68,11 @@
   --highlight-button-border: 340 65% 82%;
   --highlight-button-text: 345 25% 35%;
   --google-logo: 345 65% 55%;
+  
+  /* Complete button colors - neutral */
+  --complete-button-bg: 220 13% 46%;      /* Neutral slate */
+  --complete-button-bg-hover: 220 13% 40%;
+  --complete-button-text: 0 0% 100%;      /* White text */
 }
 
 /* Dark mode defaults */
@@ -129,4 +134,9 @@
   --highlight-button-border: 340 50% 25%;
   --highlight-button-text: 340 65% 85%;
   --google-logo: 345 70% 70%;
+  
+  /* Complete button colors - dark */
+  --complete-button-bg: 220 13% 58%;
+  --complete-button-bg-hover: 220 13% 64%;
+  --complete-button-text: 0 0% 100%;
 }

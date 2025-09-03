@@ -210,8 +210,10 @@ export function FocusTaskView({
           </div>
           
           <div className="relative max-w-4xl w-full z-10 flex flex-col items-center">
-            <h1
+            <EditableTitle
               key={taskKey}
+              value={displayedTaskName || currentTask?.name || ""}
+              onChange={handleTitleChange}
               className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-center leading-relaxed break-words transition-colors duration-500 ease-out mb-12 ${
                 isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"
               } ${
@@ -221,9 +223,8 @@ export function FocusTaskView({
                   ? "text-muted-foreground" 
                   : "text-foreground"
               }`}
-            >
-              {displayedTaskName || (currentTask?.name || "")}
-            </h1>
+              placeholder="Task name"
+            />
             
             {/* Action buttons centered under the text */}
             <div className="flex flex-col sm:flex-row gap-4 w-full max-w-sm">
@@ -231,11 +232,8 @@ export function FocusTaskView({
                 size="lg"
                 className={cn(
                   "flex-1 py-5 px-8 rounded-2xl transition-all duration-300",
-                  "bg-gradient-to-r from-pink-500/90 to-rose-500/90",
-                  "hover:from-pink-600/90 hover:to-rose-600/90",
-                  "dark:from-pink-600/80 dark:to-rose-600/80",
-                  "dark:hover:from-pink-700/80 dark:hover:to-rose-700/80",
-                  "text-white font-medium shadow-lg hover:shadow-xl",
+                  "bg-complete hover:bg-completehover",
+                  "text-completetext font-medium shadow-lg hover:shadow-xl",
                   "hover:scale-[1.02] active:scale-[0.98]",
                   "border border-white/20"
                 )}
