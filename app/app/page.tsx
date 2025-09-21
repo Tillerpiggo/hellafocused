@@ -12,18 +12,16 @@ import { BreadcrumbPath } from "@/components/page/breadcrumb-path"
 
 import { TopBar } from "@/components/top-bar"
 import { useAppStore, getCurrentTasksForView, getCurrentTaskChain } from "@/store/app-store"
-import { TaskData } from "@/lib/types"
 import { useSyncStore } from "@/store/sync-store"
 import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
-import { Target, Loader2, CheckSquare, TrendingUp } from "lucide-react"
-import { CompletionHeatmap } from "@/components/progress/heatmap/completion-heatmap"
-import { FocusPointsBadge } from "@/components/progress/focus-points-badge"
-import { TodaysProgressCard } from "@/components/progress/todays-progress-card"
-import { ProgressChart } from "@/components/progress/progress-chart"
+import { Target, Loader2, CheckSquare, TrendingUp, Palette } from "lucide-react"
 import { AddTaskForm } from "@/components/task/add-task-form"
 import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
+import { TasksView } from "@/components/tabs/tasks-view"
+import { ProgressView } from "@/components/tabs/progress-view"
+import { ThemeView } from "@/components/tabs/theme-view"
 import { type EditableTitleRef } from "@/components/editable-title"
 import { useRef, useMemo, useState, useEffect } from "react"
 import { SidebarLayout } from "@/components/sidebar/sidebar-layout"
@@ -82,7 +80,8 @@ export default function HomePage() {
   
   const tabs = [
     { value: 'tasks', label: 'Tasks', icon: CheckSquare },
-    { value: 'progress', label: 'Progress', icon: TrendingUp }
+    { value: 'progress', label: 'Progress', icon: TrendingUp },
+    { value: 'theme', label: 'Theme', icon: Palette }
   ]
 
   // Show loading until authentication is complete
@@ -242,47 +241,15 @@ export default function HomePage() {
 
   const renderTabContent = () => {
     if (activeTab === 'progress') {
-      return (
-        <div className="container max-w-4xl mx-auto py-12 px-6">
-          <div className="space-y-8">
-            <div>
-              <h2 className="text-2xl font-semibold text-foreground mb-2">Progress Dashboard</h2>
-              <p className="text-muted-foreground">
-                Feel good about what you&apos;ve done so far
-              </p>
-            </div>
-            <TodaysProgressCard projects={projects} />
-            <ProgressChart projects={projects} />
-            <FocusPointsBadge projects={projects} />
-            <div>
-              <h3 className="text-lg font-medium text-foreground mb-4">
-                {(() => {
-                  let totalTasks = 0
-                  const countTask = (task: TaskData) => {
-                    if (task.completed && task.completionDate) {
-                      totalTasks += 1
-                    }
-                    task.subtasks.forEach(countTask)
-                  }
-                  projects.forEach(project => {
-                    project.tasks.forEach(countTask)
-                  })
-                  return `${totalTasks.toLocaleString()} tasks completed in the last year`
-                })()}
-              </h3>
-              <CompletionHeatmap projects={projects} />
-            </div>
-          </div>
-        </div>
-      )
+      return <ProgressView projects={projects} />
     }
-    
+
+    if (activeTab === 'theme') {
+      return <ThemeView />
+    }
+
     // Default to tasks tab
-    return (
-      <div className="container max-w-4xl mx-auto py-12 px-6">
-        {pageContent()}
-      </div>
-    )
+    return <TasksView>{pageContent()}</TasksView>
   }
 
   const pageContent = () => {
