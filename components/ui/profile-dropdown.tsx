@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu'
-import { User, LogOut, Sun, Moon, Monitor, ArrowRight, Target } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { User, LogOut, ArrowRight, Target } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useUIStore } from '@/store/ui-store'
 import { supabase, getBaseUrl } from '@/lib/supabase'
@@ -17,7 +16,6 @@ interface ProfileDropdownProps {
 
 export function ProfileDropdown({ user, showBackToApp = false, showFocusButton = false }: ProfileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const { theme, setTheme } = useTheme()
   const { isFocusMode, setFocusMode } = useUIStore()
   const router = useRouter()
 
@@ -53,12 +51,6 @@ export function ProfileDropdown({ user, showBackToApp = false, showFocusButton =
     if (email.length <= 20) return email
     return email.substring(0, 17) + '...'
   }
-
-  const themeOptions = [
-    { value: 'light', label: 'Light', icon: Sun },
-    { value: 'dark', label: 'Dark', icon: Moon },
-    { value: 'system', label: 'System', icon: Monitor },
-  ]
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
@@ -105,23 +97,6 @@ export function ProfileDropdown({ user, showBackToApp = false, showFocusButton =
             <DropdownMenuSeparator />
           </>
         )}
-        {themeOptions.map((option) => {
-          const Icon = option.icon
-          return (
-            <DropdownMenuItem
-              key={option.value}
-              onClick={() => setTheme(option.value)}
-              className="cursor-pointer"
-            >
-              <Icon className="mr-2 h-4 w-4" />
-              <span>{option.label}</span>
-              {theme === option.value && (
-                <span className="ml-auto text-xs text-muted-foreground">✓</span>
-              )}
-            </DropdownMenuItem>
-          )
-        })}
-        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>

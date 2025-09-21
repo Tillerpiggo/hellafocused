@@ -99,6 +99,7 @@ export function TopBar({ onMenuToggle, isMenuOpen }: TopBarProps) {
               Discord
             </Link>
           )}
+          <ThemeToggle />
           <ProfileDropdown user={user} showFocusButton={true} />
         </div>
       )

@@ -2,6 +2,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { ProfileDropdown } from "@/components/ui/profile-dropdown"
 import { FeedbackButton } from "@/components/ui/feedback-button"
+import { ThemeToggle } from "@/components/theme-toggle"
 import type { User } from "@supabase/supabase-js"
 
 interface LandingNavigationProps {
@@ -21,21 +22,23 @@ export function LandingNavigation({ hasSession, user }: LandingNavigationProps) 
         {/* Right side - Navigation links */}
         <div className="flex items-center gap-6">
           {hasSession && user ? (
-            // Authenticated user - show Feedback, Discord and profile with smooth animation
+            // Authenticated user - show Feedback, Discord, Theme toggle and profile with smooth animation
             <div className="flex items-center gap-6 animate-profile-fade-in">
               <FeedbackButton />
               <Link href="https://discord.gg/UQYybzN3Ac" target="_blank" rel="noopener noreferrer" className="hidden sm:block text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Discord
               </Link>
+              <ThemeToggle />
               <ProfileDropdown user={user} showBackToApp={true} />
             </div>
           ) : (
-            // Not authenticated - show Feedback, Discord and Try Now buttons immediately
+            // Not authenticated - show Feedback, Discord, Theme toggle and Try Now buttons immediately
             <>
               <FeedbackButton />
               <Link href="https://discord.gg/UQYybzN3Ac" target="_blank" rel="noopener noreferrer" className="hidden sm:block text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Discord
               </Link>
+              <ThemeToggle />
               <Link href="/app">
                 <Button
                   variant="outline"
