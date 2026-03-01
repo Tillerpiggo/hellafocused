@@ -231,8 +231,8 @@ export function FocusTaskView({
               className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-center leading-relaxed break-words transition-colors duration-500 ease-out mb-12 ${
                 isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"
               } ${
-                priority === 1 
-                  ? "text-priority-dark/90 dark:text-priority-light/95" 
+                priority === 1
+                  ? "text-priority-text"
                   : priority === -1 
                   ? "text-muted-foreground" 
                   : "text-foreground"

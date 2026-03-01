@@ -2,12 +2,11 @@
 
 import { useMemo, useState, useEffect, useRef } from 'react'
 import { useFloating, autoUpdate, offset, flip, shift } from '@floating-ui/react'
-import { ProjectData, TaskData } from '@/lib/types'
 import { HeatmapDay } from './heatmap-day'
 import { HeatmapTooltip } from './heatmap-tooltip'
 
 interface CompletionHeatmapProps {
-  projects: ProjectData[]
+  completions: Map<string, number>
 }
 
 interface TooltipState {
@@ -15,16 +14,6 @@ interface TooltipState {
   count: number
 }
 
-// Convert UTC ISO string to local date string (YYYY-MM-DD)
-function getLocalDateString(utcDateString: string): string {
-  const date = new Date(utcDateString)
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-// Convert a local date to local date string (YYYY-MM-DD)
 function dateToLocalString(date: Date): string {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
@@ -32,7 +21,7 @@ function dateToLocalString(date: Date): string {
   return `${year}-${month}-${day}`
 }
 
-export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
+export function CompletionHeatmap({ completions }: CompletionHeatmapProps) {
   const [tooltip, setTooltip] = useState<TooltipState | null>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
 
@@ -47,44 +36,25 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
     whileElementsMounted: autoUpdate
   })
 
-  const completions = useMemo(() => {
-    const counts: Record<string, number> = {}
-
-    const processTask = (task: TaskData) => {
-      if (task.completed && task.completionDate) {
-        const dateKey = getLocalDateString(task.completionDate)
-        counts[dateKey] = (counts[dateKey] || 0) + 1
-      }
-      task.subtasks.forEach(processTask)
-    }
-
-    projects.forEach(project => {
-      project.tasks.forEach(processTask)
-    })
-
-    return counts
-  }, [projects])
-
   const days = useMemo(() => {
     const today = new Date()
     const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
-    
-    // Go from the Sunday before the start date to today
+
     const startDate = new Date(oneYearAgo)
     const dayOfWeek = startDate.getDay()
     startDate.setDate(startDate.getDate() - dayOfWeek)
-    
+
     const totalDays = Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1
-    
+
     return Array.from({ length: totalDays }, (_, i) => {
       const date = new Date(startDate)
       date.setDate(date.getDate() + i)
       const dateKey = dateToLocalString(date)
-      
+
       return {
         date,
         dateKey,
-        count: completions[dateKey] || 0
+        count: completions.get(dateKey) || 0
       }
     })
   }, [completions])

@@ -1,32 +1,14 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { ProjectData, TaskData } from '@/lib/types'
+import { useState } from 'react'
 import Tilt from 'react-parallax-tilt'
 
 interface FocusPointsBadgeProps {
-  projects: ProjectData[]
+  totalPoints: number
 }
 
-export function FocusPointsBadge({ projects }: FocusPointsBadgeProps) {
+export function FocusPointsBadge({ totalPoints }: FocusPointsBadgeProps) {
   const [isClicked, setIsClicked] = useState(false)
-
-  const totalPoints = useMemo(() => {
-    let count = 0
-
-    const countTask = (task: TaskData) => {
-      if (task.completed && task.completionDate) {
-        count += 1
-      }
-      task.subtasks.forEach(countTask)
-    }
-
-    projects.forEach(project => {
-      project.tasks.forEach(countTask)
-    })
-
-    return count
-  }, [projects])
 
   const formatNumber = (num: number): string => {
     return num.toLocaleString()

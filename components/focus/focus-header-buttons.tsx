@@ -77,7 +77,7 @@ export function FocusHeaderButtons({
         {(currentTaskPriority === 1 || justBecameUnpreferred) && onPriorityChange && (
           <PriorityDropdown currentPriority={currentTaskPriority} onPriorityChange={onPriorityChange}>
             <div className="h-10 w-10 rounded-full flex items-center justify-center opacity-80 hover:opacity-100 cursor-pointer transition-opacity">
-              <Star className={`h-4 w-4 text-priority fill-priority-fill dark:text-priority-dark dark:fill-priority-fill transition-transform duration-300 ease-out ${
+              <Star className={`h-4 w-4 text-priority-icon fill-priority-fill transition-transform duration-300 ease-out ${
                 justBecamePreferred ? "animate-bounce-scale" : 
                 justBecameUnpreferred ? "animate-shrink-fade" : ""
               }`} />

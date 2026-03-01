@@ -29,16 +29,14 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
   const [isDismissing, setIsDismissing] = useState(false)
   const [shouldRender, setShouldRender] = useState(false)
   const viewRef = useRef<HTMLDivElement>(null)
-  const { projects, currentPath: globalCurrentPath, addSubtaskToParent } = useAppStore()
+  const projects = useAppStore(s => s.projects)
+  const globalCurrentPath = useAppStore(s => s.currentPath)
+  const addSubtaskToParent = useAppStore(s => s.addSubtaskToParent)
   const { currentFocusTask } = useFocusStore()
 
   // Handle visibility changes
   useEffect(() => {
-    console.log('🔍 AddTasksView visibility effect triggered:', { isVisible, shouldRender, isDismissing, globalCurrentPath, currentFocusTask: currentFocusTask?.name })
-    
     if (isVisible && !shouldRender) {
-      console.log('📱 Starting to show AddTasksView')
-      // Start showing the component
       setShouldRender(true)
       setIsDismissing(false)
 
@@ -65,8 +63,6 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
         setIsAnimating(true)
       }, 10)
     } else if (!isVisible && shouldRender && !isDismissing) {
-      console.log('❌ DISMISSAL TRIGGERED from visibility effect - isVisible became false')
-      // Start dismissal
       setIsDismissing(true)
       setIsAnimating(false)
     }
@@ -76,9 +72,7 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
   // Handle dismissal animation completion
   useEffect(() => {
     if (isDismissing) {
-      console.log('⏰ Dismissal animation started, will call onClose in 450ms')
       const timer = setTimeout(() => {
-        console.log('📞 Calling onClose callback')
         setShouldRender(false)
         setIsDismissing(false)
         onClose()
@@ -88,9 +82,7 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
   }, [isDismissing, onClose])
 
   const handleClose = useCallback(() => {
-    console.log('🚪 handleClose called')
     if (!isDismissing) {
-      console.log('❌ DISMISSAL TRIGGERED from handleClose')
       setIsDismissing(true)
       setIsAnimating(false)
     }
@@ -100,7 +92,6 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape" && isVisible) {
-        console.log('⌨️ Escape key pressed in AddTasksView')
         e.preventDefault()
         e.stopPropagation()
         handleClose()
@@ -280,9 +271,7 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
                   <AddForm
                     placeholder={isProject(currentPath) ? "Add task..." : "Add subtask..."}
                     onSubmit={(taskName) => {
-                      console.log('➕ Adding task via AddForm:', taskName, 'to path:', currentPath)
                       addSubtaskToParent(currentPath, taskName)
-                      console.log('✅ Task addition complete')
                     }}
                     inputId="add-task-input-inline"
                   />

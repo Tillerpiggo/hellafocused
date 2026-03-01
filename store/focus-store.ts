@@ -8,6 +8,7 @@ import {
   getHierarchicalLeafNodes,
   findTaskPath,
   getProjectId,
+  arePathsEqual,
 } from "@/lib/task-utils"
 import { useAppStore } from "./app-store"
 
@@ -45,7 +46,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
     const { leaves: newLeaves, updatedPath } = getHierarchicalLeafNodes(projects, focusStartPath)
     
     // Update focus path if it changed during leaf calculation
-    if (JSON.stringify(updatedPath) !== JSON.stringify(focusStartPath)) {
+    if (!arePathsEqual(updatedPath, focusStartPath)) {
       set({ focusStartPath: updatedPath })
     }
     
@@ -94,7 +95,7 @@ export const useFocusStore = create<FocusState>((set, get) => ({
     
     // Check if focus scope has changed
     const { focusStartPath: currentStartPath } = get()
-    const scopeChanged = JSON.stringify(currentStartPath) !== JSON.stringify(startPath)
+    const scopeChanged = !arePathsEqual(currentStartPath, startPath)
     
     set({
       focusStartPath: updatedPath,

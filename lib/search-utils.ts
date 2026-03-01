@@ -1,4 +1,4 @@
-import { getProjectId } from "./task-utils"
+import { getProjectId, isPathPrefix } from "./task-utils"
 import type { ProjectData, TaskData } from "./types"
 
 export interface SearchResult {
@@ -86,8 +86,8 @@ function searchTasksRecursively(
     // Check if this task matches the search
     if (task.name.toLowerCase().includes(searchLower)) {
       // Check if this result is in the current path
-      const isInCurrentPath = userCurrentPath.length > 0 && 
-        taskPath.slice(0, userCurrentPath.length).join('/') === userCurrentPath.join('/')
+      const isInCurrentPath = userCurrentPath.length > 0 &&
+        isPathPrefix(taskPath, userCurrentPath)
       const isInCurrentProject = getProjectId(taskPath) === getProjectId(userCurrentPath)
 
       results.push({

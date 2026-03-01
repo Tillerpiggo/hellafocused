@@ -6,93 +6,90 @@ import type { SyncAction } from './sync-types'
 import { fillMissingPositionsForProjects } from './task-utils'
 
 export class MergeManager {
+  private buildChildrenMap(cloudTasks: DatabaseTask[]): Map<string | undefined, DatabaseTask[]> {
+    const map = new Map<string | undefined, DatabaseTask[]>()
+    for (const task of cloudTasks) {
+      const key = task.parent_id ?? undefined
+      if (!map.has(key)) map.set(key, [])
+      map.get(key)!.push(task)
+    }
+    return map
+  }
+
+  private buildPendingEntityIds(pendingChanges: Record<string, SyncAction>): Set<string> {
+    const ids = new Set<string>()
+    for (const change of Object.values(pendingChanges)) {
+      if (!change.synced) {
+        ids.add(`${change.entityType}:${change.entityId}`)
+      }
+    }
+    return ids
+  }
+
   async mergeCloudWithLocal(cloudProjects: DatabaseProject[], cloudTasks: DatabaseTask[]) {
-    console.log(`🔄 Starting merge: ${cloudProjects.length} projects, ${cloudTasks.length} tasks`)
-    
     const localProjects = useAppStore.getState().projects
     const { pendingChanges } = useSyncStore.getState()
-    
-    // Build lookup maps for efficient merging
+
     const localProjectMap = new Map(localProjects.map(p => [p.id, p]))
     const cloudProjectMap = new Map(cloudProjects.map(p => [p.id, p]))
-    
-    // Build a flat map of all local tasks for efficient lookup
-    const localTaskMap = new Map<string, TaskData>()
-    const buildLocalTaskMap = (tasks: TaskData[]) => {
-      tasks.forEach(task => {
-        localTaskMap.set(task.id, task)
-        if (task.subtasks) {
-          buildLocalTaskMap(task.subtasks)
-        }
-      })
-    }
-    localProjects.forEach(project => buildLocalTaskMap(project.tasks))
-    
+    const childrenMap = this.buildChildrenMap(cloudTasks)
+    const pendingEntityIds = this.buildPendingEntityIds(pendingChanges)
+
     const mergedProjects: ProjectData[] = []
-    
-    // 1. Process all cloud projects (source of truth)
+
     for (const cloudProject of cloudProjects) {
       const localProject = localProjectMap.get(cloudProject.id)
-      const hasPendingProjectChanges = Object.values(pendingChanges).some(
-        (change: SyncAction) => change.entityId === cloudProject.id && change.entityType === 'project' && !change.synced
-      )
-      
+      const hasPendingProjectChanges = pendingEntityIds.has(`project:${cloudProject.id}`)
+
       let mergedProject: ProjectData
-      
+
       if (!localProject) {
-        // Project only exists in cloud - add it
-        mergedProject = this.convertCloudProjectToLocal(cloudProject, cloudTasks)
+        mergedProject = this.convertCloudProjectToLocal(cloudProject, childrenMap)
       } else if (hasPendingProjectChanges) {
-        // Local project has pending changes - keep local version for now
         mergedProject = { ...localProject }
-        // Merge tasks with sophisticated strategy
-        mergedProject.tasks = this.mergeProjectTasks(localProject, cloudProject, cloudTasks, pendingChanges)
+        mergedProject.tasks = this.mergeProjectTasks(localProject, cloudProject, childrenMap, pendingEntityIds)
       } else {
-        // No pending changes - use field-level merge with remote as source of truth
-        mergedProject = this.mergeProject(localProject, cloudProject, cloudTasks, pendingChanges)
+        mergedProject = this.mergeProject(localProject, cloudProject, childrenMap, pendingEntityIds)
       }
-      
+
       mergedProjects.push(mergedProject)
     }
-    
-    // 2. Add local-only projects only if they have pending changes
+
     for (const localProject of localProjects) {
       if (!cloudProjectMap.has(localProject.id)) {
-        const hasPendingChanges = Object.values(pendingChanges).some(
-          (change: SyncAction) => change.entityId === localProject.id && change.entityType === 'project' && !change.synced
-        )
-        if (hasPendingChanges) {
+        if (pendingEntityIds.has(`project:${localProject.id}`)) {
           mergedProjects.push({ ...localProject })
         }
       }
     }
-    
-    // 3. Fill in missing positions for existing tasks
+
     fillMissingPositionsForProjects(mergedProjects)
-    
-    // 4. Update the app store with merged data
     useAppStore.setState({ projects: mergedProjects })
   }
 
-  private convertCloudProjectToLocal(cloudProject: DatabaseProject, cloudTasks: DatabaseTask[]): ProjectData {
-    const projectTasks = cloudTasks
-      .filter(task => task.project_id === cloudProject.id && !task.parent_id)
-      .map(task => this.convertTaskToLocal(task, cloudTasks))
+  private convertCloudProjectToLocal(
+    cloudProject: DatabaseProject,
+    childrenMap: Map<string | undefined, DatabaseTask[]>
+  ): ProjectData {
+    const rootTasks = (childrenMap.get(undefined) || [])
+      .filter(task => task.project_id === cloudProject.id)
+      .map(task => this.convertTaskToLocal(task, childrenMap))
 
     return {
       id: cloudProject.id,
       name: cloudProject.name,
       lastModificationDate: cloudProject.updated_at,
       position: cloudProject.position,
-      tasks: projectTasks,
+      tasks: rootTasks,
     }
   }
 
-  private convertTaskToLocal(cloudTask: DatabaseTask, allTasks: DatabaseTask[]): TaskData {
-    // Find all subtasks of this task
-    const subtasks = allTasks
-      .filter(task => task.parent_id === cloudTask.id)
-      .map(task => this.convertTaskToLocal(task, allTasks))
+  private convertTaskToLocal(
+    cloudTask: DatabaseTask,
+    childrenMap: Map<string | undefined, DatabaseTask[]>
+  ): TaskData {
+    const subtasks = (childrenMap.get(cloudTask.id) || [])
+      .map(task => this.convertTaskToLocal(task, childrenMap))
 
     return {
       id: cloudTask.id,
@@ -108,87 +105,73 @@ export class MergeManager {
   }
 
   private mergeProject(
-    localProject: ProjectData, 
-    cloudProject: DatabaseProject, 
-    cloudTasks: DatabaseTask[], 
-    pendingChanges: Record<string, SyncAction>
+    localProject: ProjectData,
+    cloudProject: DatabaseProject,
+    childrenMap: Map<string | undefined, DatabaseTask[]>,
+    pendingEntityIds: Set<string>
   ): ProjectData {
-    // Field-level merge with remote as source of truth, using lastModificationDate for last-write wins
     const cloudUpdateDate = cloudProject.updated_at
     const useCloudProject = cloudUpdateDate > localProject.lastModificationDate
-    
-    const merged: ProjectData = {
+
+    return {
       id: cloudProject.id,
       name: useCloudProject ? cloudProject.name : localProject.name,
       lastModificationDate: useCloudProject ? cloudUpdateDate : localProject.lastModificationDate,
       position: useCloudProject ? cloudProject.position : localProject.position,
-      tasks: this.mergeProjectTasks(localProject, cloudProject, cloudTasks, pendingChanges)
+      tasks: this.mergeProjectTasks(localProject, cloudProject, childrenMap, pendingEntityIds)
     }
-    
-    return merged
   }
 
   private mergeProjectTasks(
     localProject: ProjectData,
     cloudProject: DatabaseProject,
-    allCloudTasks: DatabaseTask[],
-    pendingChanges: Record<string, SyncAction>
+    childrenMap: Map<string | undefined, DatabaseTask[]>,
+    pendingEntityIds: Set<string>
   ): TaskData[] {
-    const cloudTasks = allCloudTasks.filter(t => t.project_id === cloudProject.id && !t.parent_id)
+    const cloudTasks = (childrenMap.get(undefined) || []).filter(t => t.project_id === cloudProject.id)
     const localTaskMap = new Map(localProject.tasks.map(t => [t.id, t]))
     const cloudTaskMap = new Map(cloudTasks.map(t => [t.id, t]))
-    
+
     const mergedTasks: TaskData[] = []
-    
-    // Process cloud tasks (source of truth)
+
     for (const cloudTask of cloudTasks) {
       const localTask = localTaskMap.get(cloudTask.id)
-      const mergedTask = this.mergeTask(localTask, cloudTask, allCloudTasks, pendingChanges)
-      mergedTasks.push(mergedTask)
+      mergedTasks.push(this.mergeTask(localTask, cloudTask, childrenMap, pendingEntityIds))
     }
-    
-    // Add local-only tasks only if they have pending changes
+
     for (const localTask of localProject.tasks) {
       if (!cloudTaskMap.has(localTask.id)) {
-        const hasPendingChanges = Object.values(pendingChanges).some(
-          (change: SyncAction) => change.entityId === localTask.id && change.entityType === 'task' && !change.synced
-        )
-        if (hasPendingChanges) {
+        if (pendingEntityIds.has(`task:${localTask.id}`)) {
           mergedTasks.push({ ...localTask })
         }
       }
     }
-    
+
     return mergedTasks
   }
 
   private mergeTask(
     localTask: TaskData | undefined,
     cloudTask: DatabaseTask,
-    allCloudTasks: DatabaseTask[],
-    pendingChanges: Record<string, SyncAction>
+    childrenMap: Map<string | undefined, DatabaseTask[]>,
+    pendingEntityIds: Set<string>
   ): TaskData {
-    const hasPendingChanges = Object.values(pendingChanges).some(
-      (change: SyncAction) => change.entityId === cloudTask.id && change.entityType === 'task' && !change.synced
-    )
-    
+    const hasPendingChanges = pendingEntityIds.has(`task:${cloudTask.id}`)
+
     if (!localTask) {
-      // Task only exists in cloud
-      return this.convertTaskToLocal(cloudTask, allCloudTasks)
+      return this.convertTaskToLocal(cloudTask, childrenMap)
     }
-    
+
     if (hasPendingChanges) {
-      // Local task has pending changes - keep local version but merge subtasks
       return {
         ...localTask,
-        subtasks: this.mergeTaskSubtasks(localTask, cloudTask, allCloudTasks, pendingChanges)
+        subtasks: this.mergeTaskSubtasks(localTask, cloudTask, childrenMap, pendingEntityIds)
       }
     }
-    
-    // Field-level merge with remote as source of truth, using lastModificationDate for last-write wins
+
     const cloudUpdateDate = cloudTask.updated_at
     const useCloudTask = cloudUpdateDate > localTask.lastModificationDate
-    
+
     return {
       id: cloudTask.id,
       name: useCloudTask ? cloudTask.name : localTask.name,
@@ -198,41 +181,35 @@ export class MergeManager {
       lastModificationDate: useCloudTask ? cloudUpdateDate : localTask.lastModificationDate,
       position: useCloudTask ? cloudTask.position : localTask.position,
       priority: useCloudTask ? cloudTask.priority : localTask.priority,
-      subtasks: this.mergeTaskSubtasks(localTask, cloudTask, allCloudTasks, pendingChanges)
+      subtasks: this.mergeTaskSubtasks(localTask, cloudTask, childrenMap, pendingEntityIds)
     }
   }
 
   private mergeTaskSubtasks(
     localTask: TaskData,
     cloudTask: DatabaseTask,
-    allCloudTasks: DatabaseTask[],
-    pendingChanges: Record<string, SyncAction>
+    childrenMap: Map<string | undefined, DatabaseTask[]>,
+    pendingEntityIds: Set<string>
   ): TaskData[] {
-    const cloudSubtasks = allCloudTasks.filter(t => t.parent_id === cloudTask.id)
+    const cloudSubtasks = childrenMap.get(cloudTask.id) || []
     const localSubtaskMap = new Map((localTask.subtasks || []).map(t => [t.id, t]))
     const cloudSubtaskMap = new Map(cloudSubtasks.map(t => [t.id, t]))
-    
+
     const mergedSubtasks: TaskData[] = []
-    
-    // Process cloud subtasks
+
     for (const cloudSubtask of cloudSubtasks) {
       const localSubtask = localSubtaskMap.get(cloudSubtask.id)
-      const mergedSubtask = this.mergeTask(localSubtask, cloudSubtask, allCloudTasks, pendingChanges)
-      mergedSubtasks.push(mergedSubtask)
+      mergedSubtasks.push(this.mergeTask(localSubtask, cloudSubtask, childrenMap, pendingEntityIds))
     }
-    
-    // Add local-only subtasks only if they have pending changes
+
     for (const localSubtask of (localTask.subtasks || [])) {
       if (!cloudSubtaskMap.has(localSubtask.id)) {
-        const hasPendingChanges = Object.values(pendingChanges).some(
-          (change: SyncAction) => change.entityId === localSubtask.id && change.entityType === 'task' && !change.synced
-        )
-        if (hasPendingChanges) {
+        if (pendingEntityIds.has(`task:${localSubtask.id}`)) {
           mergedSubtasks.push({ ...localSubtask })
         }
       }
     }
-    
+
     return mergedSubtasks
   }
 }

@@ -2,7 +2,6 @@
 
 import { useMemo, useState, useEffect } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
-import { ProjectData, TaskData } from '@/lib/types'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { ChevronDown, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -10,7 +9,7 @@ import { Button } from '@/components/ui/button'
 type TimePeriod = 'daily' | 'weekly' | 'monthly'
 
 interface ProgressChartProps {
-  projects: ProjectData[]
+  completionsByDate: Map<string, number>
 }
 
 interface ChartData {
@@ -18,7 +17,14 @@ interface ChartData {
   tasks: number
 }
 
-export function ProgressChart({ projects }: ProgressChartProps) {
+function getLocalDateKey(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+export function ProgressChart({ completionsByDate }: ProgressChartProps) {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>('weekly')
 
   const TimePeriodOption = ({ value, label }: { value: TimePeriod, label: string }) => (
@@ -33,7 +39,7 @@ export function ProgressChart({ projects }: ProgressChartProps) {
 
   useEffect(() => {
     if (activeBarIndex === undefined) return
-    
+
     const barChart = document.querySelectorAll(".recharts-bar-rectangle")[activeBarIndex]
     if (barChart) {
       setToolTipYPosition(barChart.getBoundingClientRect().height)
@@ -45,106 +51,91 @@ export function ProgressChart({ projects }: ProgressChartProps) {
       setTooltipOffset(-tooltipWidth / 2)
     }
   }, [activeBarIndex])
-  
+
   const chartData = useMemo(() => {
-    const countTasksInRange = (projects: ProjectData[], startDate: Date, endDate: Date): number => {
+    const countTasksInRange = (startDate: Date, endDate: Date): number => {
       let count = 0
-      
-      const countTask = (task: TaskData) => {
-        if (task.completed && task.completionDate) {
-          const completionDate = new Date(task.completionDate)
-          if (completionDate >= startDate && completionDate <= endDate) {
-            count += 1
-          }
-        }
-        task.subtasks.forEach(countTask)
+      const current = new Date(startDate)
+      while (current <= endDate) {
+        const key = getLocalDateKey(current)
+        count += completionsByDate.get(key) || 0
+        current.setDate(current.getDate() + 1)
       }
-      
-      projects.forEach(project => {
-        project.tasks.forEach(countTask)
-      })
-      
       return count
     }
 
     const generateDailyData = (): ChartData[] => {
       const data: ChartData[] = []
-      
-      // Generate past 30 days of data
+
       for (let i = 29; i >= 0; i--) {
         const date = new Date()
         date.setDate(date.getDate() - i)
         date.setHours(0, 0, 0, 0)
-        
-        const endDate = new Date(date)
-        endDate.setHours(23, 59, 59, 999)
-        
-        const tasks = countTasksInRange(projects, date, endDate)
+
+        const key = getLocalDateKey(date)
+        const tasks = completionsByDate.get(key) || 0
         const month = date.toLocaleDateString('en-US', { month: 'short' })
         const day = date.getDate()
-        
+
         data.push({
           period: `${month} ${day}`,
           tasks
         })
       }
-      
+
       return data
     }
 
     const generateWeeklyData = (): ChartData[] => {
       const data: ChartData[] = []
-      
-      // Generate past 52 weeks of data
+
       for (let i = 51; i >= 0; i--) {
         const weekStart = new Date()
         weekStart.setDate(weekStart.getDate() - (i * 7))
-        // Set to start of week (Sunday = 0)
         const dayOfWeek = weekStart.getDay()
         weekStart.setDate(weekStart.getDate() - dayOfWeek)
         weekStart.setHours(0, 0, 0, 0)
-        
+
         const weekEnd = new Date(weekStart)
         weekEnd.setDate(weekEnd.getDate() + 6)
         weekEnd.setHours(23, 59, 59, 999)
-        
-        const tasks = countTasksInRange(projects, weekStart, weekEnd)
+
+        const tasks = countTasksInRange(weekStart, weekEnd)
         const month = weekStart.toLocaleDateString('en-US', { month: 'short' })
         const day = weekStart.getDate()
-        
+
         data.push({
           period: `${month} ${day}`,
           tasks
         })
       }
-      
+
       return data
     }
 
     const generateMonthlyData = (): ChartData[] => {
       const data: ChartData[] = []
-      
-      // Generate past 12 months of data
+
       for (let i = 11; i >= 0; i--) {
         const monthStart = new Date()
         monthStart.setMonth(monthStart.getMonth() - i)
         monthStart.setDate(1)
         monthStart.setHours(0, 0, 0, 0)
-        
+
         const monthEnd = new Date(monthStart)
         monthEnd.setMonth(monthEnd.getMonth() + 1)
         monthEnd.setDate(0)
         monthEnd.setHours(23, 59, 59, 999)
-        
-        const tasks = countTasksInRange(projects, monthStart, monthEnd)
+
+        const tasks = countTasksInRange(monthStart, monthEnd)
         const monthName = monthStart.toLocaleDateString('en-US', { month: 'long' })
-        
+
         data.push({
           period: monthName,
           tasks
         })
       }
-      
+
       return data
     }
 
@@ -158,7 +149,7 @@ export function ProgressChart({ projects }: ProgressChartProps) {
       default:
         return generateWeeklyData()
     }
-  }, [projects, timePeriod])
+  }, [completionsByDate, timePeriod])
 
   const getChartTitle = () => {
     switch (timePeriod) {

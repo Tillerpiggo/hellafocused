@@ -762,6 +762,16 @@ export const isProject = (taskPath: string[]): boolean => taskPath && taskPath.l
 export const isTask = (taskPath: string[]): boolean => taskPath && taskPath.length > 1
 export const isProjectList = (taskPath: string[]): boolean => !taskPath || taskPath.length === 0
 
+export const serializePath = (path: string[]): string => path.join('/')
+
+export const isPathPrefix = (path: string[], prefix: string[]): boolean => {
+  if (prefix.length > path.length) return false
+  for (let i = 0; i < prefix.length; i++) {
+    if (path[i] !== prefix[i]) return false
+  }
+  return true
+}
+
 /**
  * Get the parent chain (breadcrumb) for a task
  * Returns array of {id, name} objects from root to parent (excluding the task itself)

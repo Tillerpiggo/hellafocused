@@ -3,6 +3,7 @@
 import { ChevronRight, ArrowRight, CheckCircle, Circle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { isPathPrefix } from "@/lib/task-utils"
 import type { SearchResult } from "@/lib/search-utils"
 import { highlightText } from "@/lib/search-utils"
 
@@ -61,8 +62,8 @@ export function SearchResults({
   
   currentProjectResults.forEach(result => {
     // Check if this result is a direct child of the current path
-    const isDirectChild = result.path.length === currentPath.length + 1 && 
-                         result.path.slice(0, currentPath.length).join('/') === currentPath.join('/')
+    const isDirectChild = result.path.length === currentPath.length + 1 &&
+                         isPathPrefix(result.path, currentPath)
     
     if (isDirectChild) {
       directChildren.push(result)

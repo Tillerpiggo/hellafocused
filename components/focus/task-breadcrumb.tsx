@@ -159,7 +159,7 @@ export function TaskBreadcrumb({
               )}
             >
               {/* Animated shimmer effect */}
-              <div 
+              <div
                 className={cn(
                   "absolute inset-0",
                   "bg-gradient-to-r from-transparent via-white/20 to-transparent",
@@ -168,7 +168,7 @@ export function TaskBreadcrumb({
                   hoveredIndex === displayItems.length && "translate-x-full"
                 )}
               />
-              
+
               <span className={cn(
                 "relative z-10 font-semibold whitespace-nowrap",
                 "text-currentTask-text dark:text-currentTask-text",

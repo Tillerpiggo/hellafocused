@@ -2,15 +2,23 @@
 
 import { useMemo, useState } from 'react'
 import { ProjectData, TaskData } from '@/lib/types'
-import { calculateTodaysTaskFocusPoints } from '@/lib/task-utils'
+import { calculateTodaysTaskFocusPoints, isPathPrefix, serializePath } from '@/lib/task-utils'
 import { ProgressTask } from './progress-task'
 import { Button } from '@/components/ui/button'
 
 interface TodaysProgressCardProps {
   projects: ProjectData[]
+  completionsByDate: Map<string, number>
 }
 
-export function TodaysProgressCard({ projects }: TodaysProgressCardProps) {
+function getLocalDateKey(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+export function TodaysProgressCard({ projects, completionsByDate }: TodaysProgressCardProps) {
   const [showAll, setShowAll] = useState(false)
 
   const todaysData = useMemo(() => {
@@ -20,17 +28,12 @@ export function TodaysProgressCard({ projects }: TodaysProgressCardProps) {
 
     const processTask = (task: TaskData, projectName: string, parentPath: string[] = []) => {
       const currentPath = [...parentPath, task.id]
-      
+
       if (task.completed && task.completionDate) {
         const taskDate = new Date(task.completionDate).toDateString()
         if (taskDate === today) {
-          // Count this task as 1 focus point (don't double count subtasks)
           totalFocusPoints += 1
-          
-          // Calculate focus points for this task and all its subtasks completed today
           const taskFocusPoints = calculateTodaysTaskFocusPoints(task)
-          
-          // Add to completed tasks with metadata
           completedTasks.push({
             ...task,
             projectName,
@@ -40,7 +43,6 @@ export function TodaysProgressCard({ projects }: TodaysProgressCardProps) {
         }
       }
 
-      // Process subtasks
       task.subtasks.forEach(subtask => {
         processTask(subtask, projectName, currentPath)
       })
@@ -52,64 +54,39 @@ export function TodaysProgressCard({ projects }: TodaysProgressCardProps) {
       })
     })
 
-    // Filter out tasks that have completed ancestors from today
     const topLevelTasks = completedTasks.filter(task => {
       const taskWithPath = task as TaskData & { path: string[] }
-      // Check if this task has any completed ancestor from today
       return !completedTasks.some(potentialParent => {
         const parentWithPath = potentialParent as TaskData & { path: string[] }
-        return parentWithPath.path.length < taskWithPath.path.length && 
-        taskWithPath.path.slice(0, parentWithPath.path.length).join() === parentWithPath.path.join()
+        return parentWithPath.path.length < taskWithPath.path.length &&
+        isPathPrefix(taskWithPath.path, parentWithPath.path)
       })
     })
 
-    // Sort tasks by completion time (most recent first)
     topLevelTasks.sort((a, b) => {
       if (!a.completionDate || !b.completionDate) return 0
       return new Date(b.completionDate).getTime() - new Date(a.completionDate).getTime()
     })
 
-    // Calculate historical averages for fire emoji logic
-    const calculateDailyAverage = () => {
-      const dailyTotals: number[] = []
-      
-      // Look at past 30 days (excluding today)
-      for (let i = 1; i <= 30; i++) {
-        const date = new Date()
-        date.setDate(date.getDate() - i)
-        const dateString = date.toDateString()
-        
-        let dayTotal = 0
-        const countTasksForDate = (task: TaskData) => {
-          if (task.completed && task.completionDate) {
-            const taskDate = new Date(task.completionDate).toDateString()
-            if (taskDate === dateString) {
-              dayTotal += 1
-            }
-          }
-          task.subtasks.forEach(countTasksForDate)
-        }
-        
-        projects.forEach(project => {
-          project.tasks.forEach(countTasksForDate)
-        })
-        
-        dailyTotals.push(dayTotal)
-      }
-      
-      return dailyTotals.length > 0 ? dailyTotals.reduce((sum, total) => sum + total, 0) / dailyTotals.length : 0
+    // Use pre-computed completionsByDate for the 30-day average
+    let totalPast30 = 0
+    for (let i = 1; i <= 30; i++) {
+      const date = new Date()
+      date.setDate(date.getDate() - i)
+      const dateKey = getLocalDateKey(date)
+      totalPast30 += completionsByDate.get(dateKey) || 0
     }
+    const dailyAverage = totalPast30 / 30
 
-    const dailyAverage = calculateDailyAverage()
-    const isAboveAverage = totalFocusPoints > 0 && dailyAverage > 0 && totalFocusPoints >= dailyAverage * 1.2 // 20% above average
+    const isAboveAverage = totalFocusPoints > 0 && dailyAverage > 0 && totalFocusPoints >= dailyAverage * 1.2
 
-    return { 
-      completedTasks: topLevelTasks, 
-      totalFocusPoints, 
+    return {
+      completedTasks: topLevelTasks,
+      totalFocusPoints,
       isAboveAverage,
-      dailyAverage: Math.round(dailyAverage * 10) / 10 // Round to 1 decimal
+      dailyAverage: Math.round(dailyAverage * 10) / 10
     }
-  }, [projects])
+  }, [projects, completionsByDate])
 
   if (todaysData.completedTasks.length === 0) {
     return (
@@ -126,7 +103,7 @@ export function TodaysProgressCard({ projects }: TodaysProgressCardProps) {
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
             {todaysData.totalFocusPoints} point{todaysData.totalFocusPoints !== 1 ? 's' : ''}
-            {todaysData.isAboveAverage && ' 🔥'}
+            {todaysData.isAboveAverage && ' \ud83d\udd25'}
           </span>
         </div>
       </div>
@@ -136,7 +113,7 @@ export function TodaysProgressCard({ projects }: TodaysProgressCardProps) {
           const taskWithPath = task as TaskData & { projectName: string; path: string[]; focusPoints: number }
           return (
             <ProgressTask
-              key={taskWithPath.path.join('-')}
+              key={serializePath(taskWithPath.path)}
               task={taskWithPath}
               depth={0}
             />

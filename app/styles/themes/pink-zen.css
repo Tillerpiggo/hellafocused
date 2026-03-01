@@ -78,7 +78,12 @@
   --color-priority-light: 48 96% 89%;     /* amber-100 */
   --color-priority-dark: 32 95% 44%;      /* amber-600 */
   --color-priority-fill: 38 92% 50%;      /* amber-500 for star fill */
-  
+  --color-priority-text: 32 95% 44%;      /* amber-600 */
+  --color-priority-icon: 38 92% 50%;      /* amber-500 */
+  --color-priority-icon-hover: 32 95% 44%; /* amber-600 */
+  --color-priority-hover-border: 38 92% 50%; /* amber-500 */
+  --color-priority-hover-bg: 48 96% 89%;  /* amber-100 */
+
   /* Focus mode actions - pink-zen specific */
   --color-focus-action: 345 60% 50%;      /* rose */
   --color-focus-action-hover: 345 60% 40%;
@@ -184,7 +189,7 @@
   /* Glass morphism - dark mode */
   --glass-bg: rgba(40, 20, 30, 0.18);
   --glass-border: rgba(200, 120, 160, 0.12);
-  --glass-card: rgba(0, 0, 0, 0.75);
+  --glass-card: rgba(30, 20, 25, 0.7);
 
   /* Focus mode gradients - dark */
   --focus-gradient-from: 340 60% 58%;
@@ -216,6 +221,11 @@
   --color-priority-light: 32 95% 20%;     /* amber-900 */
   --color-priority-dark: 38 92% 65%;      /* amber-400 */
   --color-priority-fill: 38 92% 50%;      /* amber-500 for star fill */
+  --color-priority-text: 38 92% 75%;      /* amber-300 */
+  --color-priority-icon: 38 92% 60%;      /* amber-400 */
+  --color-priority-icon-hover: 38 92% 65%; /* amber-300 */
+  --color-priority-hover-border: 38 92% 55%; /* amber-400 */
+  --color-priority-hover-bg: 32 80% 15%;  /* amber-900 */
 
   /* Focus mode actions - pink-zen specific dark */
   --color-focus-action: 340 60% 63%;      /* rose-400 */

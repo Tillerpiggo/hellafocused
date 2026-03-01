@@ -67,19 +67,19 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
               task.completed
                 ? "backdrop-blur-sm bg-muted/30"
                 : effectivePriority === 1
-                ? "backdrop-blur-md bg-muted/50 border-priority/50"
+                ? "backdrop-blur-md bg-taskPriority-from/50 border-priority/30"
                 : effectivePriority === -1
                 ? "backdrop-blur-sm bg-muted/30"
-                : "backdrop-blur-md bg-muted/50"
+                : "backdrop-blur-md bg-taskNormal-from/50"
             ]
           : [
               task.completed
                 ? "backdrop-blur-sm bg-muted/30 opacity-75"
                 : effectivePriority === 1
-                ? "backdrop-blur-md bg-muted/50 hover:bg-muted/65 border-priority/40 hover:border-priority/60"
+                ? "backdrop-blur-md bg-taskPriority-from/50 hover:bg-taskPriority-hoverFrom/65 border-priority/30 hover:border-priority-hoverBorder/55"
                 : effectivePriority === -1
-                ? "backdrop-blur-sm bg-muted/40 opacity-70 hover:bg-muted/55"
-                : "backdrop-blur-md bg-muted/50 hover:bg-muted/65",
+                ? "backdrop-blur-sm bg-muted/40 opacity-70 hover:bg-muted/50"
+                : "backdrop-blur-md bg-taskNormal-from/50 hover:bg-taskHover-from/65",
             ],
         "cursor-pointer shadow-sm hover:shadow-md",
       )}
@@ -93,7 +93,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
             onClick={handleToggleCompletion}
             className={cn(
               "h-8 w-8 flex-shrink-0 rounded-full",
-              effectivePriority === 1 && !task.completed && "hover:bg-amber-100/50 dark:hover:bg-amber-900/20"
+              effectivePriority === 1 && !task.completed && "hover:bg-taskPriority-from/30"
             )}
           >
             {isEditing ? (
@@ -104,7 +104,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
               <Circle className={cn(
                 "h-5 w-5 transition-colors",
                 effectivePriority === 1 
-                  ? "text-priority/60 dark:text-priority-dark/60 group-hover:text-priority-dark dark:group-hover:text-priority-dark"
+                  ? "text-priority-icon/60 group-hover:text-priority-iconHover"
                   : "text-muted-foreground group-hover:text-primary"
               )} />
             )}
@@ -120,7 +120,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
                 className={cn(
                   "text-base font-medium", 
                   task.completed && "line-through text-muted-foreground",
-                  effectivePriority === 1 && !task.completed && "text-priority-dark/80 dark:text-priority-light/90 font-medium",
+                  effectivePriority === 1 && !task.completed && "text-priority-text font-medium",
                   effectivePriority === -1 && !task.completed && "text-muted-foreground"
                 )}
                 isCompleted={task.completed}
@@ -130,7 +130,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
                 className={cn(
                   "text-base font-medium break-words", 
                   task.completed && "line-through text-muted-foreground",
-                  effectivePriority === 1 && !task.completed && "text-priority-dark/80 dark:text-priority-light/90 font-medium",
+                  effectivePriority === 1 && !task.completed && "text-priority-text font-medium",
                   effectivePriority === -1 && !task.completed && "text-muted-foreground"
                 )}
               >
@@ -143,14 +143,18 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
       <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2">
         {/* Priority indicators */}
         {effectivePriority === 1 && !task.completed && (
-          <Star className="h-4 w-4 text-priority/60 fill-priority-fill/60 dark:text-priority-dark/70 dark:fill-priority-fill/70" />
+          <Star className="h-4 w-4 text-priority-icon/60 fill-priority-fill/60" />
         )}
         {effectivePriority === -1 && !task.completed && (
           <Clock className="h-4 w-4 text-slate-500/60 dark:text-slate-400/70" />
         )}
 <ChevronRight className={cn(
           "h-4 w-4 transition-colors",
-          isEditing ? "text-muted-foreground/30" : "group-hover:text-primary"
+          isEditing
+            ? "text-muted-foreground/30"
+            : effectivePriority === 1 && !task.completed
+            ? "text-priority-icon/40 group-hover:text-priority-iconHover"
+            : "group-hover:text-primary"
         )} />
       </div>
     </div>

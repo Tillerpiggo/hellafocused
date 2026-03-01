@@ -13,6 +13,7 @@ class SyncEngine {
   private instanceId: string = `instance-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
   private batchTimeout: NodeJS.Timeout | null = null
   private readonly batchDelay = 10
+  private realtimeMergeTimeout: NodeJS.Timeout | null = null
 
   async init() {
     // Check if already initialized to prevent double initialization
@@ -35,10 +36,10 @@ class SyncEngine {
       useSyncStore.getState().setInitialized(true)
       console.log("sync engine authenticated - UI ready")
       
-      // Continue sync operations in background
-      console.log("syncing pending changes in background")
-      await this.syncPendingChanges()
-      await this.mergeWithCloud()
+      await Promise.all([
+        this.syncPendingChanges(),
+        this.mergeWithCloud()
+      ])
 
       this.startPeriodicSync()
       this.setupRealtimeSync()
@@ -433,72 +434,84 @@ class SyncEngine {
     }
   }
 
+  private debouncedMergeWithCloud() {
+    if (this.realtimeMergeTimeout) clearTimeout(this.realtimeMergeTimeout)
+    this.realtimeMergeTimeout = setTimeout(() => {
+      this.mergeWithCloud().catch(error => {
+        console.error('Failed to merge after realtime changes:', error)
+      })
+    }, 2000)
+  }
+
+  private async fetchAllProjects(userId: string): Promise<DatabaseProject[]> {
+    const results: DatabaseProject[] = []
+    let from = 0
+    const batchSize = 1000
+
+    while (true) {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_deleted', false)
+        .range(from, from + batchSize - 1)
+
+      if (error) {
+        console.error('Error fetching projects:', error)
+        return results
+      }
+
+      if (!data || data.length === 0) break
+      results.push(...data)
+      from += batchSize
+      if (data.length < batchSize) break
+    }
+
+    return results
+  }
+
+  private async fetchAllTasks(userId: string): Promise<DatabaseTask[]> {
+    const results: DatabaseTask[] = []
+    let from = 0
+    const batchSize = 1000
+
+    while (true) {
+      const { data, error } = await supabase
+        .from('tasks')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_deleted', false)
+        .range(from, from + batchSize - 1)
+
+      if (error) {
+        console.error('Error fetching tasks:', error)
+        return results
+      }
+
+      if (!data || data.length === 0) break
+      results.push(...data)
+      from += batchSize
+      if (data.length < batchSize) break
+    }
+
+    return results
+  }
+
   async mergeWithCloud() {
     try {
       const userId = await this.getCurrentUserId()
-      
-      // Fetch projects and tasks from Supabase with pagination
-      const cloudProjects: DatabaseProject[] = []
-      let projectsFrom = 0
-      const projectsBatchSize = 1000 // Supabase default limit
 
-      while (true) {
-        const { data, error } = await supabase
-          .from('projects')
-          .select('*')
-          .eq('user_id', userId)
-          .eq('is_deleted', false)
-          .range(projectsFrom, projectsFrom + projectsBatchSize - 1)
-
-        if (error) {
-          console.error('Error fetching projects:', error)
-          return
-        }
-
-        if (!data || data.length === 0) break
-
-        cloudProjects.push(...data)
-        projectsFrom += projectsBatchSize
-
-        if (data.length < projectsBatchSize) break
-      }
-
-      const cloudTasks: DatabaseTask[] = []
-      let tasksFrom = 0
-      const tasksBatchSize = 1000 // Supabase default limit
-
-      while (true) {
-        const { data, error } = await supabase
-          .from('tasks')
-          .select('*')
-          .eq('user_id', userId)
-          .eq('is_deleted', false)
-          .range(tasksFrom, tasksFrom + tasksBatchSize - 1)
-
-        if (error) {
-          console.error('Error fetching tasks:', error)
-          return
-        }
-
-        if (!data || data.length === 0) break
-
-        console.log(`📥 Fetched batch: ${data.length} tasks (from ${tasksFrom})`)
-        cloudTasks.push(...data)
-        tasksFrom += tasksBatchSize
-
-        if (data.length < tasksBatchSize) break
-      }
-      
-      console.log(`📊 Total tasks fetched: ${cloudTasks.length}`)
+      const [cloudProjects, cloudTasks] = await Promise.all([
+        this.fetchAllProjects(userId),
+        this.fetchAllTasks(userId)
+      ])
 
       if (cloudProjects && cloudTasks) {
         await mergeManager.mergeCloudWithLocal(cloudProjects, cloudTasks)
-        
-        // Validate and fix current path after merge
         this.validateAndFixCurrentPath()
+        useSyncStore.getState().updateLastSyncedAt()
       }
     } catch (error) {
-      // Continue with local data if cloud fetch fails
       console.error('Cloud merge failed:', error)
     }
   }
@@ -547,6 +560,7 @@ class SyncEngine {
       console.log('🔄 Periodic sync timer')
       if (navigator.onLine) {
         await this.syncPendingChanges()
+        await this.mergeWithCloud()
       }
     }, 30000)
   }
@@ -572,10 +586,7 @@ class SyncEngine {
               return
             }
             
-            console.log('📥 Received project change from another tab/device:', payload.eventType, payload.new || payload.old)
-            this.mergeWithCloud().catch(error => {
-              console.error('❌ Failed to merge project changes:', error)
-            })
+            this.debouncedMergeWithCloud()
           }
         )
         .subscribe()
@@ -599,10 +610,7 @@ class SyncEngine {
               return
             }
             
-            console.log('📥 Received task change from another tab/device:', payload.eventType, payload.new || payload.old)
-            this.mergeWithCloud().catch(error => {
-              console.error('❌ Failed to merge task changes:', error)
-            })
+            this.debouncedMergeWithCloud()
           }
         )
         .subscribe()
@@ -778,7 +786,10 @@ class SyncEngine {
       this.batchTimeout = null
     }
 
-    console.log('cleanup real-time subscriptions', this.realtimeSubscriptions)
+    if (this.realtimeMergeTimeout) {
+      clearTimeout(this.realtimeMergeTimeout)
+      this.realtimeMergeTimeout = null
+    }
     
     // Clean up real-time subscriptions
     this.realtimeSubscriptions.forEach(subscription => {

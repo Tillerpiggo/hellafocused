@@ -1,0 +1,295 @@
+/* Electric Violet Theme - Bold purples, electric lavender, neon violet energy */
+
+[data-theme="electric-violet"] {
+  /* Core colors - Light mode */
+  --background: 270 30% 97%;
+  --foreground: 275 15% 12%;
+  --card: 272 28% 95%;
+  --card-foreground: 275 15% 15%;
+  --popover: 272 28% 95%;
+  --popover-foreground: 275 15% 15%;
+  --primary: 275 80% 58%;
+  --primary-foreground: 270 40% 98%;
+  --secondary: 272 20% 91%;
+  --secondary-foreground: 275 15% 22%;
+  --muted: 270 14% 90%;
+  --muted-foreground: 275 10% 42%;
+  --accent: 272 22% 87%;
+  --accent-foreground: 275 18% 28%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 272 16% 85%;
+  --input: 272 16% 85%;
+  --ring: 275 80% 58%;
+
+  /* Semantic colors */
+  --color-prefer: 315 78% 52%;              /* bright magenta-pink */
+  --color-prefer-light: 315 70% 92%;        /* soft magenta */
+  --color-prefer-dark: 318 80% 42%;         /* deep magenta */
+  --color-defer: 260 10% 38%;               /* muted lavender-gray */
+  --color-defer-light: 262 12% 94%;         /* pale lavender */
+  --color-success: 172 70% 38%;             /* electric teal-green */
+  --color-success-light: 170 55% 94%;       /* pale teal */
+  --color-warning: 35 85% 52%;              /* warm amber */
+  --color-error: 0 75% 55%;                 /* vivid red */
+  --color-info: 198 80% 48%;                /* bright cyan-blue */
+  --color-highlight: 280 60% 68%;           /* lavender highlight */
+
+  /* Glass morphism */
+  --glass-bg: rgba(220, 200, 245, 0.22);
+  --glass-border: rgba(160, 130, 200, 0.2);
+  --glass-card: rgba(248, 245, 255, 0.92);
+
+  /* Focus mode gradients */
+  --focus-gradient-from: 275 80% 58%;
+  --focus-gradient-to: 290 70% 62%;
+  --focus-prefer-from: 315 78% 52%;
+  --focus-prefer-to: 275 80% 58%;
+
+  /* Chart colors */
+  --chart-1: 275 75% 58%;
+  --chart-2: 290 65% 55%;
+  --chart-3: 315 70% 52%;
+  --chart-4: 245 72% 60%;
+  --chart-5: 260 55% 62%;
+
+  /* Special effects */
+  --confetti-1: #8b5cf6;
+  --confetti-2: #a855f7;
+  --confetti-3: #c084fc;
+  --confetti-4: #7c3aed;
+  --confetti-5: #6366f1;
+  --confetti-6: #4f46e5;
+
+  /* Google button colors */
+  --highlight-button-bg: 272 40% 95%;
+  --highlight-button-bg-hover: 272 35% 92%;
+  --highlight-button-border: 275 28% 80%;
+  --highlight-button-text: 275 40% 38%;
+  --google-logo: 275 40% 45%;
+
+  /* Complete button colors */
+  --complete-button-bg: 275 80% 58%;
+  --complete-button-bg-hover: 275 80% 50%;
+  --complete-button-text: 270 40% 98%;
+
+  /* Priority indicators */
+  --color-priority: 315 78% 52%;
+  --color-priority-light: 315 70% 92%;
+  --color-priority-dark: 318 80% 42%;
+  --color-priority-fill: 315 78% 52%;
+  --color-priority-text: 318 80% 42%;
+  --color-priority-icon: 315 78% 52%;
+  --color-priority-icon-hover: 318 80% 42%;
+  --color-priority-hover-border: 315 72% 52%;
+  --color-priority-hover-bg: 315 60% 92%;
+
+  /* Focus mode actions */
+  --color-focus-action: 275 75% 50%;
+  --color-focus-action-hover: 275 75% 40%;
+
+  /* Progress chart colors */
+  --progress-chart-1: 275 75% 58%;
+  --progress-chart-2: 290 65% 55%;
+  --progress-chart-3: 315 70% 52%;
+  --progress-chart-4: 245 72% 60%;
+  --progress-chart-5: 260 55% 62%;
+  --progress-gradient-from: 245 70% 64%;
+  --progress-gradient-to: 275 75% 55%;
+  --progress-stroke: 275 12% 38%;
+  --progress-grid: 272 14% 91%;
+  --progress-badge-from: 275 80% 58%;
+  --progress-badge-to: 290 70% 52%;
+  --progress-badge-text: 0 0% 100%;
+  --progress-badge-soft-from: 275 40% 94%;
+  --progress-badge-soft-to: 290 35% 93%;
+  --progress-badge-soft-text: 275 35% 38%;
+  --progress-badge-soft-border: 275 22% 85%;
+
+  /* Landing page decorative elements */
+  --landing-success: 172 70% 38%;
+  --landing-success-bg: 170 55% 94%;
+  --landing-error: 0 75% 55%;
+  --landing-error-bg: 0 60% 96%;
+  --landing-info: 198 80% 48%;
+  --landing-info-bg: 198 65% 95%;
+  --landing-warning: 35 85% 52%;
+  --landing-warning-bg: 35 70% 95%;
+
+  /* Heatmap activity levels - lavender to deep violet */
+  --heatmap-0: #ede8f5;
+  --heatmap-1: #c4b5e0;
+  --heatmap-2: #9b7fd4;
+  --heatmap-3: #7c4fc9;
+  --heatmap-4: #5b21b6;
+
+  /* UI states */
+  --color-disabled: 275 8% 48%;
+  --color-disabled-bg: 272 14% 91%;
+  --color-success-bg: 170 55% 94%;
+
+  /* Task item backgrounds - neon glow */
+  --task-normal-from: 272 58% 94%;
+  --task-normal-to: 282 50% 93%;
+  --task-priority-from: 315 75% 90%;
+  --task-priority-to: 305 62% 92%;
+  --task-hover-from: 272 65% 90%;
+  --task-hover-to: 282 58% 89%;
+  --task-priority-hover-from: 315 82% 84%;
+  --task-priority-hover-to: 305 70% 87%;
+
+  /* Current task highlight (breadcrumb) */
+  --current-task-from: 275 75% 58%;
+  --current-task-to: 290 65% 60%;
+  --current-task-border: 275 30% 88%;
+  --current-task-text: 275 35% 30%;
+  --current-task-shadow: 275 80% 58%;
+
+  /* Link colors */
+  --link-color: 275 45% 42%;
+  --link-hover: 275 50% 34%;
+  --link-decoration: 275 30% 70%;
+}
+
+/* Electric Violet - Dark mode */
+[data-theme="electric-violet"].dark {
+  --background: 270 12% 8%;
+  --foreground: 272 12% 92%;
+  --card: 270 10% 11%;
+  --card-foreground: 272 10% 88%;
+  --popover: 270 10% 11%;
+  --popover-foreground: 272 10% 88%;
+  --primary: 275 85% 68%;
+  --primary-foreground: 275 20% 6%;
+  --secondary: 270 8% 15%;
+  --secondary-foreground: 272 10% 84%;
+  --muted: 270 6% 14%;
+  --muted-foreground: 275 8% 52%;
+  --accent: 270 10% 18%;
+  --accent-foreground: 272 10% 86%;
+  --destructive: 0 62.8% 50%;
+  --destructive-foreground: 275 15% 90%;
+  --border: 270 8% 18%;
+  --input: 270 8% 18%;
+  --ring: 275 85% 68%;
+
+  /* Semantic colors - dark mode */
+  --color-prefer: 315 78% 58%;
+  --color-prefer-light: 315 55% 20%;
+  --color-prefer-dark: 315 80% 70%;
+  --color-defer: 260 10% 48%;
+  --color-defer-light: 260 8% 20%;
+  --color-success: 172 65% 45%;
+  --color-success-light: 170 40% 18%;
+  --color-warning: 35 80% 48%;
+  --color-error: 0 68% 50%;
+  --color-info: 198 75% 58%;
+  --color-highlight: 280 50% 35%;
+
+  /* Glass morphism - dark mode */
+  --glass-bg: rgba(40, 22, 60, 0.18);
+  --glass-border: rgba(140, 100, 190, 0.1);
+  --glass-card: rgba(30, 18, 45, 0.72);
+
+  /* Focus mode gradients - dark */
+  --focus-gradient-from: 275 85% 62%;
+  --focus-gradient-to: 290 75% 68%;
+  --focus-prefer-from: 315 72% 50%;
+  --focus-prefer-to: 275 85% 62%;
+
+  /* Chart colors - dark mode */
+  --chart-1: 275 70% 58%;
+  --chart-2: 290 60% 52%;
+  --chart-3: 315 65% 50%;
+  --chart-4: 245 68% 58%;
+  --chart-5: 260 50% 55%;
+
+  /* Google button colors - dark */
+  --highlight-button-bg: 270 12% 12%;
+  --highlight-button-bg-hover: 270 14% 16%;
+  --highlight-button-border: 275 22% 26%;
+  --highlight-button-text: 275 40% 75%;
+  --google-logo: 275 40% 72%;
+
+  /* Complete button colors - dark */
+  --complete-button-bg: 275 85% 68%;
+  --complete-button-bg-hover: 275 85% 73%;
+  --complete-button-text: 275 20% 6%;
+
+  /* Priority indicators - dark */
+  --color-priority: 315 78% 58%;
+  --color-priority-light: 315 55% 20%;
+  --color-priority-dark: 315 80% 70%;
+  --color-priority-fill: 315 78% 58%;
+  --color-priority-text: 315 75% 74%;
+  --color-priority-icon: 315 70% 62%;
+  --color-priority-icon-hover: 315 75% 70%;
+  --color-priority-hover-border: 315 65% 55%;
+  --color-priority-hover-bg: 315 45% 16%;
+
+  /* Focus mode actions - dark */
+  --color-focus-action: 275 80% 65%;
+  --color-focus-action-hover: 275 80% 75%;
+
+  /* Progress chart colors - dark */
+  --progress-chart-1: 275 70% 58%;
+  --progress-chart-2: 290 60% 52%;
+  --progress-chart-3: 315 65% 50%;
+  --progress-chart-4: 245 68% 58%;
+  --progress-chart-5: 260 50% 55%;
+  --progress-gradient-from: 245 65% 58%;
+  --progress-gradient-to: 275 70% 55%;
+  --progress-stroke: 275 10% 62%;
+  --progress-grid: 270 8% 16%;
+  --progress-badge-from: 275 85% 68%;
+  --progress-badge-to: 290 70% 58%;
+  --progress-badge-text: 275 20% 6%;
+  --progress-badge-soft-from: 275 22% 18%;
+  --progress-badge-soft-to: 290 18% 16%;
+  --progress-badge-soft-text: 275 35% 72%;
+  --progress-badge-soft-border: 275 15% 22%;
+
+  /* Landing page decorative elements - dark */
+  --landing-success: 172 65% 45%;
+  --landing-success-bg: 170 40% 18%;
+  --landing-error: 0 68% 50%;
+  --landing-error-bg: 0 50% 18%;
+  --landing-info: 198 75% 58%;
+  --landing-info-bg: 198 55% 18%;
+  --landing-warning: 35 80% 48%;
+  --landing-warning-bg: 35 60% 18%;
+
+  /* Heatmap activity levels - dark purple gradient */
+  --heatmap-0: #16101e;
+  --heatmap-1: #2e1a4a;
+  --heatmap-2: #5325a0;
+  --heatmap-3: #7c3aed;
+  --heatmap-4: #a855f7;
+
+  /* UI states - dark */
+  --color-disabled: 275 8% 48%;
+  --color-disabled-bg: 270 10% 22%;
+  --color-success-bg: 170 40% 18%;
+
+  /* Task item backgrounds - dark neon glow */
+  --task-normal-from: 272 40% 16%;
+  --task-normal-to: 282 32% 14%;
+  --task-priority-from: 315 55% 20%;
+  --task-priority-to: 305 45% 17%;
+  --task-hover-from: 272 48% 20%;
+  --task-hover-to: 282 40% 18%;
+  --task-priority-hover-from: 315 62% 24%;
+  --task-priority-hover-to: 305 52% 21%;
+
+  /* Current task highlight (breadcrumb) - dark */
+  --current-task-from: 275 80% 58%;
+  --current-task-to: 290 70% 58%;
+  --current-task-border: 275 18% 22%;
+  --current-task-text: 275 45% 80%;
+  --current-task-shadow: 275 85% 58%;
+
+  /* Link colors - dark */
+  --link-color: 275 40% 72%;
+  --link-hover: 275 35% 78%;
+  --link-decoration: 275 28% 38%;
+}

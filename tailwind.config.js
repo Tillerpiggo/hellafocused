@@ -75,12 +75,17 @@ module.exports = {
   				'5': 'var(--confetti-5)',
   				'6': 'var(--confetti-6)'
   			},
-  			// Priority colors (amber - consistent)
+  			// Priority colors
   			priority: {
   				DEFAULT: 'hsl(var(--color-priority))',
   				light: 'hsl(var(--color-priority-light))',
   				dark: 'hsl(var(--color-priority-dark))',
-  				fill: 'hsl(var(--color-priority-fill))'
+  				fill: 'hsl(var(--color-priority-fill))',
+  				text: 'hsl(var(--color-priority-text))',
+  				icon: 'hsl(var(--color-priority-icon))',
+  				iconHover: 'hsl(var(--color-priority-icon-hover))',
+  				hoverBorder: 'hsl(var(--color-priority-hover-border))',
+  				hoverBg: 'hsl(var(--color-priority-hover-bg))'
   			},
   			// Focus mode actions
   			focusAction: {

@@ -3,7 +3,10 @@ import { DragDropContext, Droppable, type DropResult, type DragUpdate, type Drag
 import type { TaskData } from "@/lib/types"
 import { SortableTaskItem } from "./sortable-task-item"
 import { useAppStore } from "@/store/app-store"
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { ChevronDown, ChevronUp } from "lucide-react"
+
+const DEFAULT_VISIBLE = 3
 
 interface TaskListViewProps {
   tasks: TaskData[]
@@ -13,7 +16,17 @@ interface TaskListViewProps {
 export function TaskListView({ tasks, currentPath }: TaskListViewProps) {
   const reorderTasks = useAppStore((state) => state.reorderTasks)
   const moveTaskWithPriorityChange = useAppStore((state) => state.moveTaskWithPriorityChange)
-  
+
+  const [expanded, setExpanded] = useState(false)
+  const pathKey = currentPath.join('/')
+
+  useEffect(() => {
+    setExpanded(false)
+  }, [pathKey])
+
+  const canExpand = tasks.length > DEFAULT_VISIBLE
+  const hiddenCount = tasks.length - DEFAULT_VISIBLE
+
   // Track cross-section drag state for styling preview
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
   const [previewPriority, setPreviewPriority] = useState<number | null>(null)
@@ -82,32 +95,86 @@ export function TaskListView({ tasks, currentPath }: TaskListViewProps) {
     }
   }
 
+  const baseTasks = tasks.slice(0, DEFAULT_VISIBLE)
+  const overflowTasks = tasks.slice(DEFAULT_VISIBLE)
+
   return (
-    <DragDropContext 
-      onDragStart={handleDragStart}
-      onDragUpdate={handleDragUpdate}
-      onDragEnd={handleDragEnd}
-    >
-      <Droppable droppableId="task-list">
-        {(provided) => (
-          <div 
-            ref={provided.innerRef}
-            {...provided.droppableProps}
+    <div>
+      <DragDropContext
+        onDragStart={handleDragStart}
+        onDragUpdate={handleDragUpdate}
+        onDragEnd={handleDragEnd}
+      >
+        <Droppable droppableId="task-list">
+          {(provided) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.droppableProps}
+            >
+              {baseTasks.map((task, index) => (
+                <SortableTaskItem
+                  key={task.id}
+                  task={task}
+                  index={index}
+                  currentPath={currentPath}
+                  disabled={task.completed}
+                  previewPriority={task.id === draggedTaskId ? previewPriority : undefined}
+                />
+              ))}
+              {canExpand && (
+                <div
+                  className="grid transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)]"
+                  style={{
+                    gridTemplateRows: expanded ? '1fr' : '0fr',
+                    opacity: expanded ? 1 : 0,
+                  }}
+                >
+                  <div className="overflow-hidden">
+                    {overflowTasks.map((task, i) => (
+                      <SortableTaskItem
+                        key={task.id}
+                        task={task}
+                        index={DEFAULT_VISIBLE + i}
+                        currentPath={currentPath}
+                        disabled={task.completed}
+                        previewPriority={task.id === draggedTaskId ? previewPriority : undefined}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+
+      {canExpand && (
+        <div className="mt-3 px-0.5">
+          <button
+            onClick={() => setExpanded(e => !e)}
+            className="w-full py-3.5 rounded-2xl text-sm font-medium
+              bg-primary/[0.07] text-primary/70
+              hover:bg-primary/[0.12] hover:text-primary/90
+              active:bg-primary/[0.16]
+              transition-all duration-300 ease-out
+              flex items-center justify-center gap-2"
           >
-            {tasks.map((task, index) => (
-              <SortableTaskItem
-                key={task.id}
-                task={task}
-                index={index}
-                currentPath={currentPath}
-                disabled={task.completed}
-                previewPriority={task.id === draggedTaskId ? previewPriority : undefined}
-              />
-            ))}
-            {provided.placeholder}
-          </div>
-        )}
-      </Droppable>
-    </DragDropContext>
+            {expanded ? (
+              <>
+                Show less
+                <ChevronUp className="h-3.5 w-3.5 opacity-50" />
+              </>
+            ) : (
+              <>
+                Show more
+                <span className="text-primary/40 text-xs">({hiddenCount})</span>
+                <ChevronDown className="h-3.5 w-3.5 opacity-50" />
+              </>
+            )}
+          </button>
+        </div>
+      )}
+    </div>
   )
 }

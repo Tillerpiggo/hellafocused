@@ -29,24 +29,21 @@ import { countSubtasksRecursively, findTaskAtPath, findProjectAtPath, getProject
 import { searchAllTasks, groupSearchResults } from "@/lib/search-utils"
 
 export default function HomePage() {
-  const store = useAppStore()
-  const {
-    projects,
-    currentPath,
-    navigateBack,
-    navigateToPath,
-    selectProject,
-    updateProjectName,
-    updateTaskName,
-    updateTaskDescription,
-    toggleTaskCompletion, // Still needed for uncompleting tasks (no confirmation needed)
-    toggleTaskDefer,
-    toggleTaskPrefer,
-    addProject,
-    showCompleted,
-    searchQuery,
-    setSearchQuery,
-  } = store
+  const projects = useAppStore(s => s.projects)
+  const currentPath = useAppStore(s => s.currentPath)
+  const navigateBack = useAppStore(s => s.navigateBack)
+  const navigateToPath = useAppStore(s => s.navigateToPath)
+  const selectProject = useAppStore(s => s.selectProject)
+  const updateProjectName = useAppStore(s => s.updateProjectName)
+  const updateTaskName = useAppStore(s => s.updateTaskName)
+  const updateTaskDescription = useAppStore(s => s.updateTaskDescription)
+  const toggleTaskCompletion = useAppStore(s => s.toggleTaskCompletion)
+  const toggleTaskDefer = useAppStore(s => s.toggleTaskDefer)
+  const toggleTaskPrefer = useAppStore(s => s.toggleTaskPrefer)
+  const addProject = useAppStore(s => s.addProject)
+  const showCompleted = useAppStore(s => s.showCompleted)
+  const searchQuery = useAppStore(s => s.searchQuery)
+  const setSearchQuery = useAppStore(s => s.setSearchQuery)
 
   const { isInitialized } = useSyncStore()
 
@@ -98,22 +95,24 @@ export default function HomePage() {
     }
   }, [showSearch])
 
-  const tasksToDisplay = useMemo(() => getCurrentTasksForView(store), [
-    projects,
-    currentPath,
-    searchQuery,
-    showCompleted
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  ])
+  const tasksToDisplay = useMemo(
+    () => getCurrentTasksForView(projects, currentPath, searchQuery, showCompleted),
+    [projects, currentPath, searchQuery, showCompleted]
+  )
   const currentProject = findProjectAtPath(projects, currentPath)
-  const taskChain = getCurrentTaskChain(store)
+  const taskChain = getCurrentTaskChain(projects, currentPath)
   const currentTask = taskChain.length > 0 ? taskChain[taskChain.length - 1] : null
   const isCurrentTaskCompleted = currentTask?.completed || false
-  console.log('Page: currentTask description:', currentTask?.description)
 
-  // Search results
-  const searchResults = searchAllTasks(projects, searchQuery, currentPath)
-  const { currentProject: currentProjectResults, otherProjects: otherProjectResults } = groupSearchResults(searchResults)
+  // Search results (memoized)
+  const searchResults = useMemo(
+    () => searchAllTasks(projects, searchQuery, currentPath),
+    [projects, searchQuery, currentPath]
+  )
+  const { currentProject: currentProjectResults, otherProjects: otherProjectResults } = useMemo(
+    () => groupSearchResults(searchResults),
+    [searchResults]
+  )
   const hasSearchResults = searchQuery.trim() && searchResults.length > 0
 
   // Get pending task info for dialog
@@ -196,8 +195,6 @@ export default function HomePage() {
   }
 
   const handleDescriptionChange = (newDescription: string) => {
-    console.log('currentPath:', currentPath)
-    console.log('isTask(currentPath):', isTask(currentPath))
     if (isTask(currentPath)) {
       updateTaskDescription(currentPath, newDescription)
     }

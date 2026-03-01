@@ -321,21 +321,12 @@ export const useAppStore = create<AppState>()(
   },
 
   updateTaskDescription: (taskPath, newDescription) => {
-    console.log('Store: updateTaskDescription called with:', { taskPath, newDescription })
-    
     set(
       produce((draft: AppState) => {
-        const taskBefore = findTaskAtPath(draft.projects, taskPath)
-        console.log('Store: Task before update:', taskBefore)
-        
         updateTaskAtPath(draft.projects, taskPath, (task) => {
           task.description = newDescription || undefined
           task.lastModificationDate = new Date().toISOString()
-          console.log('Store: Task after update in callback:', task)
         })
-        
-        const taskAfter = findTaskAtPath(draft.projects, taskPath)
-        console.log('Store: Task after update:', taskAfter)
       }),
     )
 
@@ -535,20 +526,24 @@ export const useAppStore = create<AppState>()(
 )
 
 // Helper to get current tasks to display based on path
-export const getCurrentTasksForView = (store: AppState): TaskData[] => {
-  if (isProjectList(store.currentPath)) return []
-  
-  const project = findProjectAtPath(store.projects, store.currentPath)
+export const getCurrentTasksForView = (
+  projects: ProjectData[],
+  currentPath: string[],
+  searchQuery: string,
+  showCompleted: boolean
+): TaskData[] => {
+  if (isProjectList(currentPath)) return []
+
+  const project = findProjectAtPath(projects, currentPath)
   if (!project) return []
 
   // Get tasks at the current path level
   let tasksToShow: TaskData[]
-  if (isProject(store.currentPath)) {
+  if (isProject(currentPath)) {
     tasksToShow = project.tasks
   } else {
-    const currentTask = findTaskAtPath(store.projects, store.currentPath)
+    const currentTask = findTaskAtPath(projects, currentPath)
     if (!currentTask) {
-      // Path is invalid, return empty array
       return []
     }
     tasksToShow = currentTask.subtasks
@@ -557,67 +552,61 @@ export const getCurrentTasksForView = (store: AppState): TaskData[] => {
   // Helper function to sort tasks by priority first, then position, with fallback to creation date
   const sortByPriorityAndPosition = (tasks: TaskData[]) => {
     return tasks.sort((a, b) => {
-      // First sort by priority (descending: preferred=1 first, then normal=0, then deferred=-1)
       if (a.priority !== b.priority) {
         return b.priority - a.priority
       }
-      
-      // Within same priority group, sort by position
+
       if (a.position !== undefined && b.position !== undefined) {
         return a.position - b.position
       }
-      // If only one has position, prioritize the one with position
       if (a.position !== undefined && b.position === undefined) return -1
       if (a.position === undefined && b.position !== undefined) return 1
-      // If neither has position, sort by lastModificationDate (creation order)
       return a.lastModificationDate.localeCompare(b.lastModificationDate)
     })
   }
 
-  // Apply search filter if there's a search query
-  if (store.searchQuery.trim()) {
-    const searchLower = store.searchQuery.toLowerCase().trim()
-    tasksToShow = tasksToShow.filter((task) => 
+  if (searchQuery.trim()) {
+    const searchLower = searchQuery.toLowerCase().trim()
+    tasksToShow = tasksToShow.filter((task) =>
       task.name.toLowerCase().includes(searchLower)
     )
   }
 
-  // Filter and sort tasks based on showCompleted setting
-  if (store.showCompleted) {
-    // Show all tasks, with completed tasks sorted by completion date (most recent at bottom)
+  if (showCompleted) {
     const incompleteTasks = sortByPriorityAndPosition(tasksToShow.filter((task) => !task.completed))
     const completedTasks = tasksToShow
       .filter((task) => task.completed)
       .sort((a, b) => {
-        // Compare ISO date strings - they sort naturally in chronological order
         const aTime = a.completionDate || ''
         const bTime = b.completionDate || ''
-        return aTime.localeCompare(bTime) // Earlier completed tasks first, recent ones at bottom
+        return aTime.localeCompare(bTime)
       })
 
     return [...completedTasks, ...incompleteTasks]
   } else {
-    // Show only incomplete tasks, sorted by position
     return sortByPriorityAndPosition(tasksToShow.filter((task) => !task.completed))
   }
 }
 
-export const getCurrentTaskChain = (store: AppState): TaskData[] => {
-  if (isProjectList(store.currentPath) || isProject(store.currentPath)) return []
-  
-  const project = findProjectAtPath(store.projects, store.currentPath)
+export const getCurrentTaskChain = (
+  projects: ProjectData[],
+  currentPath: string[]
+): TaskData[] => {
+  if (isProjectList(currentPath) || isProject(currentPath)) return []
+
+  const project = findProjectAtPath(projects, currentPath)
   if (!project) return []
 
   const chain: TaskData[] = []
   let currentTasks = project.tasks
-  const taskPath = store.currentPath.slice(1) // Remove project ID
+  const taskPath = currentPath.slice(1)
   for (const taskId of taskPath) {
     const task = currentTasks.find((t) => t.id === taskId)
     if (task) {
       chain.push(task)
       currentTasks = task.subtasks
     } else {
-      break // Path broken
+      break
     }
   }
   return chain

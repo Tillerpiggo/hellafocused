@@ -79,7 +79,12 @@
   --color-priority-light: 48 96% 89%;     /* amber-100 */
   --color-priority-dark: 32 95% 44%;      /* amber-600 */
   --color-priority-fill: 38 92% 50%;      /* amber-500 for star fill */
-  
+  --color-priority-text: 32 95% 44%;      /* amber-600 - task name text */
+  --color-priority-icon: 38 92% 50%;      /* amber-500 - circle/star icon */
+  --color-priority-icon-hover: 32 95% 44%; /* amber-600 - icon on hover */
+  --color-priority-hover-border: 38 92% 50%; /* amber-500 - border on hover */
+  --color-priority-hover-bg: 48 96% 89%;  /* amber-100 - checkbox hover bg */
+
   /* Focus mode actions */
   --color-focus-action: 345 60% 50%;      /* rose */
   --color-focus-action-hover: 345 60% 40%;
@@ -185,8 +190,8 @@
   /* Glass morphism - dark mode */
   --glass-bg: rgba(139, 69, 19, 0.12);
   --glass-border: rgba(180, 83, 9, 0.25);
-  --glass-card: rgba(0, 0, 0, 0.85);
-  
+  --glass-card: rgba(30, 30, 30, 0.75);
+
   /* Focus mode gradients - dark */
   --focus-gradient-from: 345 55% 68%;
   --focus-gradient-to: 340 60% 75%;
@@ -217,7 +222,12 @@
   --color-priority-light: 32 95% 20%;     /* amber-900 */
   --color-priority-dark: 38 92% 65%;      /* amber-400 */
   --color-priority-fill: 38 92% 50%;      /* amber-500 for star fill */
-  
+  --color-priority-text: 38 92% 75%;      /* amber-300 - task name text */
+  --color-priority-icon: 38 92% 60%;      /* amber-400 - circle/star icon */
+  --color-priority-icon-hover: 38 92% 65%; /* amber-300 - icon on hover */
+  --color-priority-hover-border: 38 92% 55%; /* amber-400 - border on hover */
+  --color-priority-hover-bg: 32 80% 15%;  /* amber-900 - checkbox hover bg */
+
   /* Focus mode actions - dark */
   --color-focus-action: 345 70% 65%;      /* rose-400 */
   --color-focus-action-hover: 345 70% 75%;
