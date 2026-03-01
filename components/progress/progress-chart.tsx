@@ -188,15 +188,15 @@ export function ProgressChart({ projects }: ProgressChartProps) {
 
   return (
     <div className="w-full">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-medium text-foreground">
+      <div className="flex items-center justify-between mb-5">
+        <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
           {getChartTitle()}
         </h3>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
+            <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-muted-foreground hover:text-foreground">
               {timePeriod.charAt(0).toUpperCase() + timePeriod.slice(1)}
-              <ChevronDown className="h-4 w-4" />
+              <ChevronDown className="h-3.5 w-3.5" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -206,15 +206,14 @@ export function ProgressChart({ projects }: ProgressChartProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="h-64">
+      <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
-          <BarChart 
+          <BarChart
             key={timePeriod}
-            data={chartData} 
-            barCategoryGap="20%"
+            data={chartData}
+            barCategoryGap="25%"
+            margin={{ top: 4, right: 4, bottom: 0, left: -12 }}
             onMouseMove={(e) => {
-              console.log('activeTooltipIndex:', e.activeTooltipIndex, 'type:', typeof e.activeTooltipIndex)
-              // Recharts types activeTooltipIndex as string | number | undefined, but it can be a string representation of a number
               const index = e.activeTooltipIndex
               if (typeof index === 'number') {
                 setActiveBarIndex(index)
@@ -225,59 +224,48 @@ export function ProgressChart({ projects }: ProgressChartProps) {
               }
             }}
           >
-            <defs>
-              <linearGradient id="colorGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="hsl(var(--progress-gradient-from))" stopOpacity={0.9} />
-                <stop offset="100%" stopColor="hsl(var(--progress-gradient-to))" stopOpacity={0.9} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid 
-              strokeDasharray="3 3" 
-              stroke="hsl(var(--progress-grid))" 
-              opacity={0.5} 
+            <CartesianGrid
+              vertical={false}
+              stroke="hsl(var(--progress-grid))"
+              strokeDasharray="none"
+              opacity={0.6}
             />
-            <XAxis 
-              dataKey="period" 
+            <XAxis
+              dataKey="period"
               stroke="hsl(var(--progress-stroke))"
-              fontSize={12}
+              fontSize={11}
               tickLine={false}
               axisLine={false}
+              opacity={0.5}
             />
-            <YAxis 
+            <YAxis
               stroke="hsl(var(--progress-stroke))"
-              fontSize={12}
+              fontSize={11}
               tickLine={false}
               axisLine={false}
               allowDecimals={false}
+              opacity={0.5}
             />
-            <Tooltip 
-              cursor={{ fill: 'rgba(99, 102, 241, 0.08)' }}
+            <Tooltip
+              cursor={{ fill: 'hsl(var(--muted) / 0.5)' }}
               allowEscapeViewBox={{ x: false, y: true }}
-              animationDuration={200}
-              position={{ x: undefined, y: 160 - toolTipYPosition }}
+              animationDuration={150}
+              position={{ x: undefined, y: 130 - toolTipYPosition }}
               offset={tooltipOffset}
-              contentStyle={{
-                backgroundColor: 'hsl(var(--card))',
-                border: `1px solid hsl(var(--border))`,
-                borderRadius: '8px',
-                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-                fontSize: '12px',
-                color: 'hsl(var(--card-foreground))'
-              }}
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
                     <div style={{
                       backgroundColor: 'hsl(var(--card))',
                       border: `1px solid hsl(var(--border))`,
-                      borderRadius: '8px',
-                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                      borderRadius: '6px',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
                       fontSize: '12px',
-                      padding: '8px 12px',
+                      padding: '6px 10px',
                       color: 'hsl(var(--card-foreground))'
                     }}>
-                      <p style={{ margin: 0, fontWeight: 'bold' }}>{getTooltipLabel(String(label || ''))}</p>
-                      <p style={{ margin: 0, fontWeight: 600, background: `linear-gradient(135deg, hsl(var(--progress-gradient-from)) 0%, hsl(var(--progress-gradient-to)) 100%)`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>Tasks completed: {payload[0].value}</p>
+                      <p style={{ margin: 0, opacity: 0.6, fontSize: '11px' }}>{getTooltipLabel(String(label || ''))}</p>
+                      <p style={{ margin: '2px 0 0', fontWeight: 600, color: 'hsl(var(--foreground))' }}>{payload[0].value} task{payload[0].value !== 1 ? 's' : ''}</p>
                     </div>
                   )
                 }
@@ -286,9 +274,10 @@ export function ProgressChart({ projects }: ProgressChartProps) {
             />
             <Bar
               dataKey="tasks"
-              fill="url(#colorGradient)"
-              radius={[4, 4, 0, 0]}
+              fill="hsl(var(--primary))"
+              radius={[3, 3, 0, 0]}
               animationDuration={300}
+              opacity={0.8}
             />
           </BarChart>
         </ResponsiveContainer>

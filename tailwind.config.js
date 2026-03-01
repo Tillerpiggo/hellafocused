@@ -99,6 +99,16 @@ module.exports = {
   				stroke: 'hsl(var(--progress-stroke))',
   				grid: 'hsl(var(--progress-grid))'
   			},
+  			// Progress badge colors
+  			progressBadge: {
+  				from: 'hsl(var(--progress-badge-from))',
+  				to: 'hsl(var(--progress-badge-to))',
+  				text: 'hsl(var(--progress-badge-text))',
+  				softFrom: 'hsl(var(--progress-badge-soft-from))',
+  				softTo: 'hsl(var(--progress-badge-soft-to))',
+  				softText: 'hsl(var(--progress-badge-soft-text))',
+  				softBorder: 'hsl(var(--progress-badge-soft-border))'
+  			},
   			// Landing page decorative
   			landing: {
   				success: 'hsl(var(--landing-success))',

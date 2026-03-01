@@ -247,7 +247,7 @@ export function FocusTaskView({
                 className={cn(
                   "flex-1 py-5 px-8 rounded-2xl transition-all duration-300",
                   "bg-complete hover:bg-completehover",
-                  "text-completetext font-medium shadow-lg hover:shadow-xl",
+                  "text-completetext font-medium shadow-md hover:shadow-lg",
                   "hover:scale-[1.02] active:scale-[0.98]",
                   "border border-white/20"
                 )}
@@ -262,13 +262,13 @@ export function FocusTaskView({
                 variant="ghost"
                 className={cn(
                   "flex-1 py-5 px-8 rounded-2xl transition-all duration-300",
-                  "bg-white/50 hover:bg-white/70",
+                  "bg-white/60 hover:bg-white/80",
                   "dark:bg-white/10 dark:hover:bg-white/20",
                   "backdrop-blur-sm border border-primary/30",
                   "dark:border-primary/20",
                   "text-foreground font-medium",
                   "hover:scale-[1.02] active:scale-[0.98]",
-                  "shadow-sm hover:shadow-md"
+                  "shadow-md hover:shadow-lg"
                 )}
                 onClick={handleGetNextTask}
                 disabled={isCompleting}
@@ -365,7 +365,7 @@ export function FocusTaskView({
               </div>
               
               {/* Placeholder for future sections */}
-              <div className="mt-8 pt-6 border-t border-white/10 dark:border-white/5">
+              <div className="mt-8 pt-6 border-t border-border/30">
                 <p className="text-xs text-muted-foreground text-center">
                   Attachments, due dates, and more coming soon
                 </p>

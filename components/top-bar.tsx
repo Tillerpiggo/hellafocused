@@ -8,7 +8,6 @@ import { SyncStatus } from '@/components/sync-status'
 import { Button } from '@/components/ui/button'
 import { ProfileDropdown } from '@/components/ui/profile-dropdown'
 import { FeedbackButton } from '@/components/ui/feedback-button'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { supabase } from '@/lib/supabase'
 import { syncEngine } from '@/lib/sync-engine'
 import type { User } from '@supabase/supabase-js'
@@ -99,7 +98,6 @@ export function TopBar({ onMenuToggle, isMenuOpen }: TopBarProps) {
               Discord
             </Link>
           )}
-          <ThemeToggle />
           <ProfileDropdown user={user} showFocusButton={true} />
         </div>
       )
@@ -108,7 +106,6 @@ export function TopBar({ onMenuToggle, isMenuOpen }: TopBarProps) {
     return (
       <div className={`flex items-center space-x-3 ${shouldAnimate ? 'animate-profile-fade-in' : 'opacity-0'}`}>
         {!isMobile && <FeedbackButton />}
-        <ThemeToggle />
         <Button
           variant="ghost"
           size="sm"

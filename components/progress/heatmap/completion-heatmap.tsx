@@ -101,8 +101,6 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
     
     const thresholds = [0, ...zScores.map(z => mean + z * stdDev)] // [0, 30th percentile, 80th percentile, 95th percentile]
     
-    console.log('Heatmap Stats:', { mean, stdDev, thresholds })
-    
     return thresholds
   }, [days])
 
@@ -199,14 +197,13 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
         </div>
       </div>
 
-      {/* Legend - outside scrollable area */}
-      <div className="flex items-center gap-2 mt-4 text-xs text-muted-foreground">
+      <div className="flex items-center justify-end gap-1.5 mt-3 text-[10px] text-muted-foreground/60">
         <span>Less</span>
-        <div className="flex gap-1">
+        <div className="flex gap-[3px]">
           {[0, 1, 2, 3, 4].map(level => (
             <div
               key={level}
-              className={`w-3 h-3 rounded-sm ${getColorClass(level)}`}
+              className={`w-[10px] h-[10px] rounded-[2px] ${getColorClass(level)}`}
             />
           ))}
         </div>
@@ -217,7 +214,7 @@ export function CompletionHeatmap({ projects }: CompletionHeatmapProps) {
         <div
           ref={refs.setFloating}
           style={floatingStyles}
-          className="z-50 px-3 py-2 text-sm bg-gray-900 text-white dark:bg-gray-100 dark:text-gray-900 rounded-lg shadow-lg pointer-events-none whitespace-nowrap"
+          className="z-50 px-3 py-2 text-sm bg-popover text-popover-foreground rounded-lg shadow-lg border pointer-events-none whitespace-nowrap"
         >
           <HeatmapTooltip
             date={tooltip.date}

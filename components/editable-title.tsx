@@ -105,6 +105,7 @@ export const EditableTitle = forwardRef<EditableTitleRef, EditableTitleProps>(
         className={cn(
           "border-none bg-transparent p-0 focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none cursor-pointer resize-none min-h-0 overflow-hidden rounded-none",
           !isEditing && "cursor-pointer",
+          isEditing && "bg-primary/5 border-solid border-b-2 !border-primary/30 rounded-sm",
           isCompleted && "line-through text-muted-foreground opacity-70",
           className,
         )}

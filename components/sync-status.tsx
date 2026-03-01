@@ -27,8 +27,13 @@ export function SyncStatus() {
   }
 
   // Helper function to render status with icon and text
-  const renderStatus = (IconComponent: React.ComponentType<{ className?: string }>, text: string, animated = false) => (
-    <div className="flex items-center space-x-2 text-muted-foreground">
+  const renderStatus = (
+    IconComponent: React.ComponentType<{ className?: string }>,
+    text: string,
+    animated = false,
+    colorClass = 'text-muted-foreground',
+  ) => (
+    <div className={`flex items-center space-x-2 ${colorClass}`}>
       <IconComponent className={`h-3 w-3 ${animated ? 'animate-pulse' : ''}`} />
       <span className="text-xs">{text}</span>
     </div>
@@ -81,7 +86,7 @@ export function SyncStatus() {
 
   // Show offline status (only after mounting to avoid hydration mismatch)
   if (isMounted && !isOnline) {
-    return renderStatus(WifiOff, 'Offline')
+    return renderStatus(WifiOff, 'Offline', false, 'text-amber-500 dark:text-amber-400')
   }
 
   // Show pending changes count

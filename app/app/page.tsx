@@ -15,13 +15,13 @@ import { useAppStore, getCurrentTasksForView, getCurrentTaskChain } from "@/stor
 import { useSyncStore } from "@/store/sync-store"
 import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
-import { Target, Loader2, CheckSquare, TrendingUp, Palette } from "lucide-react"
+import { Target, Loader2, CheckSquare, TrendingUp } from "lucide-react"
 import { AddTaskForm } from "@/components/task/add-task-form"
 import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
 import { TasksView } from "@/components/tabs/tasks-view"
 import { ProgressView } from "@/components/tabs/progress-view"
-import { ThemeView } from "@/components/tabs/theme-view"
+import { SettingsView } from "@/components/tabs/settings-view"
 import { type EditableTitleRef } from "@/components/editable-title"
 import { useRef, useMemo, useState, useEffect } from "react"
 import { SidebarLayout } from "@/components/sidebar/sidebar-layout"
@@ -81,7 +81,6 @@ export default function HomePage() {
   const tabs = [
     { value: 'tasks', label: 'Tasks', icon: CheckSquare },
     { value: 'progress', label: 'Progress', icon: TrendingUp },
-    { value: 'theme', label: 'Theme', icon: Palette }
   ]
 
   // Show loading until authentication is complete
@@ -244,8 +243,8 @@ export default function HomePage() {
       return <ProgressView projects={projects} />
     }
 
-    if (activeTab === 'theme') {
-      return <ThemeView />
+    if (activeTab === 'settings') {
+      return <SettingsView />
     }
 
     // Default to tasks tab

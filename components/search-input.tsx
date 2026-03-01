@@ -55,10 +55,10 @@ export const SearchInput = forwardRef<HTMLInputElement, SearchInputProps>(({
         <Button
           variant="ghost"
           size="icon"
-          className="absolute right-1 h-6 w-6 hover:bg-muted/80"
+          className="absolute right-1.5 h-7 w-7 hover:bg-muted/80"
           onClick={handleClear}
         >
-          <X className="h-3 w-3" />
+          <X className="h-3.5 w-3.5" />
         </Button>
       )}
     </div>

@@ -12,19 +12,19 @@ interface ProgressViewProps {
 
 export function ProgressView({ projects }: ProgressViewProps) {
   return (
-    <div className="container max-w-4xl mx-auto py-12 px-6">
-      <div className="space-y-8">
+    <div className="container max-w-4xl mx-auto py-10 px-6">
+      <div className="space-y-10">
         <div>
-          <h2 className="text-2xl font-semibold text-foreground mb-2">Progress Dashboard</h2>
-          <p className="text-muted-foreground">
-            Feel good about what you&apos;ve done so far
+          <h2 className="text-2xl font-semibold text-foreground tracking-tight">Progress</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Your completed work at a glance
           </p>
         </div>
         <TodaysProgressCard projects={projects} />
         <ProgressChart projects={projects} />
         <FocusPointsBadge projects={projects} />
         <div>
-          <h3 className="text-lg font-medium text-foreground mb-4">
+          <h3 className="text-sm font-medium text-muted-foreground mb-3 uppercase tracking-wide">
             {(() => {
               let totalTasks = 0
               const countTask = (task: TaskData) => {

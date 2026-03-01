@@ -38,7 +38,7 @@ export function TaskCompletionDialog({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={onConfirm} className="bg-green-600 hover:bg-green-700 text-white">
+          <Button onClick={onConfirm} className="bg-complete hover:bg-completehover text-completetext">
             Complete Task
           </Button>
         </DialogFooter>

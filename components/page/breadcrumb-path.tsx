@@ -73,7 +73,7 @@ export function BreadcrumbPath({ projectName, taskChain }: BreadcrumbPathProps) 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
       <DropdownMenuTrigger asChild>
-        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gradient-to-r from-primary/10 to-primary/5 hover:from-primary/15 hover:to-primary/10 border border-primary/20 hover:border-primary/30 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 shadow-sm hover:shadow-md backdrop-blur-md">
+        <button className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gradient-to-r from-primary/15 to-primary/8 hover:from-primary/22 hover:to-primary/12 border border-primary/25 hover:border-primary/40 rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-1 shadow-sm hover:shadow-md backdrop-blur-md">
           <div className="flex items-center">
             {breadcrumbNames.map((name, index) => {
               const isProject = index === 0 && name === projectName

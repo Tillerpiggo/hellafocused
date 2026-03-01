@@ -60,29 +60,28 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
       className={cn(
         "flex items-center justify-between p-4 rounded-2xl group glass-card",
         // Only add transitions when not dragging to avoid conflicts with drop animation
-        !isDragging && "transition-all duration-200",
-        // Dragging state - avoid scale transform to prevent conflicts with drop animation
-        isDragging 
+        !isDragging && "transition-all duration-200 ease-out",
+        isDragging
           ? [
               "opacity-80",
               task.completed
-                ? "backdrop-blur-sm bg-muted/40"
+                ? "backdrop-blur-sm bg-muted/30"
                 : effectivePriority === 1
-                ? "backdrop-blur-md bg-gradient-to-br from-taskPriority-hoverFrom/30 to-taskPriority-hoverTo/30 border-priority/50"
+                ? "backdrop-blur-md bg-muted/50 border-priority/50"
                 : effectivePriority === -1
-                ? "backdrop-blur-sm bg-muted/20"
-                : "backdrop-blur-md bg-gradient-to-br from-taskNormal-from/30 to-taskNormal-to/30"
+                ? "backdrop-blur-sm bg-muted/30"
+                : "backdrop-blur-md bg-muted/50"
             ]
           : [
               task.completed
-                ? "backdrop-blur-sm bg-muted/30 opacity-60"
+                ? "backdrop-blur-sm bg-muted/30 opacity-75"
                 : effectivePriority === 1
-                ? "backdrop-blur-md bg-gradient-to-br from-taskPriority-from/40 to-taskPriority-to/40 hover:from-taskPriority-hoverFrom/50 hover:to-taskPriority-hoverTo/50 border-priority-light/60 hover:border-priority/70 dark:from-taskPriority-from/30 dark:to-taskPriority-to/30 dark:hover:from-taskPriority-hoverFrom/40 dark:hover:to-taskPriority-hoverTo/40 dark:border-priority-dark/50 dark:hover:border-priority/60"
+                ? "backdrop-blur-md bg-muted/50 hover:bg-muted/65 border-priority/40 hover:border-priority/60"
                 : effectivePriority === -1
-                ? "backdrop-blur-sm bg-muted/20 opacity-70 hover:bg-muted/30"
-                : "backdrop-blur-md hover:backdrop-blur-lg bg-gradient-to-br from-taskNormal-from/30 to-taskNormal-to/30 hover:from-taskHover-from/40 hover:to-taskHover-to/40 dark:from-taskNormal-from/20 dark:to-taskNormal-to/20 dark:hover:from-taskHover-from/30 dark:hover:to-taskHover-to/30",
+                ? "backdrop-blur-sm bg-muted/40 opacity-70 hover:bg-muted/55"
+                : "backdrop-blur-md bg-muted/50 hover:bg-muted/65",
             ],
-        "cursor-pointer shadow-lg hover:shadow-xl",
+        "cursor-pointer shadow-sm hover:shadow-md",
       )}
       onClick={handleNavigate}
     >

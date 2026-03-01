@@ -39,25 +39,25 @@ export function FocusPointsBadge({ projects }: FocusPointsBadgeProps) {
 
   return (
     <Tilt
-      tiltMaxAngleX={8}
-      tiltMaxAngleY={8}
-      perspective={1000}
-      scale={1.02}
-      transitionSpeed={300}
+      tiltMaxAngleX={5}
+      tiltMaxAngleY={5}
+      perspective={1200}
+      scale={1.01}
+      transitionSpeed={400}
       gyroscope={true}
     >
-      <div 
-        className={`w-full flex flex-col items-center px-6 py-8 bg-muted/30 rounded-xl border shadow-sm hover:shadow-lg cursor-pointer select-none transition-all ${
-          isClicked ? 'scale-95 duration-75' : 'scale-100 duration-200'
+      <div
+        className={`w-full flex items-center justify-center gap-3 px-6 py-6 rounded-xl border border-border/50 cursor-pointer select-none transition-all ${
+          isClicked ? 'scale-[0.98] duration-75' : 'scale-100 duration-200'
         } ease-out`}
         onClick={handleClick}
       >
-        <div className="text-5xl font-bold text-foreground tabular-nums drop-shadow-sm">
+        <span className="text-4xl font-semibold text-foreground tabular-nums tracking-tight">
           {formatNumber(totalPoints)}
-        </div>
-        <div className="text-base text-muted-foreground mt-2 text-center">
-          Focus Points
-        </div>
+        </span>
+        <span className="text-sm text-muted-foreground">
+          focus points
+        </span>
       </div>
     </Tilt>
   )

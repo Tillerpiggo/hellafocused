@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { X, MessageSquare } from 'lucide-react'
+import { X, MessageSquare, Settings } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { FeedbackPopup } from '@/components/ui/feedback-popup'
 import { SidebarTabs, type TabOption } from './sidebar-tabs'
@@ -87,17 +87,39 @@ export function SidebarLayout({
           className={cn(
             "glass-morphism border-r border-white/20 overflow-hidden",
             "fixed top-14 left-0 bottom-0 z-40",
-            "transition-[width] duration-300 ease-in-out",
+            "transition-[width] duration-300 ease-in-out flex flex-col",
             isHovered ? "w-64" : "w-16"
           )}
         >
           <div className="pt-2 px-2">
-            <SidebarTabs 
+            <SidebarTabs
               tabs={tabs}
               activeTab={activeTab}
               isCollapsed={!isHovered}
               onTabChange={onTabChange}
             />
+          </div>
+          <div className="mt-auto pb-4 px-2">
+            <button
+              onClick={() => onTabChange('settings')}
+              className={cn(
+                "h-12 text-left text-sm font-medium rounded-lg transition-all duration-200 ease-out overflow-hidden",
+                "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                "flex items-center pl-4 pr-4",
+                activeTab === 'settings'
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                !isHovered ? "w-12" : "w-full"
+              )}
+            >
+              <Settings className="h-4 w-4 shrink-0 mr-3" />
+              <span className={cn(
+                "whitespace-nowrap transition-opacity duration-200 ease-out",
+                !isHovered ? "opacity-0" : "opacity-100"
+              )}>
+                Settings
+              </span>
+            </button>
           </div>
         </aside>
       )}
@@ -129,7 +151,7 @@ export function SidebarLayout({
 
           {/* Tab navigation */}
           <div className="px-2">
-            <SidebarTabs 
+            <SidebarTabs
               tabs={tabs}
               activeTab={activeTab}
               isCollapsed={false}
@@ -138,6 +160,27 @@ export function SidebarLayout({
                 setIsSidebarOpen(false)
               }}
             />
+          </div>
+
+          {/* Settings button */}
+          <div className="px-2 mt-2">
+            <button
+              onClick={() => {
+                onTabChange('settings')
+                setIsSidebarOpen(false)
+              }}
+              className={cn(
+                "h-12 text-left text-sm font-medium rounded-lg transition-all duration-200 ease-out overflow-hidden w-full",
+                "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                "flex items-center pl-4 pr-4",
+                activeTab === 'settings'
+                  ? "bg-primary text-primary-foreground shadow-sm"
+                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+              )}
+            >
+              <Settings className="h-4 w-4 shrink-0 mr-3" />
+              <span>Settings</span>
+            </button>
           </div>
 
           {/* Mobile-only Feedback and Discord section */}

@@ -11,10 +11,10 @@ const examples = [
   { goal: "Meditate daily", task: "take a deep breath" },
   { goal: "Clean my room", task: "take out the trash" },
   { goal: "Write a book", task: "open Google Docs" },
-  { goal: "Fix a bug", task: "add a print statement" }, 
+  { goal: "Fix a bug", task: "add a print statement" },
   { goal: "Make friends", task: "text someone 'how are you?'" },
   { goal: "Cook dinner", task: "turn on the stove" },
-  
+
 ];
 
 interface HeroSectionProps {
@@ -23,8 +23,13 @@ interface HeroSectionProps {
 
 export function HeroSection({ hasSession }: HeroSectionProps) {
   const [currentExample, setCurrentExample] = useState(0)
+  const [mounted, setMounted] = useState(false)
   const { resolvedTheme } = useTheme()
-  const isDark = resolvedTheme === 'dark'
+  const isDark = mounted ? resolvedTheme === 'dark' : false
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   useEffect(() => {
     const interval = setInterval(() => {

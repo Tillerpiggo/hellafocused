@@ -64,9 +64,9 @@ export function AddForm({ placeholder, onSubmit, inputId }: AddFormProps) {
     <form onSubmit={handleSubmit}>
       <div
         className={cn(
-          "flex items-center justify-between p-3 my-1 rounded-md border-2 border-dashed border-muted-foreground/30 transition-all duration-150 min-h-[46px]", // Keep items-center for proper plus button centering
+          "flex items-center justify-between p-3 my-1 rounded-xl border border-dashed border-muted-foreground/20 transition-all duration-200 min-h-[46px]", // Keep items-center for proper plus button centering
           isFocused || value
-            ? "bg-background border-muted-foreground/50" // White background when focused
+            ? "bg-background/80 border-solid border-primary/30"
             : "hover:bg-accent hover:border-muted-foreground/50",
         )}
         onClick={() => {
