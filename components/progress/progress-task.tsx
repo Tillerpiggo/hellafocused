@@ -2,21 +2,23 @@
 
 import { useState } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { TaskData } from '@/lib/types'
+import { TaskData, MultiplierBreakdown } from '@/lib/types'
 
 interface ProgressTaskProps {
-  task: TaskData & { 
+  task: TaskData & {
     projectName: string
     path: string[]
     focusPoints: number
+    multiplierBreakdown?: MultiplierBreakdown[]
+    multiplierTotal?: number
   }
   depth: number
 }
 
 export function ProgressTask({ task, depth }: ProgressTaskProps) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const [showMultiplierDetail, setShowMultiplierDetail] = useState(false)
 
-  // Get completed subtasks from today
   const todaysCompletedSubtasks = task.subtasks.filter(subtask => {
     if (!subtask.completed || !subtask.completionDate) return false
     const taskDate = new Date(subtask.completionDate).toDateString()
@@ -25,32 +27,14 @@ export function ProgressTask({ task, depth }: ProgressTaskProps) {
   })
 
   const hasCompletedSubtasks = todaysCompletedSubtasks.length > 0
-
-  const calculateSubtaskFocusPoints = (subtask: TaskData): number => {
-    const today = new Date().toDateString()
-    
-    // Only count this subtask if it was completed today
-    let points = 0
-    if (subtask.completed && subtask.completionDate) {
-      const taskDate = new Date(subtask.completionDate).toDateString()
-      if (taskDate === today) {
-        points = 1
-      }
-    }
-    
-    // Recursively count subtasks that were completed today
-    subtask.subtasks.forEach(subSubtask => {
-      points += calculateSubtaskFocusPoints(subSubtask)
-    })
-    return points
-  }
+  const hasMultiplier = (task.multiplierTotal ?? 1) > 1
 
   const formatTime = (dateString: string): string => {
     const date = new Date(dateString)
-    return date.toLocaleTimeString('en-US', { 
-      hour: 'numeric', 
+    return date.toLocaleTimeString('en-US', {
+      hour: 'numeric',
       minute: '2-digit',
-      hour12: true 
+      hour12: true
     })
   }
 
@@ -60,12 +44,18 @@ export function ProgressTask({ task, depth }: ProgressTaskProps) {
     <div className={indentationClass}>
       <div
         className="flex items-center gap-2.5 py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors cursor-pointer group"
-        onClick={() => hasCompletedSubtasks && setIsExpanded(!isExpanded)}
+        onClick={() => {
+          if (hasMultiplier) {
+            setShowMultiplierDetail(!showMultiplierDetail)
+          } else if (hasCompletedSubtasks) {
+            setIsExpanded(!isExpanded)
+          }
+        }}
       >
-        {hasCompletedSubtasks ? (
+        {hasCompletedSubtasks || hasMultiplier ? (
           <ChevronRight
             className={`h-3.5 w-3.5 text-muted-foreground/60 transition-transform ${
-              isExpanded ? 'rotate-90' : ''
+              (hasMultiplier ? showMultiplierDetail : isExpanded) ? 'rotate-90' : ''
             }`}
           />
         ) : (
@@ -88,8 +78,22 @@ export function ProgressTask({ task, depth }: ProgressTaskProps) {
         </div>
       </div>
 
-      {/* Expanded subtasks */}
-      {isExpanded && hasCompletedSubtasks && (
+      {showMultiplierDetail && hasMultiplier && task.multiplierBreakdown && (
+        <div className="ml-8 py-1 px-3">
+          <span className="text-xs text-muted-foreground">
+            {task.multiplierBreakdown.map((b, i) => (
+              <span key={`${b.source}-${i}`}>
+                {i > 0 && ' · '}
+                {b.source === 'due-date-self' ? '🎯' : '📋'} {b.label} ×{b.multiplier}
+              </span>
+            ))}
+            {' = '}
+            <span className="font-medium text-multiplier">×{task.multiplierTotal}</span>
+          </span>
+        </div>
+      )}
+
+      {isExpanded && hasCompletedSubtasks && !showMultiplierDetail && (
         <div className="ml-2">
           {todaysCompletedSubtasks.map((subtask) => (
             <ProgressTask
@@ -98,7 +102,7 @@ export function ProgressTask({ task, depth }: ProgressTaskProps) {
                 ...subtask,
                 projectName: task.projectName,
                 path: [...task.path, subtask.id],
-                focusPoints: calculateSubtaskFocusPoints(subtask)
+                focusPoints: 1,
               }}
               depth={depth + 1}
             />

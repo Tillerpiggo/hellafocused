@@ -12,7 +12,7 @@ import "./styles/themes/emerald-forest.css"
 import "./styles/themes/golden-hour.css"
 import "./styles/themes/cyber-teal.css"
 import "./styles/themes/coral-reef.css"
-// import "react-day-picker/style.css" // Will add due dates later
+import "react-day-picker/style.css"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from "next-themes"
 

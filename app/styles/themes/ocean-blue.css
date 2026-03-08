@@ -35,6 +35,16 @@
   --color-info: 199 89% 48%;         /* cyan-500 */
   --color-highlight: 199 89% 85%;    /* cyan-200 */
   
+  /* Due date status colors */
+  --due-overdue: 0 72% 51%;
+  --due-overdue-bg: 0 86% 97%;
+  --due-today: 25 95% 53%;
+  --due-today-bg: 33 100% 96%;
+  --due-soon: 38 92% 50%;
+  --due-soon-bg: 48 96% 89%;
+  --due-future: 220 9% 46%;
+  --due-future-bg: 210 20% 93%;
+
   /* Glass morphism */
   --glass-bg: rgba(219, 234, 254, 0.22);
   --glass-border: rgba(147, 197, 253, 0.25);
@@ -149,6 +159,11 @@
   --link-color: 217 91% 60%;              /* blue-500 */
   --link-hover: 221 83% 53%;              /* blue-600 */
   --link-decoration: 214 95% 77%;         /* blue-300 */
+
+  /* Multiplier colors */
+  --multiplier-text: 142 76% 36%;
+  --multiplier-bg: 138 76% 97%;
+  --multiplier-glow: 142 71% 45%;
 }
 
 /* Ocean Blue - Dark mode */
@@ -186,6 +201,16 @@
   --color-info: 199 89% 58%;
   --color-highlight: 199 89% 25%;
   
+  /* Due date status colors - dark */
+  --due-overdue: 0 72% 58%;
+  --due-overdue-bg: 0 50% 15%;
+  --due-today: 25 90% 55%;
+  --due-today-bg: 33 60% 15%;
+  --due-soon: 38 85% 55%;
+  --due-soon-bg: 48 60% 15%;
+  --due-future: 220 9% 60%;
+  --due-future-bg: 220 14% 20%;
+
   /* Glass morphism - dark mode */
   --glass-bg: rgba(30, 58, 138, 0.12);
   --glass-border: rgba(59, 130, 246, 0.25);
@@ -292,4 +317,9 @@
   --link-color: 214 95% 77%;              /* blue-300 */
   --link-hover: 213 97% 87%;              /* blue-200 */
   --link-decoration: 221 83% 53%;         /* blue-600 */
+
+  /* Multiplier colors - dark */
+  --multiplier-text: 142 71% 55%;
+  --multiplier-bg: 142 50% 12%;
+  --multiplier-glow: 142 71% 45%;
 }

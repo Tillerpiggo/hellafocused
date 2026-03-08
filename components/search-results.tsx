@@ -136,11 +136,17 @@ interface SearchTaskItemProps {
   result: SearchResult
   query: string
   onClick: () => void
+  onComplete?: () => void
 }
 
-function SearchTaskItem({ result, query, onClick }: SearchTaskItemProps) {
+export function SearchTaskItem({ result, query, onClick, onComplete }: SearchTaskItemProps) {
   const { task } = result
-  
+
+  const handleComplete = onComplete ? (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onComplete()
+  } : undefined
+
   return (
     <div
       className={cn(
@@ -156,7 +162,11 @@ function SearchTaskItem({ result, query, onClick }: SearchTaskItemProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 flex-shrink-0 rounded-full pointer-events-none"
+            className={cn(
+              "h-8 w-8 flex-shrink-0 rounded-full",
+              onComplete ? "hover:bg-primary/10" : "pointer-events-none"
+            )}
+            onClick={handleComplete}
           >
             {task.completed ? (
               <CheckCircle className="h-5 w-5 text-primary" />
@@ -170,7 +180,7 @@ function SearchTaskItem({ result, query, onClick }: SearchTaskItemProps) {
             text={task.name}
             query={query}
             className={cn(
-              "text-base font-medium break-words", 
+              "text-base font-medium break-words",
               task.completed && "line-through text-muted-foreground"
             )}
           />

@@ -1,5 +1,6 @@
 import { create } from "zustand"
 import { useAppStore } from "./app-store"
+import { useFocusStore } from "./focus-store"
 import { findTaskAtPath, findProjectAtPath, isProject } from "@/lib/task-utils"
 
 interface UIDialogState {
@@ -123,8 +124,13 @@ export const useUIStore = create<UIState>((set, get) => ({
     pendingDeletion: null,
   }),
 
-  setFocusMode: (isFocusMode, startPath) => set({ 
-    isFocusMode,
-    focusStartPath: isFocusMode ? startPath : null
-  }),
+  setFocusMode: (isFocusMode, startPath) => {
+    if (!isFocusMode) {
+      useFocusStore.getState().saveCurrentSessionState()
+    }
+    set({
+      isFocusMode,
+      focusStartPath: isFocusMode ? startPath : null
+    })
+  },
 })) 

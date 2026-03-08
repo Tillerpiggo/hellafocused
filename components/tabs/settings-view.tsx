@@ -5,6 +5,7 @@ import { useTheme } from 'next-themes'
 import { Sun, Moon, Monitor, Check } from 'lucide-react'
 import { builtInThemes } from '@/lib/theme-system/themes'
 import { cn } from '@/lib/utils'
+import { useAppStore } from '@/store/app-store'
 
 const COLOR_THEME_KEY = 'color-theme'
 
@@ -173,8 +174,17 @@ function ThemePreviewCard({ theme, isActive, onClick }: ThemePreviewCardProps) {
   )
 }
 
+const DUE_SOON_OPTIONS = [
+  { value: 1, label: '1 day' },
+  { value: 3, label: '3 days' },
+  { value: 7, label: '7 days' },
+  { value: 14, label: '14 days' },
+]
+
 export function SettingsView() {
   const { colorTheme, applyColorTheme, mounted } = useColorTheme()
+  const dueSoonDays = useAppStore((state) => state.dueSoonDays)
+  const setDueSoonDays = useAppStore((state) => state.setDueSoonDays)
 
   return (
     <div className="container max-w-2xl mx-auto py-12 px-6">
@@ -205,6 +215,32 @@ export function SettingsView() {
                   isActive={mounted && colorTheme === theme.id}
                   onClick={() => applyColorTheme(theme.id)}
                 />
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Task Behavior Section */}
+        <section className="space-y-5">
+          <h3 className="text-base font-medium text-foreground">Tasks</h3>
+
+          <div className="space-y-2">
+            <label className="text-sm text-muted-foreground">Due soon threshold</label>
+            <p className="text-xs text-muted-foreground/70">Tasks within this window are marked as &quot;due soon&quot;</p>
+            <div className="flex rounded-lg bg-secondary/60 p-1 gap-1">
+              {DUE_SOON_OPTIONS.map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => setDueSoonDays(value)}
+                  className={cn(
+                    "flex-1 flex items-center justify-center px-3 py-2 rounded-md text-sm font-medium transition-all duration-200",
+                    dueSoonDays === value
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  )}
+                >
+                  {label}
+                </button>
               ))}
             </div>
           </div>

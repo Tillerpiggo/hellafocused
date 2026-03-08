@@ -280,6 +280,81 @@
     }
   }
 
+  /* Task item state classes */
+
+  .task-item-normal {
+    @apply backdrop-blur-md;
+    background-color: hsl(var(--task-normal-from) / 0.5);
+  }
+  .task-item-normal:hover {
+    background-color: hsl(var(--task-hover-from) / 0.65);
+  }
+  .task-item-normal[data-dragging="true"],
+  .task-item-normal[data-dragging="true"]:hover {
+    @apply opacity-80;
+    background-color: hsl(var(--task-normal-from) / 0.5);
+  }
+
+  .task-item-priority {
+    @apply backdrop-blur-md;
+    background-color: hsl(var(--task-priority-from) / 0.5);
+    border-color: hsl(var(--color-priority) / 0.3);
+  }
+  .task-item-priority:hover {
+    background-color: hsl(var(--task-priority-hover-from) / 0.65);
+    border-color: hsl(var(--color-priority-hover-border) / 0.55);
+  }
+  .task-item-priority[data-dragging="true"],
+  .task-item-priority[data-dragging="true"]:hover {
+    @apply opacity-80;
+    background-color: hsl(var(--task-priority-from) / 0.5);
+    border-color: hsl(var(--color-priority) / 0.3);
+  }
+
+  .task-item-deferred {
+    @apply backdrop-blur-sm opacity-70;
+    background-color: hsl(var(--muted) / 0.4);
+  }
+  .task-item-deferred:hover {
+    background-color: hsl(var(--muted) / 0.5);
+  }
+  .task-item-deferred[data-dragging="true"],
+  .task-item-deferred[data-dragging="true"]:hover {
+    @apply opacity-80;
+    background-color: hsl(var(--muted) / 0.3);
+  }
+
+  .task-item-completed {
+    @apply backdrop-blur-sm opacity-75;
+    background-color: hsl(var(--muted) / 0.3);
+  }
+  .task-item-completed[data-dragging="true"],
+  .task-item-completed[data-dragging="true"]:hover {
+    @apply opacity-80;
+  }
+
+  /* Task text variants */
+  .task-text-completed {
+    @apply line-through text-muted-foreground;
+  }
+  .task-text-priority {
+    @apply text-priority-text font-medium;
+  }
+  .task-text-deferred {
+    @apply text-muted-foreground;
+  }
+
+  /* Task icon variants */
+  .task-circle-normal {
+    @apply text-muted-foreground group-hover:text-primary;
+  }
+  .task-circle-priority {
+    @apply text-priority-icon/60 group-hover:text-priority-iconHover;
+  }
+  .task-chevron-priority {
+    @apply text-priority-icon/40 group-hover:text-priority-iconHover;
+  }
+
   .animate-slide-up-in {
     animation: slideUpIn 0.6s ease-out forwards;
   }
@@ -318,6 +393,47 @@
 
   .animate-shrink-fade {
     animation: shrinkFade 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
+  }
+
+  /* Multiplier badge glass morphism */
+  .multiplier-badge {
+    background: rgba(255, 255, 255, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  }
+
+  @supports (-webkit-backdrop-filter: blur(16px)) {
+    .multiplier-badge {
+      background: rgba(255, 255, 255, 0.8);
+      -webkit-backdrop-filter: blur(16px) saturate(1.2);
+    }
+  }
+
+  @supports (backdrop-filter: blur(16px)) {
+    .multiplier-badge {
+      background: rgba(255, 255, 255, 0.8);
+      backdrop-filter: blur(16px) saturate(1.2);
+    }
+  }
+
+  .dark .multiplier-badge {
+    background: rgba(20, 20, 20, 0.92);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  @supports (-webkit-backdrop-filter: blur(16px)) {
+    .dark .multiplier-badge {
+      background: rgba(20, 20, 20, 0.8);
+      -webkit-backdrop-filter: blur(16px) saturate(1.1);
+    }
+  }
+
+  @supports (backdrop-filter: blur(16px)) {
+    .dark .multiplier-badge {
+      background: rgba(20, 20, 20, 0.8);
+      backdrop-filter: blur(16px) saturate(1.1);
+    }
   }
 }
 
@@ -439,6 +555,24 @@
   }
 }
 
+@keyframes gentlePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.08); }
+}
+
+.animate-gentle-pulse {
+  animation: gentlePulse 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -521,4 +655,26 @@
     opacity: 0;
     transform: scale(0.98);
   }
+}
+
+/* react-day-picker theme overrides */
+.rdp-theme {
+  --rdp-accent-color: hsl(var(--primary));
+  --rdp-accent-background-color: hsl(var(--primary) / 0.12);
+  --rdp-day-height: 36px;
+  --rdp-day-width: 36px;
+}
+
+.rdp-theme .rdp-day button {
+  border-radius: 8px;
+}
+
+.rdp-theme .rdp-selected .rdp-day_button {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.rdp-theme .rdp-today:not(.rdp-selected) .rdp-day_button {
+  font-weight: 700;
+  color: hsl(var(--primary));
 }

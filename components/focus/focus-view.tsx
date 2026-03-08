@@ -3,37 +3,62 @@ import { useAppStore } from "@/store/app-store"
 import { useUIStore } from "@/store/ui-store"
 import { useFocusStore } from "@/store/focus-store"
 import { findTaskPath, getProjectId } from "@/lib/task-utils"
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState, useCallback, useRef } from "react"
 import { AddTasksView } from "./add-tasks-view"
 import { AllTasksCompletedView } from "./all-tasks-completed-view"
 import { NoTasksAvailableView } from "./no-tasks-available-view"
 import { FocusTaskView } from "./focus-task-view"
 import { FocusHeaderButtons } from "./focus-header-buttons"
+import { useTimerTick } from "@/hooks/use-timer-tick"
 
-interface FocusViewProps {
-  startPath: string[]
-}
-
-export function FocusView({ startPath }: FocusViewProps) {
-  // App store for projects data and app state updates
+export function FocusView() {
   const projects = useAppStore((state) => state.projects)
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
   const toggleTaskPrefer = useAppStore((state) => state.toggleTaskPrefer)
   const setFocusMode = useUIStore((state) => state.setFocusMode)
 
-  // Focus store for focus-specific state
   const {
     currentFocusTask,
     showAddTasksView,
     showSubtaskCelebration,
     focusModeProjectLeaves,
+    focusStartPath: startPath,
     lastFocusedTaskId,
+    activeSessionId,
+    sessions,
     initializeFocus,
     resetFocus,
     completeFocusTask,
     getNextFocusTask,
-    setShowAddTasksView
+    setShowAddTasksView,
+    saveCurrentSessionState,
   } = useFocusStore((state) => state)
+
+  const setTimer = useFocusStore(s => s.setTimer)
+  const clearTimer = useFocusStore(s => s.clearTimer)
+  const timerFired = useFocusStore(s => {
+    const session = s.sessions.find(ss => ss.id === s.activeSessionId)
+    return session?.timerFired ?? false
+  })
+  const timerEndTime = useFocusStore(s => {
+    const session = s.sessions.find(ss => ss.id === s.activeSessionId)
+    return session?.timerEndTime ?? null
+  })
+  const hasActiveTimer = !!timerEndTime
+  const timerDisplay = useTimerTick(activeSessionId)
+
+  const handleSetTimer = useCallback((durationMs: number) => {
+    if (activeSessionId) setTimer(activeSessionId, durationMs)
+  }, [activeSessionId, setTimer])
+
+  const handleClearTimer = useCallback(() => {
+    if (activeSessionId) clearTimer(activeSessionId)
+  }, [activeSessionId, clearTimer])
+
+  const clearTimerFired = useFocusStore(s => s.clearTimerFired)
+  const handleAcknowledgeTimer = useCallback(() => {
+    if (activeSessionId) clearTimerFired(activeSessionId)
+  }, [activeSessionId, clearTimerFired])
 
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [isExiting, setIsExiting] = useState(false)
@@ -44,12 +69,12 @@ export function FocusView({ startPath }: FocusViewProps) {
   const handleExitFocusMode = useCallback(() => {
     setIsExiting(true)
     setTimeout(() => {
-      // Clear celebration state when exiting focus mode
       useFocusStore.setState({ showSubtaskCelebration: false })
+      saveCurrentSessionState()
       resetFocus()
       setFocusMode(false)
-    }, 500) // Increased from 300ms to 500ms for gentler exit
-  }, [resetFocus, setFocusMode])
+    }, 500)
+  }, [resetFocus, setFocusMode, saveCurrentSessionState])
 
   const handleToggleDefer = useCallback((autoAdvance = true) => {
     if (!currentFocusTask) return
@@ -135,16 +160,24 @@ export function FocusView({ startPath }: FocusViewProps) {
     }
   }, [currentFocusTask?.priority, handleTogglePrefer, handleToggleDefer])
 
-  // Initialize focus store when component mounts
-  useEffect(() => {
-    initializeFocus(projects, startPath)
+  // Track whether this is a session switch (not initial mount)
+  const prevSessionId = useRef(activeSessionId)
 
-    // Cleanup when component unmounts
-    return () => {
-      resetFocus()
+  // Initialize focus when active session changes
+  useEffect(() => {
+    if (!activeSessionId) return
+    const activeSession = sessions.find(s => s.id === activeSessionId)
+    if (!activeSession) return
+
+    // If session switched, reinitialize from session's startPath
+    if (prevSessionId.current !== activeSessionId) {
+      prevSessionId.current = activeSessionId
+      initializeFocus(projects, activeSession.startPath)
+    } else {
+      // Initial mount — initialize from current startPath
+      initializeFocus(projects, activeSession.startPath)
     }
-  }, [initializeFocus, resetFocus, startPath]) // eslint-disable-line react-hooks/exhaustive-deps
-  // Note: projects intentionally excluded to prevent re-initialization when tasks are added
+  }, [activeSessionId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Handle initial load animation
   useEffect(() => {
@@ -234,11 +267,18 @@ export function FocusView({ startPath }: FocusViewProps) {
         <FocusHeaderButtons
           onExitFocus={handleExitFocusMode}
           onShowAddTasks={() => setShowAddTasksView(true)}
-          currentTaskPriority={showSubtaskCelebration ? 0 : currentTaskPriority} // 0 hides icons on celebration page
+          currentTaskPriority={showSubtaskCelebration ? 0 : currentTaskPriority}
           onPriorityChange={handleSetPriority}
           onShowTaskDetails={currentFocusTask ? () => setShowInfoOverlay(true) : undefined}
           hasDescription={!!currentFocusTask?.description}
           isTransitioning={isTransitioning}
+          timerDisplay={timerDisplay}
+          timerFired={timerFired}
+          hasActiveTimer={hasActiveTimer}
+          timerEndTime={timerEndTime}
+          onSetTimer={handleSetTimer}
+          onClearTimer={handleClearTimer}
+          onAcknowledgeTimer={handleAcknowledgeTimer}
         />
 
         {/* Conditional main content */}

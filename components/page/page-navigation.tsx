@@ -1,18 +1,14 @@
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Target } from "lucide-react"
+import { ArrowLeft } from "lucide-react"
 
 interface PageNavigationProps {
   backButtonText: string
   onBackClick: () => void
-  isFocusMode: boolean
-  onFocusClick: () => void
 }
 
 export function PageNavigation({
   backButtonText,
   onBackClick,
-  isFocusMode,
-  onFocusClick,
 }: PageNavigationProps) {
   return (
     <div className="flex items-center justify-between">
@@ -24,15 +20,6 @@ export function PageNavigation({
         <ArrowLeft className="h-4 w-4 flex-shrink-0" />
         <span className="truncate">{backButtonText}</span>
       </Button>
-      <Button
-        variant={isFocusMode ? "secondary" : "outline"}
-        size="sm"
-        className="transition-all duration-200 hover:scale-105 flex-shrink-0"
-        onClick={onFocusClick}
-      >
-        <Target className="h-4 w-4 mr-2" />
-        Focus
-      </Button>
     </div>
   )
-} 
+}

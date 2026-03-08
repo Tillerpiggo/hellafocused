@@ -1,8 +1,9 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { ProjectData, TaskData } from '@/lib/types'
+import { ProjectData, TaskData, MultiplierBreakdown } from '@/lib/types'
 import { calculateTodaysTaskFocusPoints, isPathPrefix, serializePath } from '@/lib/task-utils'
+import { calculateDueDateMultiplier, calculateTaskMultipliedPoints } from '@/lib/multiplier-utils'
 import { ProgressTask } from './progress-task'
 import { Button } from '@/components/ui/button'
 
@@ -23,7 +24,7 @@ export function TodaysProgressCard({ projects, completionsByDate }: TodaysProgre
 
   const todaysData = useMemo(() => {
     const today = new Date().toDateString()
-    const completedTasks: TaskData[] = []
+    const completedTasks: (TaskData & { projectName: string; path: string[]; focusPoints: number; multiplierBreakdown?: MultiplierBreakdown[]; multiplierTotal?: number })[] = []
     let totalFocusPoints = 0
 
     const processTask = (task: TaskData, projectName: string, parentPath: string[] = []) => {
@@ -32,14 +33,19 @@ export function TodaysProgressCard({ projects, completionsByDate }: TodaysProgre
       if (task.completed && task.completionDate) {
         const taskDate = new Date(task.completionDate).toDateString()
         if (taskDate === today) {
-          totalFocusPoints += 1
-          const taskFocusPoints = calculateTodaysTaskFocusPoints(task)
+          const points = calculateTaskMultipliedPoints(task, projects)
+          totalFocusPoints += points
+          const pointsFn = (t: TaskData) => calculateTaskMultipliedPoints(t, projects)
+          const taskFocusPoints = calculateTodaysTaskFocusPoints(task, pointsFn)
+          const multiplierResult = calculateDueDateMultiplier(task, projects)
           completedTasks.push({
             ...task,
             projectName,
             path: currentPath,
-            focusPoints: taskFocusPoints
-          } as TaskData & { projectName: string; path: string[]; focusPoints: number })
+            focusPoints: taskFocusPoints,
+            multiplierBreakdown: multiplierResult.breakdown,
+            multiplierTotal: multiplierResult.total,
+          })
         }
       }
 
@@ -55,11 +61,9 @@ export function TodaysProgressCard({ projects, completionsByDate }: TodaysProgre
     })
 
     const topLevelTasks = completedTasks.filter(task => {
-      const taskWithPath = task as TaskData & { path: string[] }
       return !completedTasks.some(potentialParent => {
-        const parentWithPath = potentialParent as TaskData & { path: string[] }
-        return parentWithPath.path.length < taskWithPath.path.length &&
-        isPathPrefix(taskWithPath.path, parentWithPath.path)
+        return potentialParent.path.length < task.path.length &&
+        isPathPrefix(task.path, potentialParent.path)
       })
     })
 
@@ -68,7 +72,6 @@ export function TodaysProgressCard({ projects, completionsByDate }: TodaysProgre
       return new Date(b.completionDate).getTime() - new Date(a.completionDate).getTime()
     })
 
-    // Use pre-computed completionsByDate for the 30-day average
     let totalPast30 = 0
     for (let i = 1; i <= 30; i++) {
       const date = new Date()
@@ -103,22 +106,19 @@ export function TodaysProgressCard({ projects, completionsByDate }: TodaysProgre
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
             {todaysData.totalFocusPoints} point{todaysData.totalFocusPoints !== 1 ? 's' : ''}
-            {todaysData.isAboveAverage && ' \ud83d\udd25'}
+            {todaysData.isAboveAverage && ' 🔥'}
           </span>
         </div>
       </div>
 
       <div className="space-y-1">
-        {(showAll ? todaysData.completedTasks : todaysData.completedTasks.slice(0, 6)).map((task) => {
-          const taskWithPath = task as TaskData & { projectName: string; path: string[]; focusPoints: number }
-          return (
-            <ProgressTask
-              key={serializePath(taskWithPath.path)}
-              task={taskWithPath}
-              depth={0}
-            />
-          )
-        })}
+        {(showAll ? todaysData.completedTasks : todaysData.completedTasks.slice(0, 6)).map((task) => (
+          <ProgressTask
+            key={serializePath(task.path)}
+            task={task}
+            depth={0}
+          />
+        ))}
       </div>
 
       {todaysData.completedTasks.length > 6 && (

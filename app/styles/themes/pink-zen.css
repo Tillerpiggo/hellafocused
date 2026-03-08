@@ -35,6 +35,16 @@
   --color-info: 217 91% 60%;         /* blue-500 */
   --color-highlight: 50 98% 64%;     /* yellow-300 */
   
+  /* Due date status colors */
+  --due-overdue: 0 72% 51%;
+  --due-overdue-bg: 0 86% 97%;
+  --due-today: 25 95% 53%;
+  --due-today-bg: 33 100% 96%;
+  --due-soon: 38 92% 50%;
+  --due-soon-bg: 48 96% 89%;
+  --due-future: 220 9% 46%;
+  --due-future-bg: 210 20% 93%;
+
   /* Glass morphism */
   --glass-bg: rgba(255, 245, 248, 0.22);
   --glass-border: rgba(255, 182, 193, 0.25);
@@ -149,6 +159,11 @@
   --link-color: 333 71% 51%;              /* pink-600 */
   --link-hover: 335 78% 42%;              /* pink-700 */
   --link-decoration: 327 47% 78%;         /* pink-300 */
+
+  /* Multiplier colors */
+  --multiplier-text: 142 76% 36%;
+  --multiplier-bg: 138 76% 97%;
+  --multiplier-glow: 142 71% 45%;
 }
 
 /* Pink Zen - Dark mode */
@@ -185,6 +200,16 @@
   --color-error: 0 72% 51%;
   --color-info: 217 91% 65%;
   --color-highlight: 50 90% 30%;
+
+  /* Due date status colors - dark */
+  --due-overdue: 0 72% 58%;
+  --due-overdue-bg: 0 50% 15%;
+  --due-today: 25 90% 55%;
+  --due-today-bg: 33 60% 15%;
+  --due-soon: 38 85% 55%;
+  --due-soon-bg: 48 60% 15%;
+  --due-future: 220 9% 60%;
+  --due-future-bg: 220 14% 20%;
 
   /* Glass morphism - dark mode */
   --glass-bg: rgba(40, 20, 30, 0.18);
@@ -292,4 +317,9 @@
   --link-color: 335 60% 72%;              /* pink-400 */
   --link-hover: 335 50% 78%;              /* pink-300 */
   --link-decoration: 340 50% 40%;         /* pink-600 */
+
+  /* Multiplier colors - dark */
+  --multiplier-text: 142 71% 55%;
+  --multiplier-bg: 142 50% 12%;
+  --multiplier-glow: 142 71% 45%;
 }
