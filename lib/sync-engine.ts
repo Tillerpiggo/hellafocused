@@ -352,8 +352,10 @@ class SyncEngine {
         name: taskData.name,
         completed: taskData.completed,
         completion_date: taskData.completionDate || null,
+        due_date: taskData.dueDate || null,
         position: taskData.position ?? 0,
         priority: taskData.priority,
+        is_ordered: taskData.isOrdered || false,
         updated_at: taskData.lastModificationDate,
         user_id: userId,
         project_id: change.projectId, // Get from sync action metadata
@@ -361,7 +363,7 @@ class SyncEngine {
         device_id: this.instanceId, // Include device_id for echo prevention
       }
     })
-    
+
     // Filter out updates with invalid parent references (safety check)
     const validUpdates = updates.filter(update => {
       // If task has a parent_id, ensure it's not referencing itself
@@ -708,8 +710,10 @@ class SyncEngine {
       parent_id: parentId || null,
       completed: task.completed,
       completion_date: task.completionDate || null,
+      due_date: task.dueDate || null,
       position: position,
       priority: task.priority,
+      is_ordered: task.isOrdered || false,
       user_id: userId,
       device_id: this.instanceId,
       is_deleted: false,
@@ -730,8 +734,10 @@ class SyncEngine {
       description: task.description || null,
       completed: task.completed,
       completion_date: task.completionDate || null,
+      due_date: task.dueDate || null,
       position: task.position ?? 0,
       priority: task.priority,
+      is_ordered: task.isOrdered || false,
       updated_at: task.lastModificationDate,
       device_id: this.instanceId,
     }

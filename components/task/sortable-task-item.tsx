@@ -11,9 +11,10 @@ interface SortableTaskItemProps {
   currentPath: string[]
   disabled?: boolean
   previewPriority?: number | null
+  orderNumber?: number
 }
 
-export const SortableTaskItem = memo(function SortableTaskItem({ task, index, currentPath, disabled, previewPriority }: SortableTaskItemProps) {
+export const SortableTaskItem = memo(function SortableTaskItem({ task, index, currentPath, disabled, previewPriority, orderNumber }: SortableTaskItemProps) {
   const [taskIsEditing, setTaskIsEditing] = useState(false)
   return (
     <Draggable 
@@ -60,6 +61,7 @@ export const SortableTaskItem = memo(function SortableTaskItem({ task, index, cu
               isDragging={snapshot.isDragging && !snapshot.isDropAnimating}
               previewPriority={previewPriority ?? undefined}
               onEditingChange={setTaskIsEditing}
+              orderNumber={orderNumber}
             />
           </div>
         );

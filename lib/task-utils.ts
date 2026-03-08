@@ -421,15 +421,26 @@ export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: stri
   if (!project) return { leaves: [], updatedPath: fullPath } // Project not found
   
   // Get all leaf nodes from the tasks at this level (recursively)
-  const getLeafNodesAtLevel = (tasksAtLevel: TaskData[]): TaskData[] => {
+  // When a parent task is ordered, only the first uncompleted subtask (by position) is considered
+  const getLeafNodesAtLevel = (tasksAtLevel: TaskData[], parentIsOrdered?: boolean): TaskData[] => {
     let leaves: TaskData[] = []
-    for (const task of tasksAtLevel) {
-      if (!task.completed) {
-        if (!task.subtasks || task.subtasks.length === 0 || task.subtasks.every((st) => st.completed)) {
-          leaves.push(task)
-        } else {
-          leaves = leaves.concat(getLeafNodesAtLevel(task.subtasks.filter((st) => !st.completed)))
-        }
+
+    let tasksToProcess = tasksAtLevel.filter(t => !t.completed)
+
+    if (parentIsOrdered && tasksToProcess.length > 0) {
+      // For ordered parents, only consider the first uncompleted subtask by position
+      tasksToProcess = [tasksToProcess.slice().sort((a, b) => {
+        if (a.priority !== b.priority) return b.priority - a.priority
+        if (a.position !== undefined && b.position !== undefined) return a.position - b.position
+        return a.lastModificationDate.localeCompare(b.lastModificationDate)
+      })[0]]
+    }
+
+    for (const task of tasksToProcess) {
+      if (!task.subtasks || task.subtasks.length === 0 || task.subtasks.every((st) => st.completed)) {
+        leaves.push(task)
+      } else {
+        leaves = leaves.concat(getLeafNodesAtLevel(task.subtasks, task.isOrdered))
       }
     }
     return leaves
@@ -440,6 +451,7 @@ export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: stri
   let currentFullPath = [...fullPath]
   while (true) {
     let currentTasks: TaskData[]
+    let parentOrdered: boolean | undefined
     if (isProject(currentFullPath)) {
       currentTasks = project.tasks
     } else {
@@ -448,10 +460,11 @@ export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: stri
         return { leaves: [], updatedPath: fullPath } // Path is invalid
       }
       currentTasks = parentTask.subtasks
+      parentOrdered = parentTask.isOrdered
     }
 
     // Get leaf nodes at current level
-    const leaves = getLeafNodesAtLevel(currentTasks)
+    const leaves = getLeafNodesAtLevel(currentTasks, parentOrdered)
     if (leaves.length > 0) {
       return { leaves, updatedPath: currentFullPath }
     }
@@ -804,35 +817,38 @@ export const getTaskParentChain = (projects: ProjectData[], taskId: string): { i
 }
 
 /**
- * Calculate focus points for a task and all its subtasks recursively
+ * Calculate focus points for a task and all its subtasks recursively.
+ * Accepts an optional pointsFn to override the default 1-point-per-task.
  */
-export const calculateTaskFocusPoints = (task: TaskData): number => {
-  let points = task.completed ? 1 : 0
+export const calculateTaskFocusPoints = (task: TaskData, pointsFn?: (t: TaskData) => number): number => {
+  let points = 0
+  if (task.completed) {
+    points = pointsFn ? pointsFn(task) : 1
+  }
   task.subtasks.forEach(subtask => {
-    points += calculateTaskFocusPoints(subtask)
+    points += calculateTaskFocusPoints(subtask, pointsFn)
   })
   return points
 }
 
 /**
- * Calculate focus points for a task and all its subtasks, but only count tasks completed today
+ * Calculate focus points for a task and all its subtasks, but only count tasks completed today.
+ * Accepts an optional pointsFn to override the default 1-point-per-task.
  */
-export const calculateTodaysTaskFocusPoints = (task: TaskData): number => {
+export const calculateTodaysTaskFocusPoints = (task: TaskData, pointsFn?: (t: TaskData) => number): number => {
   const today = new Date().toDateString()
   let points = 0
-  
-  // Count this task if it was completed today
+
   if (task.completed && task.completionDate) {
     const taskDate = new Date(task.completionDate).toDateString()
     if (taskDate === today) {
-      points = 1
+      points = pointsFn ? pointsFn(task) : 1
     }
   }
-  
-  // Count subtasks completed today
+
   task.subtasks.forEach(subtask => {
-    points += calculateTodaysTaskFocusPoints(subtask)
+    points += calculateTodaysTaskFocusPoints(subtask, pointsFn)
   })
-  
+
   return points
 } 

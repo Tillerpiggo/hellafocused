@@ -3,17 +3,19 @@ import { DragDropContext, Droppable, type DropResult, type DragUpdate, type Drag
 import type { TaskData } from "@/lib/types"
 import { SortableTaskItem } from "./sortable-task-item"
 import { useAppStore } from "@/store/app-store"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
+import { isImminentTask } from "@/lib/due-date-utils"
 
 const DEFAULT_VISIBLE = 3
 
 interface TaskListViewProps {
   tasks: TaskData[]
   currentPath: string[] // Unified path including project and task hierarchy
+  parentIsOrdered?: boolean
 }
 
-export function TaskListView({ tasks, currentPath }: TaskListViewProps) {
+export function TaskListView({ tasks, currentPath, parentIsOrdered }: TaskListViewProps) {
   const reorderTasks = useAppStore((state) => state.reorderTasks)
   const moveTaskWithPriorityChange = useAppStore((state) => state.moveTaskWithPriorityChange)
 
@@ -23,9 +25,6 @@ export function TaskListView({ tasks, currentPath }: TaskListViewProps) {
   useEffect(() => {
     setExpanded(false)
   }, [pathKey])
-
-  const canExpand = tasks.length > DEFAULT_VISIBLE
-  const hiddenCount = tasks.length - DEFAULT_VISIBLE
 
   // Track cross-section drag state for styling preview
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
@@ -95,8 +94,16 @@ export function TaskListView({ tasks, currentPath }: TaskListViewProps) {
     }
   }
 
-  const baseTasks = tasks.slice(0, DEFAULT_VISIBLE)
-  const overflowTasks = tasks.slice(DEFAULT_VISIBLE)
+  const imminentOverflowCount = useMemo(() => {
+    if (tasks.length <= DEFAULT_VISIBLE) return 0
+    return tasks.slice(DEFAULT_VISIBLE).filter(isImminentTask).length
+  }, [tasks])
+
+  const effectiveVisible = DEFAULT_VISIBLE + imminentOverflowCount
+  const canExpand = tasks.length > effectiveVisible
+  const hiddenCount = tasks.length - effectiveVisible
+  const baseTasks = tasks.slice(0, effectiveVisible)
+  const overflowTasks = tasks.slice(effectiveVisible)
 
   return (
     <div>
@@ -119,6 +126,7 @@ export function TaskListView({ tasks, currentPath }: TaskListViewProps) {
                   currentPath={currentPath}
                   disabled={task.completed}
                   previewPriority={task.id === draggedTaskId ? previewPriority : undefined}
+                  orderNumber={parentIsOrdered ? index + 1 : undefined}
                 />
               ))}
               {canExpand && (
@@ -134,10 +142,11 @@ export function TaskListView({ tasks, currentPath }: TaskListViewProps) {
                       <SortableTaskItem
                         key={task.id}
                         task={task}
-                        index={DEFAULT_VISIBLE + i}
+                        index={effectiveVisible + i}
                         currentPath={currentPath}
                         disabled={task.completed}
                         previewPriority={task.id === draggedTaskId ? previewPriority : undefined}
+                        orderNumber={parentIsOrdered ? effectiveVisible + i + 1 : undefined}
                       />
                     ))}
                   </div>

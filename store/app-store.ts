@@ -62,6 +62,10 @@ interface AppState {
   updateProjectName: (projectId: string, newName: string) => void
   updateTaskName: (taskPath: string[], newName: string) => void
   updateTaskDescription: (taskPath: string[], newDescription: string) => void
+  setTaskDueDate: (taskPath: string[], dueDate: string | undefined) => void
+  toggleTaskOrdered: (taskPath: string[]) => void
+  dueSoonDays: number
+  setDueSoonDays: (days: number) => void
   addProject: (projectName: string) => void
   reorderTasks: (parentPath: string[], fromIndex: number, toIndex: number) => void
   reorderProjects: (fromIndex: number, toIndex: number) => void
@@ -80,6 +84,7 @@ export const useAppStore = create<AppState>()(
       navigationContext: [], // Start with empty context
       showCompleted: false,
       searchQuery: "",
+      dueSoonDays: 3,
 
   selectProject: (projectId) => set({ 
     currentPath: projectId ? [projectId] : [],
@@ -333,6 +338,35 @@ export const useAppStore = create<AppState>()(
     trackTaskUpdated(taskPath)
   },
 
+  setTaskDueDate: (taskPath, dueDate) => {
+    set(
+      produce((draft: AppState) => {
+        updateTaskAtPath(draft.projects, taskPath, (task) => {
+          task.dueDate = dueDate || undefined
+          task.lastModificationDate = new Date().toISOString()
+        })
+      }),
+    )
+
+    trackTaskUpdated(taskPath)
+  },
+
+  toggleTaskOrdered: (taskPath) => {
+    set(
+      produce((draft: AppState) => {
+        updateTaskAtPath(draft.projects, taskPath, (task) => {
+          task.isOrdered = !task.isOrdered
+          task.lastModificationDate = new Date().toISOString()
+        })
+      }),
+    )
+    trackTaskUpdated(taskPath)
+  },
+
+  setDueSoonDays: (days) => {
+    set({ dueSoonDays: days })
+  },
+
   addProject: (projectName) => {
     
     const newProjectId = uuidv4()
@@ -565,11 +599,20 @@ export const getCurrentTasksForView = (
     })
   }
 
+  // Check if the current parent task is ordered
+  const currentTask = isProject(currentPath) ? null : findTaskAtPath(projects, currentPath)
+  const parentIsOrdered = currentTask?.isOrdered
+
   if (searchQuery.trim()) {
     const searchLower = searchQuery.toLowerCase().trim()
     tasksToShow = tasksToShow.filter((task) =>
       task.name.toLowerCase().includes(searchLower)
     )
+  }
+
+  if (parentIsOrdered) {
+    // Ordered parents: show all tasks in position order, completed tasks inline
+    return sortByPriorityAndPosition(tasksToShow)
   }
 
   if (showCompleted) {

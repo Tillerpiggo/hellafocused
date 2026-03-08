@@ -9,6 +9,8 @@ import { CheckCircle, Circle, ChevronRight, Star, Clock, Edit3 } from "lucide-re
 import { cn } from "@/lib/utils"
 import { TaskContextMenu } from "./task-context-menu"
 import { MoveTaskDialog } from "./move-task-dialog"
+import { DueDateBadge } from "./due-date-badge"
+import { DueDatePicker } from "./due-date-picker"
 import { EditableTitle, type EditableTitleRef } from "@/components/editable-title"
 import { useState, useRef, memo } from "react"
 
@@ -18,18 +20,22 @@ interface TaskItemProps {
   isDragging?: boolean
   previewPriority?: number // For cross-section drag styling preview
   onEditingChange?: (isEditing: boolean) => void
+  orderNumber?: number // When set, shows a numbered circle instead of a checkbox (parent is ordered)
 }
 
-export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false, previewPriority, onEditingChange }: TaskItemProps) {
+export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false, previewPriority, onEditingChange, orderNumber }: TaskItemProps) {
   const navigateToTask = useAppStore((state) => state.navigateToTask)
   const updateTaskName = useAppStore((state) => state.updateTaskName)
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
   const toggleTaskPrefer = useAppStore((state) => state.toggleTaskPrefer)
+  const setTaskDueDate = useAppStore((state) => state.setTaskDueDate)
+  const dueSoonDays = useAppStore((state) => state.dueSoonDays)
   const attemptTaskCompletion = useUIStore((state) => state.attemptTaskCompletion)
   const attemptDeletion = useUIStore((state) => state.attemptDeletion)
-  const setFocusMode = useUIStore((state) => state.setFocusMode)
+
   const [isEditing, setIsEditing] = useState(false)
   const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false)
+  const [showDueDatePicker, setShowDueDatePicker] = useState(false)
   const editableTitleRef = useRef<EditableTitleRef>(null)
 
   const taskPath = [...currentPath, task.id]
@@ -59,30 +65,17 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
     <div
       className={cn(
         "flex items-center justify-between p-4 rounded-2xl group glass-card",
-        // Only add transitions when not dragging to avoid conflicts with drop animation
         !isDragging && "transition-all duration-200 ease-out",
-        isDragging
-          ? [
-              "opacity-80",
-              task.completed
-                ? "backdrop-blur-sm bg-muted/30"
-                : effectivePriority === 1
-                ? "backdrop-blur-md bg-taskPriority-from/50 border-priority/30"
-                : effectivePriority === -1
-                ? "backdrop-blur-sm bg-muted/30"
-                : "backdrop-blur-md bg-taskNormal-from/50"
-            ]
-          : [
-              task.completed
-                ? "backdrop-blur-sm bg-muted/30 opacity-75"
-                : effectivePriority === 1
-                ? "backdrop-blur-md bg-taskPriority-from/50 hover:bg-taskPriority-hoverFrom/65 border-priority/30 hover:border-priority-hoverBorder/55"
-                : effectivePriority === -1
-                ? "backdrop-blur-sm bg-muted/40 opacity-70 hover:bg-muted/50"
-                : "backdrop-blur-md bg-taskNormal-from/50 hover:bg-taskHover-from/65",
-            ],
+        task.completed
+          ? "task-item-completed"
+          : effectivePriority === 1
+          ? "task-item-priority"
+          : effectivePriority === -1
+          ? "task-item-deferred"
+          : "task-item-normal",
         "cursor-pointer shadow-sm hover:shadow-md",
       )}
+      data-dragging={isDragging || undefined}
       onClick={handleNavigate}
     >
       <div className="flex items-center gap-4 flex-grow min-w-0">
@@ -98,14 +91,21 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
           >
             {isEditing ? (
               <Edit3 className="h-4 w-4 text-primary" />
+            ) : orderNumber !== undefined ? (
+              <span className={cn(
+                "h-5 w-5 rounded-full flex items-center justify-center text-[11px] font-semibold",
+                task.completed
+                  ? "bg-primary/10 text-primary/40 line-through"
+                  : "bg-primary/15 text-primary"
+              )}>
+                {orderNumber}
+              </span>
             ) : task.completed ? (
               <CheckCircle className="h-5 w-5 text-primary" />
             ) : (
               <Circle className={cn(
                 "h-5 w-5 transition-colors",
-                effectivePriority === 1 
-                  ? "text-priority-icon/60 group-hover:text-priority-iconHover"
-                  : "text-muted-foreground group-hover:text-primary"
+                effectivePriority === 1 ? "task-circle-priority" : "task-circle-normal"
               )} />
             )}
           </Button>
@@ -118,20 +118,22 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
                 value={task.name}
                 onChange={handleTaskNameChange}
                 className={cn(
-                  "text-base font-medium", 
-                  task.completed && "line-through text-muted-foreground",
-                  effectivePriority === 1 && !task.completed && "text-priority-text font-medium",
-                  effectivePriority === -1 && !task.completed && "text-muted-foreground"
+                  "text-base font-medium",
+                  task.completed ? "task-text-completed"
+                    : effectivePriority === 1 ? "task-text-priority"
+                    : effectivePriority === -1 ? "task-text-deferred"
+                    : undefined
                 )}
                 isCompleted={task.completed}
               />
             ) : (
               <span
                 className={cn(
-                  "text-base font-medium break-words", 
-                  task.completed && "line-through text-muted-foreground",
-                  effectivePriority === 1 && !task.completed && "text-priority-text font-medium",
-                  effectivePriority === -1 && !task.completed && "text-muted-foreground"
+                  "text-base font-medium break-words",
+                  task.completed ? "task-text-completed"
+                    : effectivePriority === 1 ? "task-text-priority"
+                    : effectivePriority === -1 ? "task-text-deferred"
+                    : undefined
                 )}
               >
                 {task.name}
@@ -141,7 +143,9 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         </div>
       </div>
       <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2">
-        {/* Priority indicators */}
+        {!task.completed && task.dueDate && (
+          <DueDateBadge dueDate={task.dueDate} dueSoonDays={dueSoonDays} />
+        )}
         {effectivePriority === 1 && !task.completed && (
           <Star className="h-4 w-4 text-priority-icon/60 fill-priority-fill/60" />
         )}
@@ -153,7 +157,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
           isEditing
             ? "text-muted-foreground/30"
             : effectivePriority === 1 && !task.completed
-            ? "text-priority-icon/40 group-hover:text-priority-iconHover"
+            ? "task-chevron-priority"
             : "group-hover:text-primary"
         )} />
       </div>
@@ -178,7 +182,8 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         onTogglePrefer={() => toggleTaskPrefer(taskPath)}
         onDelete={() => attemptDeletion(taskPath)}
         onMove={() => setIsMoveDialogOpen(true)}
-        onFocus={() => setFocusMode(true, taskPath)}
+        onSetDueDate={() => setShowDueDatePicker(true)}
+        hasDueDate={!!task.dueDate}
         isCompleted={task.completed}
         isDeferred={effectivePriority === -1}
         isPreferred={effectivePriority === 1}
@@ -191,6 +196,17 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         onClose={() => setIsMoveDialogOpen(false)}
         taskPath={taskPath}
         taskName={task.name}
+      />
+
+      <DueDatePicker
+        dueDate={task.dueDate}
+        onDateChange={(date) => {
+          setTaskDueDate(taskPath, date)
+          setShowDueDatePicker(false)
+        }}
+        open={showDueDatePicker}
+        onOpenChange={(open) => { if (!open) setShowDueDatePicker(false) }}
+        hideTrigger
       />
     </>
   )

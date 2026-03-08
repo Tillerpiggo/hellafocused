@@ -97,9 +97,11 @@ export class MergeManager {
       description: cloudTask.description || undefined,
       completed: cloudTask.completed,
       completionDate: cloudTask.completion_date || undefined,
+      dueDate: cloudTask.due_date || undefined,
       lastModificationDate: cloudTask.updated_at,
       position: cloudTask.position,
       priority: cloudTask.priority,
+      isOrdered: cloudTask.is_ordered || undefined,
       subtasks,
     }
   }
@@ -178,9 +180,11 @@ export class MergeManager {
       description: useCloudTask ? (cloudTask.description || undefined) : localTask.description,
       completed: useCloudTask ? cloudTask.completed : localTask.completed,
       completionDate: useCloudTask ? (cloudTask.completion_date || undefined) : localTask.completionDate,
+      dueDate: useCloudTask ? (cloudTask.due_date || undefined) : localTask.dueDate,
       lastModificationDate: useCloudTask ? cloudUpdateDate : localTask.lastModificationDate,
       position: useCloudTask ? cloudTask.position : localTask.position,
       priority: useCloudTask ? cloudTask.priority : localTask.priority,
+      isOrdered: useCloudTask ? (cloudTask.is_ordered || undefined) : localTask.isOrdered,
       subtasks: this.mergeTaskSubtasks(localTask, cloudTask, childrenMap, pendingEntityIds)
     }
   }

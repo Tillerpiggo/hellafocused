@@ -3,6 +3,7 @@ import { ProjectListView } from "@/components/project/project-list-view"
 import { AddProjectForm } from "@/components/project/add-project-form"
 import { TaskListView } from "@/components/task/task-list-view"
 import { FocusView } from "@/components/focus/focus-view"
+import { SessionDock } from "@/components/focus/session-dock"
 import { TaskCompletionDialog } from "@/components/task/task-completion-dialog"
 import { DeleteConfirmationDialog } from "@/components/task/delete-confirmation-dialog"
 import { ProjectPageHeader } from "@/components/project/project-page-header"
@@ -14,8 +15,7 @@ import { TopBar } from "@/components/top-bar"
 import { useAppStore, getCurrentTasksForView, getCurrentTaskChain } from "@/store/app-store"
 import { useSyncStore } from "@/store/sync-store"
 import { useUIStore } from "@/store/ui-store"
-import { Button } from "@/components/ui/button"
-import { Target, Loader2, CheckSquare, TrendingUp } from "lucide-react"
+import { Loader2, CheckSquare, TrendingUp } from "lucide-react"
 import { AddTaskForm } from "@/components/task/add-task-form"
 import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
@@ -27,10 +27,13 @@ import { useRef, useMemo, useState, useEffect } from "react"
 import { SidebarLayout } from "@/components/sidebar/sidebar-layout"
 import { countSubtasksRecursively, findTaskAtPath, findProjectAtPath, getProjectId, isProject, isProjectList, isTask } from "@/lib/task-utils"
 import { searchAllTasks, groupSearchResults } from "@/lib/search-utils"
+import { useNavigationTransition } from "@/hooks/use-navigation-transition"
+import { NavigationSkeleton } from "@/components/skeleton/navigation-skeleton"
 
 export default function HomePage() {
   const projects = useAppStore(s => s.projects)
   const currentPath = useAppStore(s => s.currentPath)
+  const { isTransitioning, justFinished } = useNavigationTransition(currentPath)
   const navigateBack = useAppStore(s => s.navigateBack)
   const navigateToPath = useAppStore(s => s.navigateToPath)
   const selectProject = useAppStore(s => s.selectProject)
@@ -40,6 +43,8 @@ export default function HomePage() {
   const toggleTaskCompletion = useAppStore(s => s.toggleTaskCompletion)
   const toggleTaskDefer = useAppStore(s => s.toggleTaskDefer)
   const toggleTaskPrefer = useAppStore(s => s.toggleTaskPrefer)
+  const toggleTaskOrdered = useAppStore(s => s.toggleTaskOrdered)
+  const setTaskDueDate = useAppStore(s => s.setTaskDueDate)
   const addProject = useAppStore(s => s.addProject)
   const showCompleted = useAppStore(s => s.showCompleted)
   const searchQuery = useAppStore(s => s.searchQuery)
@@ -60,8 +65,6 @@ export default function HomePage() {
     confirmDeletion,
     cancelDeletion,
     isFocusMode,
-    setFocusMode,
-    focusStartPath,
   } = uiStore
   const titleRef = useRef<EditableTitleRef>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -96,18 +99,18 @@ export default function HomePage() {
   }, [showSearch])
 
   const tasksToDisplay = useMemo(
-    () => getCurrentTasksForView(projects, currentPath, searchQuery, showCompleted),
-    [projects, currentPath, searchQuery, showCompleted]
+    () => isTransitioning ? [] : getCurrentTasksForView(projects, currentPath, searchQuery, showCompleted),
+    [projects, currentPath, searchQuery, showCompleted, isTransitioning]
   )
-  const currentProject = findProjectAtPath(projects, currentPath)
-  const taskChain = getCurrentTaskChain(projects, currentPath)
+  const currentProject = isTransitioning ? null : findProjectAtPath(projects, currentPath)
+  const taskChain = isTransitioning ? [] : getCurrentTaskChain(projects, currentPath)
   const currentTask = taskChain.length > 0 ? taskChain[taskChain.length - 1] : null
   const isCurrentTaskCompleted = currentTask?.completed || false
 
   // Search results (memoized)
   const searchResults = useMemo(
-    () => searchAllTasks(projects, searchQuery, currentPath),
-    [projects, searchQuery, currentPath]
+    () => isTransitioning ? [] : searchAllTasks(projects, searchQuery, currentPath),
+    [projects, searchQuery, currentPath, isTransitioning]
   )
   const { currentProject: currentProjectResults, otherProjects: otherProjectResults } = useMemo(
     () => groupSearchResults(searchResults),
@@ -152,7 +155,8 @@ export default function HomePage() {
   if (isFocusMode) {
     return (
       <div className="bg-background text-foreground">
-        <FocusView startPath={focusStartPath!} />
+        <FocusView />
+        <SessionDock />
       </div>
     )
   }
@@ -249,21 +253,16 @@ export default function HomePage() {
   }
 
   const pageContent = () => {
+    if (isTransitioning) {
+      return <NavigationSkeleton />
+    }
+
+    const fadeClass = justFinished ? "animate-fade-in" : ""
+
     if (isProjectList(currentPath)) {
       return (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h1 className="text-3xl font-light tracking-wide text-foreground">Projects</h1>
-            <Button
-              variant={isFocusMode ? "secondary" : "outline"}
-              size="sm"
-              className="transition-all duration-200 hover:scale-105"
-              onClick={() => setFocusMode(!isFocusMode)}
-            >
-              <Target className="h-4 w-4 mr-2" />
-              {isFocusMode ? "Exit" : "Focus"}
-            </Button>
-          </div>
+        <div className={`space-y-6 ${fadeClass}`}>
+          <h1 className="text-3xl font-light tracking-wide text-foreground">Projects</h1>
           <ProjectListView projects={projects} />
 
           <AddProjectForm onAddProject={addProject} />
@@ -275,13 +274,11 @@ export default function HomePage() {
     if (!currentProjectId) return null
 
     return (
-      <div className="space-y-6 pb-32">
+      <div className={`space-y-6 pb-32 ${fadeClass}`}>
         {/* Navigation and Focus button */}
         <PageNavigation
           backButtonText={getBackButtonText()}
           onBackClick={handleBackClick}
-          isFocusMode={isFocusMode}
-          onFocusClick={() => setFocusMode(!isFocusMode, currentPath)}
         />
 
         {/* Breadcrumb */}
@@ -318,7 +315,10 @@ export default function HomePage() {
             onDelete={handleDelete}
             onToggleDefer={() => toggleTaskDefer(currentPath)}
             onTogglePrefer={() => toggleTaskPrefer(currentPath)}
-            onFocus={() => setFocusMode(true, currentPath)}
+            onToggleOrdered={() => toggleTaskOrdered(currentPath)}
+            isOrdered={!!currentTask?.isOrdered}
+            dueDate={currentTask?.dueDate}
+            onDueDateChange={(date) => setTaskDueDate(currentPath, date)}
             showCompleted={showCompleted}
             shouldShowCompleteButton={shouldShowCompleteButton()}
             onComplete={() => attemptTaskCompletion(currentPath)}
@@ -359,7 +359,7 @@ export default function HomePage() {
         {/* Tasks */}
         {(!showSearch || !hasSearchResults) && (
           <div className="space-y-2">
-            <TaskListView tasks={tasksToDisplay} currentPath={currentPath} />
+            <TaskListView tasks={tasksToDisplay} currentPath={currentPath} parentIsOrdered={currentTask?.isOrdered} />
           </div>
         )}
 
@@ -414,6 +414,7 @@ export default function HomePage() {
           subtaskCount={pendingDeletionItem.subtaskCount}
         />
       )}
+      <SessionDock />
     </div>
   )
 }

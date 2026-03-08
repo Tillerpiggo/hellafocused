@@ -2,17 +2,13 @@ import { PageHeader } from "@/components/page/page-header"
 import { TaskOptionsMenu } from "./task-options-menu"
 import { TaskDescriptionEditor, type TaskDescriptionEditorRef } from "./task-description-editor"
 import { Button } from "@/components/ui/button"
-import { Check, X, Search, Edit2 } from "lucide-react"
-// import { Calendar } from "lucide-react" // Will add due dates later
+import { Check, X, Search, Edit2, Calendar, ListOrdered } from "lucide-react"
 import { forwardRef, useState, useRef } from "react"
 import type { EditableTitleRef } from "@/components/editable-title"
 import { LinkifiedText } from "@/components/ui/linkified-text"
-// import { DayPicker } from "react-day-picker" // Will add due dates later
-// import {
-//   Popover,
-//   PopoverContent,
-//   PopoverTrigger,
-// } from "@/components/ui/popover" // Will add due dates later
+import { DueDatePicker } from "./due-date-picker"
+import { getDueStatus, formatDueDate } from "@/lib/due-date-utils"
+import { cn } from "@/lib/utils"
 
 interface TaskPageHeaderProps {
   title: string
@@ -26,11 +22,14 @@ interface TaskPageHeaderProps {
   onDelete: () => void
   onToggleDefer: () => void
   onTogglePrefer: () => void
-  onFocus: () => void
+  onToggleOrdered: () => void
+  isOrdered: boolean
   showCompleted: boolean
   shouldShowCompleteButton: boolean
   onComplete: () => void
   onUncomplete: () => void
+  dueDate?: string
+  onDueDateChange: (date: string | undefined) => void
   showSearch: boolean
   setShowSearch: (show: boolean) => void
 }
@@ -47,17 +46,19 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
   onDelete,
   onToggleDefer,
   onTogglePrefer,
-  onFocus,
+  onToggleOrdered,
+  isOrdered,
   showCompleted,
   shouldShowCompleteButton,
   onComplete,
   onUncomplete,
+  dueDate,
+  onDueDateChange,
   showSearch,
   setShowSearch,
 }, ref) => {
   const [showDescriptionEditor, setShowDescriptionEditor] = useState(false)
   const descriptionEditorRef = useRef<TaskDescriptionEditorRef>(null)
-  // const [selectedDate, setSelectedDate] = useState<Date | undefined>() // Will add due dates later
   
   const handleSearchClick = () => {
     // Close description editor if it's open
@@ -82,11 +83,6 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
       setShowDescriptionEditor(true)
     }
   }
-
-  // Will add due date handler later
-  // const handleDueDateClick = () => {
-  //   console.log("Set due date - coming soon")
-  // }
 
   const handleDescriptionSave = (newDescription: string) => {
     console.log('TaskPageHeader: handleDescriptionSave called with:', newDescription)
@@ -120,35 +116,56 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
         size="icon"
         onClick={handleDetailsClick}
         className={`h-8 w-8 rounded-full transition-all ${
-          showDescriptionEditor 
-            ? "bg-primary/20 opacity-100 hover:bg-primary/30" 
+          showDescriptionEditor
+            ? "bg-primary/20 opacity-100 hover:bg-primary/30"
             : "opacity-60 hover:opacity-100"
         }`}
         title="Edit details"
       >
         <Edit2 className="h-4 w-4" />
       </Button>
-      {/* Will add due date button later
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full opacity-60 hover:opacity-100 transition-opacity"
-            title="Set due date"
-          >
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={onToggleOrdered}
+        className={`h-8 w-8 rounded-full transition-all ${
+          isOrdered
+            ? "bg-primary/20 opacity-100 hover:bg-primary/30"
+            : "opacity-60 hover:opacity-100"
+        }`}
+        title={isOrdered ? "Subtasks are ordered" : "Order subtasks"}
+      >
+        <ListOrdered className="h-4 w-4" />
+      </Button>
+      <DueDatePicker
+        dueDate={dueDate}
+        onDateChange={onDueDateChange}
+      >
+        <button
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-full h-8 transition-all",
+            dueDate
+              ? "px-3"
+              : "w-8 justify-center opacity-60 hover:opacity-100 hover:bg-accent",
+            dueDate && (() => {
+              const status = getDueStatus(dueDate)
+              switch (status) {
+                case 'overdue': return 'text-due-overdue bg-due-overdueBg/60 hover:bg-due-overdueBg'
+                case 'due-today': return 'text-due-today bg-due-todayBg/60 hover:bg-due-todayBg'
+                case 'due-soon': return 'text-due-soon bg-due-soonBg/60 hover:bg-due-soonBg'
+                default: return 'text-muted-foreground bg-due-futureBg/60 hover:bg-due-futureBg'
+              }
+            })()
+          )}
+          title={dueDate ? `Due: ${formatDueDate(dueDate)}` : "Set due date"}
+        >
+          {dueDate ? (
+            <span className="text-xs font-medium">{formatDueDate(dueDate)}</span>
+          ) : (
             <Calendar className="h-4 w-4" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0">
-          <DayPicker
-            mode="single"
-            selected={selectedDate}
-            onSelect={setSelectedDate}
-          />
-        </PopoverContent>
-      </Popover>
-      */}
+          )}
+        </button>
+      </DueDatePicker>
     </div>
   )
 
@@ -193,10 +210,11 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
             onDelete={onDelete}
             onToggleDefer={onToggleDefer}
             onTogglePrefer={onTogglePrefer}
-            onFocus={onFocus}
+            onToggleOrdered={onToggleOrdered}
             showCompleted={showCompleted}
             isDeferred={isDeferred}
             isPreferred={isPreferred}
+            isOrdered={isOrdered}
           />
         }
         actionButtons={actionButtons}
