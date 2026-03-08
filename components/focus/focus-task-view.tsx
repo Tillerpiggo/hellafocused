@@ -5,7 +5,7 @@ import { triggerConfetti } from "@/lib/confetti"
 import { FocusContextMenu } from "./focus-context-menu"
 import { TaskBreadcrumb } from "./task-breadcrumb"
 import { cn } from "@/lib/utils"
-import { useAppStore } from "@/store/app-store"
+import { useAppStore, getOrderedTaskNumberMap } from "@/store/app-store"
 import { useFocusStore, canShuffleCurrentTask } from "@/store/focus-store"
 import { getTaskParentChain, findTaskPath, findTaskAtPath, getProjectId } from "@/lib/task-utils"
 import { LinkifiedText } from "@/components/ui/linkified-text"
@@ -82,14 +82,10 @@ export function FocusTaskView({
     const parentPath = [projectId, ...taskPathInProject.slice(0, -1)]
     const parent = findTaskAtPath(projects, parentPath)
     if (!parent?.isOrdered) return null
-    const sorted = parent.subtasks.slice().sort((a, b) => {
-      if (a.priority !== b.priority) return b.priority - a.priority
-      if (a.position !== undefined && b.position !== undefined) return a.position - b.position
-      return a.lastModificationDate.localeCompare(b.lastModificationDate)
-    })
-    const index = sorted.findIndex(t => t.id === currentTask.id)
-    if (index === -1) return null
-    return { current: index + 1, total: sorted.length }
+    const orderMap = getOrderedTaskNumberMap(projects, parentPath)
+    const orderNumber = orderMap[currentTask.id]
+    if (orderNumber === undefined) return null
+    return { current: orderNumber, total: parent.subtasks.length }
   }, [currentTask, projects, startPath])
 
   const handleDismissMultiplierBadge = useCallback(() => {

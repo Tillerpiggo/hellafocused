@@ -585,7 +585,7 @@ export const getCurrentTasksForView = (
 
   // Helper function to sort tasks by priority first, then position, with fallback to creation date
   const sortByPriorityAndPosition = (tasks: TaskData[]) => {
-    return tasks.sort((a, b) => {
+    return [...tasks].sort((a, b) => {
       if (a.priority !== b.priority) {
         return b.priority - a.priority
       }
@@ -611,8 +611,11 @@ export const getCurrentTasksForView = (
   }
 
   if (parentIsOrdered) {
-    // Ordered parents: show all tasks in position order, completed tasks inline
-    return sortByPriorityAndPosition(tasksToShow)
+    const allSorted = sortByPriorityAndPosition([...tasksToShow])
+    if (showCompleted) {
+      return allSorted
+    }
+    return allSorted.filter((task) => !task.completed)
   }
 
   if (showCompleted) {
@@ -629,6 +632,35 @@ export const getCurrentTasksForView = (
   } else {
     return sortByPriorityAndPosition(tasksToShow.filter((task) => !task.completed))
   }
+}
+
+export const getOrderedTaskNumberMap = (
+  projects: ProjectData[],
+  currentPath: string[]
+): Record<string, number> => {
+  if (isProjectList(currentPath) || isProject(currentPath)) return {}
+
+  const currentTask = findTaskAtPath(projects, currentPath)
+  if (!currentTask?.isOrdered) return {}
+
+  const allTasks = [...currentTask.subtasks]
+
+  const sortByPriorityAndPosition = (tasks: TaskData[]) => {
+    return tasks.sort((a, b) => {
+      if (a.priority !== b.priority) return b.priority - a.priority
+      if (a.position !== undefined && b.position !== undefined) return a.position - b.position
+      if (a.position !== undefined && b.position === undefined) return -1
+      if (a.position === undefined && b.position !== undefined) return 1
+      return a.lastModificationDate.localeCompare(b.lastModificationDate)
+    })
+  }
+
+  const sorted = sortByPriorityAndPosition(allTasks)
+  const map: Record<string, number> = {}
+  sorted.forEach((task, i) => {
+    map[task.id] = i + 1
+  })
+  return map
 }
 
 export const getCurrentTaskChain = (

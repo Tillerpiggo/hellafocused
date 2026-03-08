@@ -12,7 +12,7 @@ import { PageNavigation } from "@/components/page/page-navigation"
 import { BreadcrumbPath } from "@/components/page/breadcrumb-path"
 
 import { TopBar } from "@/components/top-bar"
-import { useAppStore, getCurrentTasksForView, getCurrentTaskChain } from "@/store/app-store"
+import { useAppStore, getCurrentTasksForView, getCurrentTaskChain, getOrderedTaskNumberMap } from "@/store/app-store"
 import { useSyncStore } from "@/store/sync-store"
 import { useUIStore } from "@/store/ui-store"
 import { Loader2, CheckSquare, TrendingUp } from "lucide-react"
@@ -101,6 +101,10 @@ export default function HomePage() {
   const tasksToDisplay = useMemo(
     () => isTransitioning ? [] : getCurrentTasksForView(projects, currentPath, searchQuery, showCompleted),
     [projects, currentPath, searchQuery, showCompleted, isTransitioning]
+  )
+  const orderedNumberMap = useMemo(
+    () => isTransitioning ? {} : getOrderedTaskNumberMap(projects, currentPath),
+    [projects, currentPath, isTransitioning]
   )
   const currentProject = isTransitioning ? null : findProjectAtPath(projects, currentPath)
   const taskChain = isTransitioning ? [] : getCurrentTaskChain(projects, currentPath)
@@ -359,7 +363,7 @@ export default function HomePage() {
         {/* Tasks */}
         {(!showSearch || !hasSearchResults) && (
           <div className="space-y-2">
-            <TaskListView tasks={tasksToDisplay} currentPath={currentPath} parentIsOrdered={currentTask?.isOrdered} />
+            <TaskListView tasks={tasksToDisplay} currentPath={currentPath} parentIsOrdered={currentTask?.isOrdered} orderedNumberMap={orderedNumberMap} />
           </div>
         )}
 

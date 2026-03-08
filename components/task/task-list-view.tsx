@@ -13,9 +13,10 @@ interface TaskListViewProps {
   tasks: TaskData[]
   currentPath: string[] // Unified path including project and task hierarchy
   parentIsOrdered?: boolean
+  orderedNumberMap?: Record<string, number>
 }
 
-export function TaskListView({ tasks, currentPath, parentIsOrdered }: TaskListViewProps) {
+export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumberMap }: TaskListViewProps) {
   const reorderTasks = useAppStore((state) => state.reorderTasks)
   const moveTaskWithPriorityChange = useAppStore((state) => state.moveTaskWithPriorityChange)
 
@@ -126,7 +127,7 @@ export function TaskListView({ tasks, currentPath, parentIsOrdered }: TaskListVi
                   currentPath={currentPath}
                   disabled={task.completed}
                   previewPriority={task.id === draggedTaskId ? previewPriority : undefined}
-                  orderNumber={parentIsOrdered ? index + 1 : undefined}
+                  orderNumber={parentIsOrdered ? (orderedNumberMap?.[task.id] ?? index + 1) : undefined}
                 />
               ))}
               {canExpand && (
@@ -146,7 +147,7 @@ export function TaskListView({ tasks, currentPath, parentIsOrdered }: TaskListVi
                         currentPath={currentPath}
                         disabled={task.completed}
                         previewPriority={task.id === draggedTaskId ? previewPriority : undefined}
-                        orderNumber={parentIsOrdered ? effectiveVisible + i + 1 : undefined}
+                        orderNumber={parentIsOrdered ? (orderedNumberMap?.[task.id] ?? effectiveVisible + i + 1) : undefined}
                       />
                     ))}
                   </div>
