@@ -10,6 +10,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
 import { cn } from "@/lib/utils"
 import type { FocusSession } from "@/lib/types"
 
@@ -54,65 +60,77 @@ function SessionRow({
   }
 
   return (
-    <div
-      className={cn(
-        "group relative flex h-12 items-center overflow-hidden rounded-lg pl-4 pr-2 text-sm font-medium transition-all duration-200 ease-out",
-        "focus-within:ring-1 focus-within:ring-ring",
-        active
-          ? "bg-primary text-primary-foreground shadow-sm"
-          : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
-      )}
-    >
-      {editing ? (
-        <input
-          ref={inputRef}
-          value={draftName}
-          onChange={event => setDraftName(event.target.value)}
-          onBlur={commitName}
-          onKeyDown={event => {
-            if (event.key === "Enter") commitName()
-            if (event.key === "Escape") {
-              setDraftName(session.name)
-              setEditing(false)
-            }
-          }}
-          className="min-w-0 flex-1 border-b border-current/40 bg-transparent text-sm font-medium outline-none"
-        />
-      ) : (
-        <>
-          <button
-            onClick={onOpen}
-            className="absolute inset-0 rounded-lg"
-            aria-label={`Open ${session.name}`}
-          />
-          <span className="pointer-events-none relative z-[1] min-w-0 flex-1 truncate text-left">
-            {session.name}
-          </span>
-        </>
-      )}
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <div
+          className={cn(
+            "group relative flex h-12 items-center overflow-hidden rounded-lg pl-4 pr-2 text-sm font-medium transition-all duration-200 ease-out",
+            "focus-within:ring-1 focus-within:ring-ring",
+            active
+              ? "bg-primary text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+          )}
+        >
+          {editing ? (
+            <input
+              ref={inputRef}
+              value={draftName}
+              onChange={event => setDraftName(event.target.value)}
+              onBlur={commitName}
+              onKeyDown={event => {
+                if (event.key === "Enter") commitName()
+                if (event.key === "Escape") {
+                  setDraftName(session.name)
+                  setEditing(false)
+                }
+              }}
+              className="min-w-0 flex-1 border-b border-current/40 bg-transparent text-sm font-medium outline-none"
+            />
+          ) : (
+            <>
+              <button
+                onClick={onOpen}
+                className="absolute inset-0 rounded-lg"
+                aria-label={`Open ${session.name}`}
+              />
+              <span className="pointer-events-none relative z-[1] min-w-0 flex-1 truncate text-left">
+                {session.name}
+              </span>
+            </>
+          )}
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            className={cn(
-              "relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-lg opacity-0 transition-opacity group-hover:opacity-70 focus:opacity-100",
-              active ? "hover:bg-primary-foreground/10" : "hover:bg-foreground/5"
-            )}
-            aria-label={`Options for ${session.name}`}
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => setEditing(true)}>
-            <Pencil className="mr-2 h-4 w-4" /> Rename
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={closeSession} className="text-destructive focus:text-destructive">
-            <Trash2 className="mr-2 h-4 w-4" /> Close permanently
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className={cn(
+                  "relative z-10 grid h-8 w-8 shrink-0 place-items-center rounded-lg opacity-0 transition-opacity group-hover:opacity-70 focus:opacity-100",
+                  active ? "hover:bg-primary-foreground/10" : "hover:bg-foreground/5"
+                )}
+                aria-label={`Options for ${session.name}`}
+              >
+                <MoreHorizontal className="h-4 w-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setEditing(true)}>
+                <Pencil className="mr-2 h-4 w-4" /> Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={closeSession} className="text-destructive focus:text-destructive">
+                <Trash2 className="mr-2 h-4 w-4" /> Close permanently
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem onClick={() => setEditing(true)}>
+          <Pencil className="mr-2 h-4 w-4" /> Rename
+        </ContextMenuItem>
+        <ContextMenuItem onClick={closeSession} className="text-destructive focus:text-destructive">
+          <Trash2 className="mr-2 h-4 w-4" /> Close permanently
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
   )
 }
 
