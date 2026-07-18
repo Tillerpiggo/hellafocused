@@ -395,6 +395,30 @@
     animation: shrinkFade 0.5s cubic-bezier(0.55, 0.085, 0.68, 0.53) forwards;
   }
 
+  /* Focus button breathing dot — slow ripple with a long rest between breaths */
+  .focus-dot-ripple {
+    animation: focusDotRipple 4s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+  }
+
+  @keyframes focusDotRipple {
+    0% {
+      transform: scale(1);
+      opacity: 0.45;
+    }
+    55%,
+    100% {
+      transform: scale(3);
+      opacity: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .focus-dot-ripple {
+      animation: none;
+      opacity: 0;
+    }
+  }
+
   /* Multiplier badge glass morphism */
   .multiplier-badge {
     background: rgba(255, 255, 255, 0.92);
