@@ -133,17 +133,6 @@ module.exports = {
   				'3': 'var(--heatmap-3)',
   				'4': 'var(--heatmap-4)'
   			},
-  			// Due date status colors
-  			due: {
-  				overdue: 'hsl(var(--due-overdue))',
-  				overdueBg: 'hsl(var(--due-overdue-bg))',
-  				today: 'hsl(var(--due-today))',
-  				todayBg: 'hsl(var(--due-today-bg))',
-  				soon: 'hsl(var(--due-soon))',
-  				soonBg: 'hsl(var(--due-soon-bg))',
-  				future: 'hsl(var(--due-future))',
-  				futureBg: 'hsl(var(--due-future-bg))',
-  			},
   			// UI states
   			disabled: {
   				DEFAULT: 'hsl(var(--color-disabled))',
@@ -179,13 +168,7 @@ module.exports = {
   				hover: 'hsl(var(--link-hover))',
   				decoration: 'hsl(var(--link-decoration))'
   			},
-  			// Multiplier colors
-  			multiplier: {
-  				DEFAULT: 'hsl(var(--multiplier-text))',
-  				bg: 'hsl(var(--multiplier-bg))',
-  				glow: 'hsl(var(--multiplier-glow))'
-  			}
-  		}
+		}
   	}
   },
   plugins: [require("tailwindcss-animate")],

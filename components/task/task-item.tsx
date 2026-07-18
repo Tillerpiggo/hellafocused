@@ -11,8 +11,6 @@ import { CheckCircle, Circle, ChevronRight, Star, Clock, Edit3 } from "lucide-re
 import { cn } from "@/lib/utils"
 import { TaskContextMenu } from "./task-context-menu"
 import { MoveTaskDialog } from "./move-task-dialog"
-import { DueDateBadge } from "./due-date-badge"
-import { DueDatePicker } from "./due-date-picker"
 import { EditableTitle, type EditableTitleRef } from "@/components/editable-title"
 import { useState, useRef, memo } from "react"
 
@@ -32,14 +30,11 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
   const updateTaskName = useAppStore((state) => state.updateTaskName)
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
   const toggleTaskPrefer = useAppStore((state) => state.toggleTaskPrefer)
-  const setTaskDueDate = useAppStore((state) => state.setTaskDueDate)
-  const dueSoonDays = useAppStore((state) => state.dueSoonDays)
   const attemptTaskCompletion = useUIStore((state) => state.attemptTaskCompletion)
   const attemptDeletion = useUIStore((state) => state.attemptDeletion)
 
   const [isEditing, setIsEditing] = useState(false)
   const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false)
-  const [showDueDatePicker, setShowDueDatePicker] = useState(false)
   const editableTitleRef = useRef<EditableTitleRef>(null)
 
   const taskPath = [...currentPath, task.id]
@@ -148,9 +143,6 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         </div>
       </div>
       <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2">
-        {!task.completed && task.dueDate && (
-          <DueDateBadge dueDate={task.dueDate} dueSoonDays={dueSoonDays} />
-        )}
         {effectivePriority === 1 && !task.completed && (
           <Star className="h-4 w-4 text-priority-icon/60 fill-priority-fill/60" />
         )}
@@ -188,8 +180,6 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         onDelete={() => attemptDeletion(taskPath)}
         onMove={() => setIsMoveDialogOpen(true)}
         onCreateFocusSession={() => onCreateFocusSession?.(taskPath)}
-        onSetDueDate={() => setShowDueDatePicker(true)}
-        hasDueDate={!!task.dueDate}
         isCompleted={task.completed}
         isDeferred={effectivePriority === -1}
         isPreferred={effectivePriority === 1}
@@ -204,16 +194,6 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         taskName={task.name}
       />
 
-      <DueDatePicker
-        dueDate={task.dueDate}
-        onDateChange={(date) => {
-          setTaskDueDate(taskPath, date)
-          setShowDueDatePicker(false)
-        }}
-        open={showDueDatePicker}
-        onOpenChange={(open) => { if (!open) setShowDueDatePicker(false) }}
-        hideTrigger
-      />
     </>
   )
 })

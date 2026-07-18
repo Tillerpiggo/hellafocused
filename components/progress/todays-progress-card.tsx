@@ -1,9 +1,8 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { ProjectData, TaskData, MultiplierBreakdown } from '@/lib/types'
+import { ProjectData, TaskData } from '@/lib/types'
 import { calculateTodaysTaskFocusPoints, isPathPrefix, serializePath } from '@/lib/task-utils'
-import { calculateDueDateMultiplier, calculateTaskMultipliedPoints } from '@/lib/multiplier-utils'
 import { ProgressTask } from './progress-task'
 import { Button } from '@/components/ui/button'
 import type { TaskPath } from '@/lib/task-path'
@@ -25,7 +24,7 @@ export function TodaysProgressCard({ projects, completionsByDate }: TodaysProgre
 
   const todaysData = useMemo(() => {
     const today = new Date().toDateString()
-    const completedTasks: (TaskData & { projectName: string; path: TaskPath; focusPoints: number; multiplierBreakdown?: MultiplierBreakdown[]; multiplierTotal?: number })[] = []
+    const completedTasks: (TaskData & { projectName: string; path: TaskPath; focusPoints: number })[] = []
     let totalFocusPoints = 0
 
     const processTask = (task: TaskData, projectName: string, parentPath: TaskPath = []) => {
@@ -34,18 +33,13 @@ export function TodaysProgressCard({ projects, completionsByDate }: TodaysProgre
       if (task.completed && task.completionDate) {
         const taskDate = new Date(task.completionDate).toDateString()
         if (taskDate === today) {
-          const points = calculateTaskMultipliedPoints(task, projects)
-          totalFocusPoints += points
-          const pointsFn = (t: TaskData) => calculateTaskMultipliedPoints(t, projects)
-          const taskFocusPoints = calculateTodaysTaskFocusPoints(task, pointsFn)
-          const multiplierResult = calculateDueDateMultiplier(task, projects)
+          totalFocusPoints += 1
+          const taskFocusPoints = calculateTodaysTaskFocusPoints(task)
           completedTasks.push({
             ...task,
             projectName,
             path: currentPath,
             focusPoints: taskFocusPoints,
-            multiplierBreakdown: multiplierResult.breakdown,
-            multiplierTotal: multiplierResult.total,
           })
         }
       }

@@ -72,7 +72,6 @@ export default function HomePage() {
   const toggleTaskDefer = useAppStore(s => s.toggleTaskDefer)
   const toggleTaskPrefer = useAppStore(s => s.toggleTaskPrefer)
   const toggleTaskOrdered = useAppStore(s => s.toggleTaskOrdered)
-  const setTaskDueDate = useAppStore(s => s.setTaskDueDate)
   const addProject = useAppStore(s => s.addProject)
   const showCompleted = useAppStore(s => s.showCompleted)
   const searchQuery = useAppStore(s => s.searchQuery)
@@ -366,8 +365,6 @@ export default function HomePage() {
             onTogglePrefer={() => toggleTaskPrefer(currentPath)}
             onToggleOrdered={() => toggleTaskOrdered(currentPath)}
             isOrdered={!!currentTask?.isOrdered}
-            dueDate={currentTask?.dueDate}
-            onDueDateChange={(date) => setTaskDueDate(currentPath, date)}
             showCompleted={showCompleted}
             shouldShowCompleteButton={shouldShowCompleteButton()}
             onComplete={() => attemptTaskCompletion(currentPath)}

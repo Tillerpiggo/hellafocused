@@ -41,7 +41,6 @@ export function SessionBrowser({
   const toggleTaskDefer = useAppStore(state => state.toggleTaskDefer)
   const toggleTaskPrefer = useAppStore(state => state.toggleTaskPrefer)
   const toggleTaskOrdered = useAppStore(state => state.toggleTaskOrdered)
-  const setTaskDueDate = useAppStore(state => state.setTaskDueDate)
   const attemptTaskCompletion = useUIStore(state => state.attemptTaskCompletion)
   const attemptDeletion = useUIStore(state => state.attemptDeletion)
   const session = useFocusStore(state => state.sessions.find(item => item.id === sessionId))
@@ -155,8 +154,6 @@ export function SessionBrowser({
               onTogglePrefer={() => toggleTaskPrefer(path)}
               onToggleOrdered={() => toggleTaskOrdered(path)}
               isOrdered={!!currentTask?.isOrdered}
-              dueDate={currentTask?.dueDate}
-              onDueDateChange={date => setTaskDueDate(path, date)}
               showCompleted={showCompleted}
               shouldShowCompleteButton={showComplete}
               onComplete={() => attemptTaskCompletion(path)}

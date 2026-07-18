@@ -55,16 +55,36 @@ interface AppState {
   updateProjectName: (projectId: string, newName: string) => void
   updateTaskName: (taskPath: TaskPath, newName: string) => void
   updateTaskDescription: (taskPath: TaskPath, newDescription: string) => void
-  setTaskDueDate: (taskPath: TaskPath, dueDate: string | undefined) => void
   toggleTaskOrdered: (taskPath: TaskPath) => void
-  dueSoonDays: number
-  setDueSoonDays: (days: number) => void
   addProject: (projectName: string) => void
   reorderTasks: (parentPath: TaskPath, fromIndex: number, toIndex: number) => void
   reorderProjects: (fromIndex: number, toIndex: number) => void
   moveTaskToNewParent: (taskPath: TaskPath, newParentPath: TaskPath, newPosition?: number) => void
   clearLocalState: () => void
 }
+
+const normalizePersistedTask = (task: TaskData): TaskData => ({
+  id: task.id,
+  name: task.name,
+  description: task.description,
+  completed: task.completed,
+  completionDate: task.completionDate,
+  lastModificationDate: task.lastModificationDate,
+  position: task.position,
+  priority: task.priority,
+  isOrdered: task.isOrdered,
+  subtasks: (task.subtasks ?? []).map(normalizePersistedTask),
+})
+
+export const normalizePersistedProjects = (projects: ProjectData[]): ProjectData[] => (
+  projects.map((project) => ({
+    id: project.id,
+    name: project.name,
+    lastModificationDate: project.lastModificationDate,
+    position: project.position,
+    tasks: project.tasks.map(normalizePersistedTask),
+  }))
+)
 
 
 
@@ -74,7 +94,6 @@ export const useAppStore = create<AppState>()(
       projects: initialProjectsData,
       showCompleted: false,
       searchQuery: "",
-      dueSoonDays: 3,
 
   toggleTaskCompletion: (taskPath) => {
     const task = findTaskAtPath(get().projects, taskPath)
@@ -296,19 +315,6 @@ export const useAppStore = create<AppState>()(
     trackTaskUpdated(taskPath)
   },
 
-  setTaskDueDate: (taskPath, dueDate) => {
-    set(
-      produce((draft: AppState) => {
-        updateTaskAtPath(draft.projects, taskPath, (task) => {
-          task.dueDate = dueDate || undefined
-          task.lastModificationDate = new Date().toISOString()
-        })
-      }),
-    )
-
-    trackTaskUpdated(taskPath)
-  },
-
   toggleTaskOrdered: (taskPath) => {
     set(
       produce((draft: AppState) => {
@@ -319,10 +325,6 @@ export const useAppStore = create<AppState>()(
       }),
     )
     trackTaskUpdated(taskPath)
-  },
-
-  setDueSoonDays: (days) => {
-    set({ dueSoonDays: days })
   },
 
   addProject: (projectName) => {
@@ -480,7 +482,9 @@ export const useAppStore = create<AppState>()(
         >>
         return {
           ...currentState,
-          projects: persisted.projects ?? currentState.projects,
+          projects: persisted.projects
+            ? normalizePersistedProjects(persisted.projects)
+            : currentState.projects,
           showCompleted: persisted.showCompleted ?? currentState.showCompleted,
           searchQuery: persisted.searchQuery ?? currentState.searchQuery,
         }

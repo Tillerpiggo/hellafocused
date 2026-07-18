@@ -1,6 +1,6 @@
 "use client"
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu"
-import { Edit, Check, X, Trash2, Move, Clock, ArrowUp, Star, StarOff, Calendar } from "lucide-react"
+import { Edit, Check, X, Trash2, Move, Clock, ArrowUp, Star, StarOff } from "lucide-react"
 import type React from "react"
 
 interface TaskContextMenuProps {
@@ -12,14 +12,12 @@ interface TaskContextMenuProps {
   onDelete: () => void
   onMove: () => void
   onCreateFocusSession: () => void
-  onSetDueDate: () => void
-  hasDueDate: boolean
   isCompleted: boolean
   isDeferred: boolean
   isPreferred: boolean
 }
 
-export function TaskContextMenu({ children, onEdit, onToggleComplete, onToggleDefer, onTogglePrefer, onDelete, onMove, onCreateFocusSession, onSetDueDate, hasDueDate, isCompleted, isDeferred, isPreferred }: TaskContextMenuProps) {
+export function TaskContextMenu({ children, onEdit, onToggleComplete, onToggleDefer, onTogglePrefer, onDelete, onMove, onCreateFocusSession, isCompleted, isDeferred, isPreferred }: TaskContextMenuProps) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
@@ -53,10 +51,6 @@ export function TaskContextMenu({ children, onEdit, onToggleComplete, onToggleDe
             </span>
           </span>
           Focus
-        </ContextMenuItem>
-        <ContextMenuItem onClick={onSetDueDate} className="gap-2 transition-colors">
-          <Calendar className="menu-icon" />
-          {hasDueDate ? 'Change Due Date' : 'Set Due Date'}
         </ContextMenuItem>
         <ContextMenuItem onClick={onTogglePrefer} className="gap-2 transition-colors">
           {isPreferred ? (

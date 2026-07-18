@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import type { ProjectData, TaskData } from '@/lib/types'
-import { calculateTaskMultipliedPoints } from '@/lib/multiplier-utils'
 
 function getLocalDateString(utcDateString: string): string {
   const date = new Date(utcDateString)
@@ -22,10 +21,9 @@ export function useCompletionData(projects: ProjectData[]): CompletionData {
 
     const processTask = (task: TaskData) => {
       if (task.completed && task.completionDate) {
-        const points = calculateTaskMultipliedPoints(task, projects)
-        totalPoints += points
+        totalPoints += 1
         const dateKey = getLocalDateString(task.completionDate)
-        completionsByDate.set(dateKey, (completionsByDate.get(dateKey) || 0) + points)
+        completionsByDate.set(dateKey, (completionsByDate.get(dateKey) || 0) + 1)
       }
       task.subtasks.forEach(processTask)
     }

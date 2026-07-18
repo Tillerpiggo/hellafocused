@@ -4,9 +4,8 @@ import type { TaskData } from "@/lib/types"
 import type { TaskPath } from "@/lib/task-path"
 import { SortableTaskItem } from "./sortable-task-item"
 import { useAppStore } from "@/store/app-store"
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import { isImminentTask } from "@/lib/due-date-utils"
 
 const DEFAULT_VISIBLE = 3
 
@@ -100,12 +99,7 @@ export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumbe
     }
   }
 
-  const imminentOverflowCount = useMemo(() => {
-    if (tasks.length <= DEFAULT_VISIBLE) return 0
-    return tasks.slice(DEFAULT_VISIBLE).filter(isImminentTask).length
-  }, [tasks])
-
-  const effectiveVisible = DEFAULT_VISIBLE + imminentOverflowCount
+  const effectiveVisible = DEFAULT_VISIBLE
   const canExpand = tasks.length > effectiveVisible
   const hiddenCount = tasks.length - effectiveVisible
   const baseTasks = tasks.slice(0, effectiveVisible)

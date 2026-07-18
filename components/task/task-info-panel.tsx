@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { FileText, Link, Paperclip, Calendar, ChevronDown } from "lucide-react"
+import { FileText, Link, Paperclip, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import type { TaskPath } from "@/lib/task-path"
@@ -63,13 +63,6 @@ export function TaskInfoPanel({ taskPath, taskName }: TaskInfoPanelProps) {
       id: 'attachments', 
       icon: Paperclip, 
       label: 'Attachments',
-      available: false,
-      content: null
-    },
-    { 
-      id: 'duedate', 
-      icon: Calendar, 
-      label: 'Due Date',
       available: false,
       content: null
     },

@@ -2,13 +2,10 @@ import { PageHeader } from "@/components/page/page-header"
 import { TaskOptionsMenu } from "./task-options-menu"
 import { TaskDescriptionEditor, type TaskDescriptionEditorRef } from "./task-description-editor"
 import { Button } from "@/components/ui/button"
-import { Check, X, Search, Edit2, Calendar, ListOrdered } from "lucide-react"
+import { Check, X, Search, Edit2, ListOrdered } from "lucide-react"
 import { forwardRef, useState, useRef } from "react"
 import type { EditableTitleRef } from "@/components/editable-title"
 import { LinkifiedText } from "@/components/ui/linkified-text"
-import { DueDatePicker } from "./due-date-picker"
-import { getDueStatus, formatDueDate } from "@/lib/due-date-utils"
-import { cn } from "@/lib/utils"
 
 interface TaskPageHeaderProps {
   title: string
@@ -28,8 +25,6 @@ interface TaskPageHeaderProps {
   shouldShowCompleteButton: boolean
   onComplete: () => void
   onUncomplete: () => void
-  dueDate?: string
-  onDueDateChange: (date: string | undefined) => void
   showSearch: boolean
   setShowSearch: (show: boolean) => void
 }
@@ -52,8 +47,6 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
   shouldShowCompleteButton,
   onComplete,
   onUncomplete,
-  dueDate,
-  onDueDateChange,
   showSearch,
   setShowSearch,
 }, ref) => {
@@ -137,35 +130,6 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
       >
         <ListOrdered className="h-4 w-4" />
       </Button>
-      <DueDatePicker
-        dueDate={dueDate}
-        onDateChange={onDueDateChange}
-      >
-        <button
-          className={cn(
-            "inline-flex items-center gap-1.5 rounded-full h-8 transition-all",
-            dueDate
-              ? "px-3"
-              : "w-8 justify-center opacity-60 hover:opacity-100 hover:bg-accent",
-            dueDate && (() => {
-              const status = getDueStatus(dueDate)
-              switch (status) {
-                case 'overdue': return 'text-due-overdue bg-due-overdueBg/60 hover:bg-due-overdueBg'
-                case 'due-today': return 'text-due-today bg-due-todayBg/60 hover:bg-due-todayBg'
-                case 'due-soon': return 'text-due-soon bg-due-soonBg/60 hover:bg-due-soonBg'
-                default: return 'text-muted-foreground bg-due-futureBg/60 hover:bg-due-futureBg'
-              }
-            })()
-          )}
-          title={dueDate ? `Due: ${formatDueDate(dueDate)}` : "Set due date"}
-        >
-          {dueDate ? (
-            <span className="text-xs font-medium">{formatDueDate(dueDate)}</span>
-          ) : (
-            <Calendar className="h-4 w-4" />
-          )}
-        </button>
-      </DueDatePicker>
     </div>
   )
 

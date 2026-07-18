@@ -1,7 +1,7 @@
 "use client"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Edit, Trash2, Eye, EyeOff, Clock, ArrowUp, Star, StarOff, Calendar, ListOrdered, Shuffle } from "lucide-react"
+import { MoreHorizontal, Edit, Trash2, Eye, EyeOff, Clock, ArrowUp, Star, StarOff, ListOrdered, Shuffle } from "lucide-react"
 import { useAppStore } from "@/store/app-store"
 import { useRef, useState } from "react"
 
@@ -11,15 +11,13 @@ interface TaskOptionsMenuProps {
   onToggleDefer: () => void
   onTogglePrefer: () => void
   onToggleOrdered?: () => void
-  onSetDueDate?: () => void
-  hasDueDate?: boolean
   showCompleted: boolean
   isDeferred: boolean
   isPreferred: boolean
   isOrdered?: boolean
 }
 
-export function TaskOptionsMenu({ onRename, onDelete, onToggleDefer, onTogglePrefer, onToggleOrdered, onSetDueDate, hasDueDate, showCompleted, isDeferred, isPreferred, isOrdered }: TaskOptionsMenuProps) {
+export function TaskOptionsMenu({ onRename, onDelete, onToggleDefer, onTogglePrefer, onToggleOrdered, showCompleted, isDeferred, isPreferred, isOrdered }: TaskOptionsMenuProps) {
   const toggleShowCompleted = useAppStore((state) => state.toggleShowCompleted)
   const [isOpen, setIsOpen] = useState(false)
   const shouldPreventAutofocus = useRef(false)
@@ -55,12 +53,6 @@ export function TaskOptionsMenu({ onRename, onDelete, onToggleDefer, onTogglePre
           <Edit className="menu-icon" />
           Rename Task
         </DropdownMenuItem>
-        {onSetDueDate && (
-          <DropdownMenuItem onClick={onSetDueDate}>
-            <Calendar className="menu-icon" />
-            {hasDueDate ? 'Change Due Date' : 'Set Due Date'}
-          </DropdownMenuItem>
-        )}
         <DropdownMenuItem onClick={onTogglePrefer}>
           {isPreferred ? (
             <>
