@@ -32,6 +32,7 @@ interface FocusState {
   // Session state (persisted)
   sessions: FocusSession[]
   activeSessionId: string | null
+  notepadOpen: boolean
 
   // Actions
   initializeFocus: (projects: ProjectData[], startPath: TaskPath) => void
@@ -58,6 +59,7 @@ interface FocusState {
   setSessionScope: (sessionId: string, projects: ProjectData[], path: TaskPath) => void
   setSessionNotes: (sessionId: string, notes: string) => void
   flushSessionNotesSync: (sessionId: string) => void
+  setNotepadOpen: (open: boolean) => void
   saveCurrentSessionState: () => void
 
   // Timer actions
@@ -124,6 +126,7 @@ export const useFocusStore = create<FocusState>()(
       // Session state
       sessions: [],
       activeSessionId: null,
+      notepadOpen: false,
 
       createSession: (projects, startPath, initialView = 'focus') => {
         const { sessions } = get()
@@ -415,6 +418,8 @@ export const useFocusStore = create<FocusState>()(
         const latest = get().sessions.find(session => session.id === sessionId)
         if (latest) trackFocusSessionUpdated(latest)
       },
+
+      setNotepadOpen: (open) => set({ notepadOpen: open }),
 
       setCurrentFocusTask: (task, path) => {
         if (!task) {
@@ -709,6 +714,7 @@ export const useFocusStore = create<FocusState>()(
       partialize: (state) => ({
         sessions: state.sessions,
         activeSessionId: state.activeSessionId,
+        notepadOpen: state.notepadOpen,
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return

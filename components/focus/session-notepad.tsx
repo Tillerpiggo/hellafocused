@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useEffect, useRef } from "react"
 import { NotebookPen } from "lucide-react"
 import { useFocusStore } from "@/store/focus-store"
 import { cn } from "@/lib/utils"
@@ -19,57 +19,54 @@ export function SessionNotepad({
   )
   const setSessionNotes = useFocusStore(state => state.setSessionNotes)
   const flushSessionNotesSync = useFocusStore(state => state.flushSessionNotesSync)
-  const [isOpen, setIsOpen] = useState(false)
-  const cardRef = useRef<HTMLDivElement>(null)
-  const triggerRef = useRef<HTMLButtonElement>(null)
+  const isOpen = useFocusStore(state => state.notepadOpen)
+  const setNotepadOpen = useFocusStore(state => state.setNotepadOpen)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const prevOpenRef = useRef(isOpen)
   const hasNotes = notes.trim().length > 0
-
-  const close = useCallback(() => {
-    setIsOpen(false)
-    flushSessionNotesSync(sessionId)
-  }, [flushSessionNotesSync, sessionId])
 
   useEffect(() => {
     return () => flushSessionNotesSync(sessionId)
   }, [flushSessionNotesSync, sessionId])
 
+  // Focus the textarea only when the user opens the notepad here — an
+  // already-open notepad following a session switch or reload must not
+  // steal focus.
   useEffect(() => {
-    if (!isOpen) return
-
+    const wasOpen = prevOpenRef.current
+    prevOpenRef.current = isOpen
+    if (!isOpen || wasOpen) return
     const textarea = textareaRef.current
     if (textarea) {
       textarea.focus()
       textarea.setSelectionRange(textarea.value.length, textarea.value.length)
       textarea.scrollTop = textarea.scrollHeight
     }
+  }, [isOpen])
 
-    const handleClickOutside = (event: MouseEvent) => {
-      const target = event.target as Node
-      if (!cardRef.current?.contains(target) && !triggerRef.current?.contains(target)) {
-        close()
-      }
-    }
-
+  // Escape while writing blurs the note; without this, Escape in focus mode
+  // would exit fullscreen mid-typing. A blurred notepad lets Escape through.
+  useEffect(() => {
+    if (!isOpen) return
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key !== "Escape") return
+      if (document.activeElement !== textareaRef.current) return
       event.stopPropagation()
-      close()
+      textareaRef.current?.blur()
     }
-
-    document.addEventListener("mousedown", handleClickOutside)
     document.addEventListener("keydown", handleEscape, true)
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside)
-      document.removeEventListener("keydown", handleEscape, true)
-    }
-  }, [close, isOpen])
+    return () => document.removeEventListener("keydown", handleEscape, true)
+  }, [isOpen])
+
+  const toggle = () => {
+    if (isOpen) flushSessionNotesSync(sessionId)
+    setNotepadOpen(!isOpen)
+  }
 
   return (
     <>
       {isOpen && (
         <div
-          ref={cardRef}
           id={`session-notepad-${sessionId}`}
           className="fixed bottom-[4.75rem] right-6 z-40 w-[22rem] max-w-[calc(100vw-3rem)] overflow-hidden rounded-2xl glass-dropdown shadow-[0_16px_48px_-12px_rgba(0,0,0,0.25)] animate-in fade-in slide-in-from-bottom-2 duration-200"
         >
@@ -85,12 +82,11 @@ export function SessionNotepad({
       )}
 
       <button
-        ref={triggerRef}
         type="button"
         aria-label="Toggle session notes"
         aria-expanded={isOpen}
         aria-controls={`session-notepad-${sessionId}`}
-        onClick={() => (isOpen ? close() : setIsOpen(true))}
+        onClick={toggle}
         className={cn(
           "group fixed bottom-6 z-40 grid h-[2.65rem] w-[2.65rem] place-items-center rounded-full glass-dropdown outline-none transition-all duration-300 ease-out",
           "hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-6px_hsl(var(--primary)/0.35),0_4px_12px_rgba(0,0,0,0.08)]",
@@ -103,7 +99,7 @@ export function SessionNotepad({
         <span className="relative">
           <NotebookPen className="h-4 w-4" />
           {hasNotes && !isOpen && (
-            <span className="absolute -right-1.5 -top-1.5 h-2 w-2 rounded-full bg-primary/90" />
+            <span className="absolute -right-1 -top-1 h-1.5 w-1.5 rounded-full bg-foreground/30" />
           )}
         </span>
       </button>

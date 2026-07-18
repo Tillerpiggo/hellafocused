@@ -113,7 +113,7 @@ export function SessionBrowser({
           <h1 className="text-3xl font-light tracking-wide text-foreground">Projects</h1>
           <ProjectListView projects={projects} onSelectProject={projectId => navigate([projectId])} />
           <AddProjectForm onAddProject={addProject} />
-          <SessionNotepad sessionId={sessionId} placement="corner" />
+          {session.view !== 'focus' && <SessionNotepad sessionId={sessionId} placement="corner" />}
         </div>
       ) : (
         <div className="space-y-6 pb-32">
@@ -210,7 +210,7 @@ export function SessionBrowser({
           )}
           <AddTaskForm currentPath={path} />
           <FocusButton onClick={focusHere} />
-          <SessionNotepad sessionId={sessionId} />
+          {session.view !== 'focus' && <SessionNotepad sessionId={sessionId} />}
         </div>
       )}
     </TasksView>
