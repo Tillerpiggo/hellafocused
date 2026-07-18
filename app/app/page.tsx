@@ -71,6 +71,8 @@ export default function HomePage() {
   
   // Tab state for sidebar navigation
   const [activeTab, setActiveTab] = useState('tasks')
+  const [focusStoreHydrated, setFocusStoreHydrated] = useState(false)
+  const [activeTabRestored, setActiveTabRestored] = useState(false)
   const sessions = useFocusStore(state => state.sessions)
   const createSession = useFocusStore(state => state.createSession)
   
@@ -85,8 +87,8 @@ export default function HomePage() {
     { value: 'progress', label: 'Progress', icon: TrendingUp },
   ]
 
-  // Show loading until authentication is complete
-  const shouldShowLoading = !isInitialized
+  // Avoid flashing the Tasks tab before authentication and tab restoration complete.
+  const shouldShowLoading = !isInitialized || !activeTabRestored
 
   // Clear search query when navigating
   useEffect(() => {
@@ -101,19 +103,32 @@ export default function HomePage() {
   }, [showSearch])
 
   useEffect(() => {
+    const unsubscribe = useFocusStore.persist.onFinishHydration(() => {
+      setFocusStoreHydrated(true)
+    })
+    setFocusStoreHydrated(useFocusStore.persist.hasHydrated())
+    return unsubscribe
+  }, [])
+
+  useEffect(() => {
+    if (!focusStoreHydrated || activeTabRestored) return
+
     const focusId = new URLSearchParams(window.location.search).get('focus')
     if (focusId && sessions.some(session => session.id === focusId)) {
       setActiveTab(`focus:${focusId}`)
     }
-  }, []) // Session links are restored once on entry; navigation remains device-local.
+    setActiveTabRestored(true)
+  }, [activeTabRestored, focusStoreHydrated, sessions])
 
   useEffect(() => {
+    if (!activeTabRestored) return
+
     const focusId = activeTab.startsWith('focus:') ? activeTab.slice(6) : null
     const url = new URL(window.location.href)
     if (focusId) url.searchParams.set('focus', focusId)
     else url.searchParams.delete('focus')
     window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
-  }, [activeTab])
+  }, [activeTab, activeTabRestored])
 
   useEffect(() => {
     if (activeTab.startsWith('focus:')) {
