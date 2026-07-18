@@ -419,6 +419,27 @@
     }
   }
 
+  /* Ghost "New session" row — invisible at rest, materializes when the
+     pointer enters the sidebar. Touch devices get a faint always-on state
+     since they have no hover to summon it with. */
+  .session-ghost-row {
+    opacity: 0.55;
+    transition: opacity 0.3s ease-out, background-color 0.2s ease-out, color 0.2s ease-out;
+  }
+
+  @media (hover: hover) {
+    .session-ghost-row {
+      opacity: 0;
+    }
+    aside:hover .session-ghost-row {
+      opacity: 0.45;
+    }
+    aside .session-ghost-row:hover,
+    aside .session-ghost-row:focus-visible {
+      opacity: 1;
+    }
+  }
+
   /* Multiplier badge glass morphism */
   .multiplier-badge {
     background: rgba(255, 255, 255, 0.92);

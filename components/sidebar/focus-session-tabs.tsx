@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react"
 import { useFocusStore } from "@/store/focus-store"
 import { useAppStore } from "@/store/app-store"
 import {
@@ -137,6 +137,7 @@ function SessionRow({
 export function FocusSessionTabs({ activeTab, onTabChange, onNavigate }: FocusSessionTabsProps) {
   const sessions = useFocusStore(state => state.sessions)
   const switchSession = useFocusStore(state => state.switchSession)
+  const createBrowseSession = useFocusStore(state => state.createBrowseSession)
   const projects = useAppStore(state => state.projects)
 
   if (sessions.length === 0) return null
@@ -155,6 +156,17 @@ export function FocusSessionTabs({ activeTab, onTabChange, onNavigate }: FocusSe
           onNavigate={onNavigate}
         />
       ))}
+      <button
+        onClick={() => onTabChange(`focus:${createBrowseSession()}`)}
+        className={cn(
+          "session-ghost-row flex h-12 w-full items-center rounded-lg pl-4 pr-4 text-left text-sm font-medium text-muted-foreground",
+          "hover:bg-accent hover:text-accent-foreground",
+          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+        )}
+      >
+        <Plus className="mr-3 h-4 w-4 shrink-0" />
+        <span className="whitespace-nowrap">New session</span>
+      </button>
     </div>
   )
 }
