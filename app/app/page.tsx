@@ -31,6 +31,31 @@ import { searchAllTasks, groupSearchResults } from "@/lib/search-utils"
 import { useNavigationTransition } from "@/hooks/use-navigation-transition"
 import { NavigationSkeleton } from "@/components/skeleton/navigation-skeleton"
 
+const ACTIVE_TAB_STORAGE_KEY = 'hellafocused-active-tab'
+
+function getInitialActiveTab() {
+  if (typeof window === 'undefined') return 'tasks'
+
+  const focusId = new URLSearchParams(window.location.search).get('focus')
+  if (focusId) return `focus:${focusId}`
+
+  try {
+    const cachedTab = window.localStorage.getItem(ACTIVE_TAB_STORAGE_KEY)
+    if (
+      cachedTab === 'tasks' ||
+      cachedTab === 'progress' ||
+      cachedTab === 'settings' ||
+      (cachedTab?.startsWith('focus:') && cachedTab.length > 6)
+    ) {
+      return cachedTab
+    }
+  } catch {
+    // Fall back to Tasks when browser storage is unavailable.
+  }
+
+  return 'tasks'
+}
+
 export default function HomePage() {
   const projects = useAppStore(s => s.projects)
   const currentPath = useAppStore(s => s.currentPath)
@@ -70,8 +95,7 @@ export default function HomePage() {
   const searchInputRef = useRef<HTMLInputElement>(null)
   
   // Tab state for sidebar navigation
-  const [activeTab, setActiveTab] = useState('tasks')
-  const [activeTabRestored, setActiveTabRestored] = useState(false)
+  const [activeTab, setActiveTab] = useState(getInitialActiveTab)
   const sessions = useFocusStore(state => state.sessions)
   const createSession = useFocusStore(state => state.createSession)
   
@@ -102,31 +126,25 @@ export default function HomePage() {
   }, [showSearch])
 
   useEffect(() => {
-    if (!isInitialized || syncLoading || activeTabRestored) return
-
-    const focusId = new URLSearchParams(window.location.search).get('focus')
-    if (focusId && sessions.some(session => session.id === focusId)) {
-      setActiveTab(`focus:${focusId}`)
+    try {
+      window.localStorage.setItem(ACTIVE_TAB_STORAGE_KEY, activeTab)
+    } catch {
+      // URL state still preserves focus tabs when browser storage is unavailable.
     }
-    setActiveTabRestored(true)
-  }, [activeTabRestored, isInitialized, sessions, syncLoading])
-
-  useEffect(() => {
-    if (!activeTabRestored) return
 
     const focusId = activeTab.startsWith('focus:') ? activeTab.slice(6) : null
     const url = new URL(window.location.href)
     if (focusId) url.searchParams.set('focus', focusId)
     else url.searchParams.delete('focus')
     window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
-  }, [activeTab, activeTabRestored])
+  }, [activeTab])
 
   useEffect(() => {
-    if (activeTab.startsWith('focus:')) {
-      const sessionId = activeTab.slice(6)
-      if (!sessions.some(session => session.id === sessionId)) setActiveTab('tasks')
-    }
-  }, [activeTab, sessions])
+    if (!isInitialized || syncLoading || !activeTab.startsWith('focus:')) return
+
+    const sessionId = activeTab.slice(6)
+    if (!sessions.some(session => session.id === sessionId)) setActiveTab('tasks')
+  }, [activeTab, isInitialized, sessions, syncLoading])
 
   const tasksToDisplay = useMemo(
     () => isTransitioning ? [] : getCurrentTasksForView(projects, currentPath, searchQuery, showCompleted),
