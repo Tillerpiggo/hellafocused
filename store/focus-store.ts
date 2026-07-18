@@ -41,6 +41,7 @@ interface FocusState {
 
   // Session actions
   createSession: (projects: ProjectData[], startPath: string[]) => string
+  createBrowseSession: () => string
   createOrResumeSession: (projects: ProjectData[], startPath: string[]) => void
   switchSession: (sessionId: string, projects: ProjectData[]) => void
   removeSession: (sessionId: string) => void
@@ -135,6 +136,41 @@ export const useFocusStore = create<FocusState>()(
         return newSession.id
       },
 
+      // Born unscoped from the sidebar: opens at the project list in browse
+      // view and gains its startPath on the first "Focus here".
+      createBrowseSession: () => {
+        const { sessions } = get()
+        const now = Date.now()
+        const newSession: FocusSession = {
+          id: crypto.randomUUID(),
+          name: "Focus session",
+          startPath: [],
+          browsePath: [],
+          view: 'browse',
+          currentFocusTaskId: null,
+          completedCount: 0,
+          createdAt: now,
+          updatedAt: new Date(now).toISOString(),
+          position: sessions.length,
+          timerEndTime: null,
+          timerFired: false,
+        }
+
+        get().saveCurrentSessionState()
+        set({
+          sessions: [...sessions, newSession],
+          activeSessionId: newSession.id,
+          currentFocusTask: null,
+          showAddTasksView: false,
+          showSubtaskCelebration: false,
+          lastFocusedTaskId: null,
+          focusModeProjectLeaves: [],
+          focusStartPath: [],
+        })
+        trackFocusSessionCreated(newSession)
+        return newSession.id
+      },
+
       // Kept as a compatibility alias. Focus now always creates a new workspace.
       createOrResumeSession: (projects, startPath) => {
         get().createSession(projects, startPath)
@@ -149,6 +185,20 @@ export const useFocusStore = create<FocusState>()(
 
         const target = sessions.find(s => s.id === sessionId)
         if (!target) return
+
+        // Unscoped sessions have no root to validate and no task pool to build
+        if (target.startPath.length === 0) {
+          set({
+            activeSessionId: sessionId,
+            currentFocusTask: null,
+            showAddTasksView: false,
+            showSubtaskCelebration: false,
+            lastFocusedTaskId: null,
+            focusModeProjectLeaves: [],
+            focusStartPath: [],
+          })
+          return
+        }
 
         // Validate the session's root still exists
         const projectId = getProjectId(target.startPath)
@@ -205,6 +255,8 @@ export const useFocusStore = create<FocusState>()(
       setSessionScope: (sessionId, projects, path) => {
         updateAndTrackSession(set, get, sessionId, session => ({
           ...session,
+          // Default-named sessions take their name from the first chosen scope
+          name: session.name === "Focus session" ? getSessionName(projects, path) : session.name,
           startPath: [...path],
           browsePath: [...path],
           view: 'focus',

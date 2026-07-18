@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { MoreHorizontal, Pencil, Trash2 } from "lucide-react"
+import { MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react"
 import { useFocusStore } from "@/store/focus-store"
 import { useAppStore } from "@/store/app-store"
 import {
@@ -137,24 +137,41 @@ function SessionRow({
 export function FocusSessionTabs({ activeTab, onTabChange, onNavigate }: FocusSessionTabsProps) {
   const sessions = useFocusStore(state => state.sessions)
   const switchSession = useFocusStore(state => state.switchSession)
+  const createBrowseSession = useFocusStore(state => state.createBrowseSession)
   const projects = useAppStore(state => state.projects)
 
   if (sessions.length === 0) return null
 
   return (
-    <div className="mt-1 space-y-1">
-      {sessions.map(session => (
-        <SessionRow
-          key={session.id}
-          session={session}
-          active={activeTab === `focus:${session.id}`}
-          onOpen={() => {
-            switchSession(session.id, projects)
-            onTabChange(`focus:${session.id}`)
-          }}
-          onNavigate={onNavigate}
-        />
-      ))}
+    <div className="mt-4">
+      <div className="mb-1 flex items-center justify-between pl-4 pr-2">
+        <span className="text-xs font-medium text-muted-foreground/60">Sessions</span>
+        <button
+          onClick={() => onTabChange(`focus:${createBrowseSession()}`)}
+          aria-label="New session"
+          className={cn(
+            "grid h-6 w-6 place-items-center rounded-md text-muted-foreground/50 transition-colors duration-200",
+            "hover:bg-accent hover:text-accent-foreground",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          )}
+        >
+          <Plus className="h-3.5 w-3.5" />
+        </button>
+      </div>
+      <div className="space-y-1">
+        {sessions.map(session => (
+          <SessionRow
+            key={session.id}
+            session={session}
+            active={activeTab === `focus:${session.id}`}
+            onOpen={() => {
+              switchSession(session.id, projects)
+              onTabChange(`focus:${session.id}`)
+            }}
+            onNavigate={onNavigate}
+          />
+        ))}
+      </div>
     </div>
   )
 }
