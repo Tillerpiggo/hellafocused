@@ -19,9 +19,9 @@ import {
   getCurrentTaskViewData,
   useAppStore,
 } from "@/store/app-store"
-import { useFocusStore } from "@/store/focus-store"
+import { getSessionAnchorTask, useFocusStore } from "@/store/focus-store"
 import { useUIStore } from "@/store/ui-store"
-import { getProjectId, isProject, isProjectList, isTask } from "@/lib/task-utils"
+import { arePathsEqual, getProjectId, isProject, isProjectList, isTask } from "@/lib/task-utils"
 import { groupSearchResults, searchAllTasks } from "@/lib/search-utils"
 import type { TaskPath } from "@/lib/task-path"
 
@@ -47,12 +47,18 @@ export function SessionBrowser({
   const session = useFocusStore(state => state.sessions.find(item => item.id === sessionId))
   const setBrowsePath = useFocusStore(state => state.setSessionBrowsePath)
   const setSessionScope = useFocusStore(state => state.setSessionScope)
+  const setSessionView = useFocusStore(state => state.setSessionView)
   const titleRef = useRef<EditableTitleRef>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   const [showSearch, setShowSearch] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
 
   const path = session?.browsePath ?? []
+  const anchor = useMemo(
+    () => getSessionAnchorTask(useFocusStore.getState(), projects, sessionId),
+    [projects, session?.currentFocusTaskId, sessionId],
+  )
+  const anchorIsVisible = !!anchor && arePathsEqual(anchor.fullPath.slice(0, -1), path)
   const {
     project: currentProject,
     taskChain,
@@ -87,6 +93,7 @@ export function SessionBrowser({
   const navigate = (nextPath: TaskPath) => setBrowsePath(sessionId, nextPath)
   const navigateBack = () => navigate(path.slice(0, -1))
   const focusHere = () => setSessionScope(sessionId, projects, path)
+  const continueFocus = () => setSessionView(sessionId, 'focus')
 
   const backLabel = isProject(path)
     ? "Projects"
@@ -113,7 +120,14 @@ export function SessionBrowser({
           <h1 className="text-3xl font-light tracking-wide text-foreground">Projects</h1>
           <ProjectListView projects={projects} onSelectProject={projectId => navigate([projectId])} />
           <AddProjectForm onAddProject={addProject} />
-          {session.view !== 'focus' && <SessionNotepad sessionId={sessionId} placement="corner" />}
+          {anchor && (
+            <FocusButton
+              onClick={continueFocus}
+              label="Continue"
+              title={`Continue ${anchor.task.name}`}
+            />
+          )}
+          <SessionNotepad sessionId={sessionId} placement={anchor ? "beside-focus" : "corner"} />
         </div>
       ) : (
         <div className="space-y-6 pb-32">
@@ -205,12 +219,18 @@ export function SessionBrowser({
                 orderedNumberMap={orderedNumberMap}
                 onNavigateToTask={taskId => navigate([...path, taskId])}
                 onCreateFocusSession={onCreateFocusSession}
+                focusAnchorTaskId={anchorIsVisible ? anchor.task.id : undefined}
+                onFocusAnchor={continueFocus}
               />
             </div>
           )}
           <AddTaskForm currentPath={path} />
-          <FocusButton onClick={focusHere} />
-          {session.view !== 'focus' && <SessionNotepad sessionId={sessionId} />}
+          <FocusButton
+            onClick={anchor ? continueFocus : focusHere}
+            label={anchor ? "Continue" : "Focus"}
+            title={anchor ? `Continue ${anchor.task.name}` : undefined}
+          />
+          <SessionNotepad sessionId={sessionId} />
         </div>
       )}
     </TasksView>

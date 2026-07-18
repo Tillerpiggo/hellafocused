@@ -19,7 +19,7 @@ export interface FocusSession {
   name: string
   startPath: TaskPath
   browsePath: TaskPath
-  view: 'focus' | 'browse'
+  view: 'focus' | 'docked' | 'browse'
   currentFocusTaskId: string | null
   completedCount: number
   notes: string

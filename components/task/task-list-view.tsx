@@ -16,9 +16,11 @@ interface TaskListViewProps {
   orderedNumberMap?: Record<string, number>
   onNavigateToTask?: (taskId: string) => void
   onCreateFocusSession?: (taskPath: TaskPath) => void
+  focusAnchorTaskId?: string
+  onFocusAnchor?: () => void
 }
 
-export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumberMap, onNavigateToTask, onCreateFocusSession }: TaskListViewProps) {
+export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumberMap, onNavigateToTask, onCreateFocusSession, focusAnchorTaskId, onFocusAnchor }: TaskListViewProps) {
   const reorderTasks = useAppStore((state) => state.reorderTasks)
   const moveTaskWithPriorityChange = useAppStore((state) => state.moveTaskWithPriorityChange)
 
@@ -129,6 +131,8 @@ export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumbe
                   orderNumber={parentIsOrdered ? (orderedNumberMap?.[task.id] ?? index + 1) : undefined}
                   onNavigate={onNavigateToTask}
                   onCreateFocusSession={onCreateFocusSession}
+                  isFocusAnchor={task.id === focusAnchorTaskId}
+                  onFocusAnchor={onFocusAnchor}
                 />
               ))}
               {expanded && overflowTasks.map((task, i) => (
@@ -142,6 +146,8 @@ export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumbe
                   orderNumber={parentIsOrdered ? (orderedNumberMap?.[task.id] ?? effectiveVisible + i + 1) : undefined}
                   onNavigate={onNavigateToTask}
                   onCreateFocusSession={onCreateFocusSession}
+                  isFocusAnchor={task.id === focusAnchorTaskId}
+                  onFocusAnchor={onFocusAnchor}
                 />
               ))}
               {provided.placeholder}

@@ -3,6 +3,7 @@
 import { useEffect } from "react"
 import { FocusView } from "./focus-view"
 import { SessionBrowser } from "./session-browser"
+import { DockedSessionView } from "./docked-session-view"
 import { useAppStore } from "@/store/app-store"
 import { useFocusStore } from "@/store/focus-store"
 import type { TaskPath } from "@/lib/task-path"
@@ -18,7 +19,7 @@ export function FocusSessionWorkspace({
   const session = useFocusStore(state => state.sessions.find(item => item.id === sessionId))
   const activeSessionId = useFocusStore(state => state.activeSessionId)
   const switchSession = useFocusStore(state => state.switchSession)
-  const setSessionView = useFocusStore(state => state.setSessionView)
+  const zoomSessionOut = useFocusStore(state => state.zoomSessionOut)
 
   useEffect(() => {
     if (session && activeSessionId !== sessionId) switchSession(sessionId, projects)
@@ -34,10 +35,13 @@ export function FocusSessionWorkspace({
 
   return (
     <div className="relative min-h-[calc(100vh-3.5rem)]">
-      <SessionBrowser sessionId={sessionId} onCreateFocusSession={onCreateFocusSession} />
+      {session.view === 'browse' && (
+        <SessionBrowser sessionId={sessionId} onCreateFocusSession={onCreateFocusSession} />
+      )}
+      {session.view === 'docked' && <DockedSessionView sessionId={sessionId} />}
       {session.view === 'focus' && (
         <div className="fixed inset-0 z-[100] bg-background text-foreground">
-          <FocusView onExitFocus={() => setSessionView(sessionId, 'browse')} />
+          <FocusView onExitFocus={() => zoomSessionOut(sessionId)} />
         </div>
       )}
     </div>

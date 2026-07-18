@@ -81,7 +81,7 @@ export interface DatabaseFocusSession {
   name: string
   start_path: string[]
   browse_path: string[]
-  view: 'focus' | 'browse'
+  view: 'focus' | 'docked' | 'browse'
   current_focus_task_id?: string | null
   completed_count: number
   notes: string | null
