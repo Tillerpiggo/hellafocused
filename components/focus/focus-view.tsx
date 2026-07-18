@@ -10,7 +10,13 @@ import { FocusHeaderButtons } from "./focus-header-buttons"
 import { useTimerTick } from "@/hooks/use-timer-tick"
 import { SessionNotepad } from "./session-notepad"
 
-export function FocusView({ onExitFocus }: { onExitFocus?: () => void }) {
+export function FocusView({
+  onExitFocus,
+  presentation = "fullscreen",
+}: {
+  onExitFocus?: () => void
+  presentation?: "fullscreen" | "docked"
+}) {
   const projects = useAppStore((state) => state.projects)
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
   const toggleTaskPrefer = useAppStore((state) => state.toggleTaskPrefer)
@@ -208,7 +214,11 @@ export function FocusView({ onExitFocus }: { onExitFocus?: () => void }) {
   return (
     <>
       <div
-        className={`min-h-screen flex flex-col ${currentFocusTask ? 'relative' : ''} transition-all duration-500 ease-out ${
+        className={`${
+          presentation === "fullscreen"
+            ? `min-h-screen ${currentFocusTask ? "relative" : ""}`
+            : "relative min-h-[calc(100vh-3.5rem)] overflow-hidden"
+        } flex flex-col transition-all duration-500 ease-out ${
           isInitialLoad ? "opacity-0 scale-95" : isExiting ? "opacity-0 scale-95" : "opacity-100 scale-100"
         }`}
         style={{ zIndex: isExiting ? 40 : 50 }}
@@ -232,7 +242,12 @@ export function FocusView({ onExitFocus }: { onExitFocus?: () => void }) {
 
         {/* Conditional main content */}
         {renderMainContent()}
-        {activeSessionId && <SessionNotepad sessionId={activeSessionId} placement="corner" />}
+        {activeSessionId && (
+          <SessionNotepad
+            sessionId={activeSessionId}
+            placement={presentation === "docked" && currentFocusTask ? "beside-focus" : "corner"}
+          />
+        )}
       </div>
 
       {/* Add Tasks View */}
