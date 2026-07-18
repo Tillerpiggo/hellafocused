@@ -38,6 +38,7 @@ class SyncEngine {
   private batchTimeout: NodeJS.Timeout | null = null
   private readonly batchDelay = 10
   private realtimeMergeTimeout: NodeJS.Timeout | null = null
+  private activeSync: Promise<void> | null = null
 
   async init() {
     // Check if already initialized to prevent double initialization
@@ -60,10 +61,7 @@ class SyncEngine {
       useSyncStore.getState().setInitialized(true)
       console.log("sync engine authenticated - UI ready")
       
-      await Promise.all([
-        this.syncPendingChanges(),
-        this.mergeWithCloud()
-      ])
+      await this.syncNow()
 
       this.startPeriodicSync()
       this.setupRealtimeSync()
@@ -309,6 +307,41 @@ class SyncEngine {
     // Clean up synced changes
     useSyncStore.getState().removeSynced()
     useSyncStore.getState().updateLastSyncedAt()
+  }
+
+  /**
+   * Runs a complete sync and exposes its progress to the UI. Concurrent sync
+   * requests share the same promise so periodic, reconnect, and manual syncs
+   * cannot race each other.
+   */
+  async syncNow(): Promise<void> {
+    if (this.activeSync) {
+      return this.activeSync
+    }
+
+    const { currentUserId } = useSyncStore.getState()
+    if (!currentUserId || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+      return
+    }
+
+    const runSync = async () => {
+      useSyncStore.getState().setSyncLoading(true)
+
+      try {
+        await this.syncPendingChanges()
+        await this.mergeWithCloud()
+      } finally {
+        useSyncStore.getState().setSyncLoading(false)
+      }
+    }
+
+    this.activeSync = runSync()
+
+    try {
+      await this.activeSync
+    } finally {
+      this.activeSync = null
+    }
   }
 
   private groupChangesForBatching(pending: [string, SyncAction][]) {
@@ -654,8 +687,7 @@ class SyncEngine {
     this.syncInterval = setInterval(async () => {
       console.log('🔄 Periodic sync timer')
       if (navigator.onLine) {
-        await this.syncPendingChanges()
-        await this.mergeWithCloud()
+        await this.syncNow()
       }
     }, 30000)
   }

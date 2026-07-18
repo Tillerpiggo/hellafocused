@@ -3,12 +3,14 @@
 import { useSyncStore } from '@/store/sync-store'
 import { syncEngine } from '@/lib/sync-engine'
 import { useEffect, useState } from 'react'
-import { WifiOff, MoreHorizontal, Check } from 'lucide-react'
+import { WifiOff, MoreHorizontal, Check, RefreshCw } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export function SyncStatus() {
   const { getPendingCount, lastSyncedAt, syncLoading, isInitialized } = useSyncStore()
   const [isOnline, setIsOnline] = useState(true) // Start with true to avoid hydration mismatch
   const [isMounted, setIsMounted] = useState(false)
+  const [now, setNow] = useState(() => Date.now())
   
   const pendingCount = getPendingCount()
   
@@ -16,7 +18,7 @@ export function SyncStatus() {
   const getSyncTimeText = () => {
     if (lastSyncedAt === 0) return 'Ready'
     
-    const timeSinceSync = Date.now() - lastSyncedAt
+    const timeSinceSync = now - lastSyncedAt
     const minutes = Math.floor(timeSinceSync / (1000 * 60))
     
     if (minutes < 1) return 'Synced'
@@ -26,18 +28,24 @@ export function SyncStatus() {
     return `${hours}h ago`
   }
 
-  // Helper function to render status with icon and text
-  const renderStatus = (
-    IconComponent: React.ComponentType<{ className?: string }>,
-    text: string,
-    animated = false,
-    colorClass = 'text-muted-foreground',
-  ) => (
-    <div className={`flex items-center space-x-2 ${colorClass}`}>
-      <IconComponent className={`h-3 w-3 ${animated ? 'animate-pulse' : ''}`} />
-      <span className="text-xs">{text}</span>
-    </div>
-  )
+  const getDetailedSyncTime = () => {
+    if (lastSyncedAt === 0) return 'No successful sync yet'
+
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'medium',
+    }).format(new Date(lastSyncedAt))
+  }
+
+  const handleForceSync = async () => {
+    if (!isOnline || syncLoading || !isInitialized) return
+
+    try {
+      await syncEngine.syncNow()
+    } catch (error) {
+      console.error('Failed to sync manually:', error)
+    }
+  }
 
   useEffect(() => {
     setIsMounted(true)
@@ -53,13 +61,20 @@ export function SyncStatus() {
 
   useEffect(() => {
     if (!isMounted) return
+
+    const updateCurrentTime = window.setInterval(() => setNow(Date.now()), 30_000)
+    return () => window.clearInterval(updateCurrentTime)
+  }, [isMounted])
+
+  useEffect(() => {
+    if (!isMounted) return
     
     // Online/offline detection
     const handleOnline = () => {
       setIsOnline(true)
       // Trigger sync when coming back online
       if (isInitialized) {
-        syncEngine.syncPendingChanges().catch((error) => {
+        syncEngine.syncNow().catch((error) => {
           console.error('Failed to sync after coming online:', error)
         })
       }
@@ -78,25 +93,55 @@ export function SyncStatus() {
     }
   }, [isInitialized, isMounted])
 
-  // Show loading when sync is loading
+  let IconComponent = Check
+  let syncText = getSyncTimeText()
+  let animated = false
+  let colorClass = 'text-muted-foreground'
+
   if (syncLoading) {
-    const syncText = pendingCount > 0 ? `Syncing... (${pendingCount} remaining)` : 'Syncing...'
-    return renderStatus(MoreHorizontal, syncText, true)
+    IconComponent = MoreHorizontal
+    syncText = pendingCount > 0 ? `Syncing... (${pendingCount} remaining)` : 'Syncing...'
+    animated = true
+  } else if (isMounted && !isOnline) {
+    IconComponent = WifiOff
+    syncText = 'Offline'
+    colorClass = 'text-amber-500 dark:text-amber-400'
+  } else if (pendingCount > 0) {
+    IconComponent = MoreHorizontal
+    syncText = `${pendingCount} pending`
+    animated = true
+  } else if (syncText === 'Ready') {
+    IconComponent = MoreHorizontal
   }
 
-  // Show offline status (only after mounting to avoid hydration mismatch)
-  if (isMounted && !isOnline) {
-    return renderStatus(WifiOff, 'Offline', false, 'text-amber-500 dark:text-amber-400')
-  }
+  return (
+    <div className="group relative">
+      <button
+        type="button"
+        className={`flex items-center space-x-2 rounded-sm ${colorClass} focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring`}
+        aria-label={`Sync status: ${syncText}`}
+      >
+        <IconComponent className={`h-3 w-3 ${animated ? 'animate-pulse' : ''}`} />
+        <span className="text-xs" aria-live="polite">{syncText}</span>
+      </button>
 
-  // Show pending changes count
-  if (pendingCount > 0) {
-    return renderStatus(MoreHorizontal, `${pendingCount} pending`, true)
-  }
-
-  // Show sync status with appropriate icon
-  const syncText = getSyncTimeText()
-  const IconComponent = syncText === 'Ready' ? MoreHorizontal : Check
-  
-  return renderStatus(IconComponent, syncText)
-} 
+      <div className="invisible absolute left-0 top-full z-50 w-64 pt-2 opacity-0 transition-opacity group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+        <div className="rounded-md border bg-popover p-3 text-popover-foreground shadow-md">
+          <p className="text-xs font-medium">Last synced</p>
+          <p className="mt-1 text-xs text-muted-foreground">{getDetailedSyncTime()}</p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-3 w-full"
+            onClick={handleForceSync}
+            disabled={!isOnline || syncLoading || !isInitialized}
+          >
+            <RefreshCw className={syncLoading ? 'animate-spin' : ''} />
+            {syncLoading ? 'Syncing...' : 'Sync now'}
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
