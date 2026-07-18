@@ -1,6 +1,7 @@
 import { create } from "zustand"
 import { persist } from "zustand/middleware"
 import type { ProjectData, TaskData } from "@/lib/types"
+import type { TaskPath } from "@/lib/task-path"
 import { initialProjectsData } from "@/lib/mock-data"
 import { produce } from "immer"
 import { triggerConfetti } from "@/lib/confetti"
@@ -22,8 +23,8 @@ import {
   toggleTaskPrefer,
   setTaskPriority,
   moveTaskWithPriorityChange,
+  reindexTaskPositions,
   moveTaskToNewParent,
-  getPathDisplayName,
 } from "@/lib/task-utils"
 import { useNavigationStore } from "./navigation-store"
 import { 
@@ -40,28 +41,28 @@ interface AppState {
   showCompleted: boolean
   searchQuery: string
 
-  toggleTaskCompletion: (taskPath: string[]) => void
-  toggleTaskDefer: (taskPath: string[]) => void
-  toggleTaskPrefer: (taskPath: string[]) => void
-  setTaskPriority: (taskPath: string[], priority: number) => void
-  moveTaskWithPriorityChange: (taskPath: string[], globalSourceIndex: number, globalDestinationIndex: number, newPriority: number) => void
-  deleteAtPath: (itemPath: string[]) => void
+  toggleTaskCompletion: (taskPath: TaskPath) => void
+  toggleTaskDefer: (taskPath: TaskPath) => void
+  toggleTaskPrefer: (taskPath: TaskPath) => void
+  setTaskPriority: (taskPath: TaskPath, priority: number) => void
+  moveTaskWithPriorityChange: (taskPath: TaskPath, globalSourceIndex: number, globalDestinationIndex: number, newPriority: number) => void
+  deleteAtPath: (itemPath: TaskPath) => void
 
   toggleShowCompleted: () => void
   setSearchQuery: (query: string) => void
 
-  addSubtaskToParent: (parentPath: string[], subtaskName: string) => void
+  addSubtaskToParent: (parentPath: TaskPath, subtaskName: string) => void
   updateProjectName: (projectId: string, newName: string) => void
-  updateTaskName: (taskPath: string[], newName: string) => void
-  updateTaskDescription: (taskPath: string[], newDescription: string) => void
-  setTaskDueDate: (taskPath: string[], dueDate: string | undefined) => void
-  toggleTaskOrdered: (taskPath: string[]) => void
+  updateTaskName: (taskPath: TaskPath, newName: string) => void
+  updateTaskDescription: (taskPath: TaskPath, newDescription: string) => void
+  setTaskDueDate: (taskPath: TaskPath, dueDate: string | undefined) => void
+  toggleTaskOrdered: (taskPath: TaskPath) => void
   dueSoonDays: number
   setDueSoonDays: (days: number) => void
   addProject: (projectName: string) => void
-  reorderTasks: (parentPath: string[], fromIndex: number, toIndex: number) => void
+  reorderTasks: (parentPath: TaskPath, fromIndex: number, toIndex: number) => void
   reorderProjects: (fromIndex: number, toIndex: number) => void
-  moveTaskToNewParent: (taskPath: string[], newParentPath: string[], newPosition?: number) => void
+  moveTaskToNewParent: (taskPath: TaskPath, newParentPath: TaskPath, newPosition?: number) => void
   clearLocalState: () => void
 }
 
@@ -110,7 +111,7 @@ export const useAppStore = create<AppState>()(
   },
 
   toggleTaskDefer: (taskPath) => {
-    let affectedTaskPaths: string[][] = []
+    let affectedTaskPaths: TaskPath[] = []
     
     set(
       produce((draft: AppState) => {
@@ -126,7 +127,7 @@ export const useAppStore = create<AppState>()(
   },
 
   toggleTaskPrefer: (taskPath) => {
-    let affectedTaskPaths: string[][] = []
+    let affectedTaskPaths: TaskPath[] = []
     
     set(
       produce((draft: AppState) => {
@@ -151,16 +152,23 @@ export const useAppStore = create<AppState>()(
   },
 
   moveTaskWithPriorityChange: (taskPath, globalSourceIndex, globalDestinationIndex, newPriority) => {
+    let affectedTaskPaths: TaskPath[] = []
     set(
       produce((draft: AppState) => {
-        moveTaskWithPriorityChange(draft.projects, taskPath, globalSourceIndex, globalDestinationIndex, newPriority)
+        affectedTaskPaths = moveTaskWithPriorityChange(
+          draft.projects,
+          taskPath,
+          globalSourceIndex,
+          globalDestinationIndex,
+          newPriority,
+        )
       }),
     )
-    trackTaskUpdated(taskPath)
+    affectedTaskPaths.forEach(trackTaskUpdated)
   },
 
   deleteAtPath: (itemPath) => {
-    let affectedTaskPaths: string[][] = []
+    let affectedTaskPaths: TaskPath[] = []
     
     set(
       produce((draft: AppState) => {
@@ -251,7 +259,6 @@ export const useAppStore = create<AppState>()(
       produce((draft: AppState) => {
         const project = draft.projects.find((p) => p.id === projectId)
         if (project) {
-          const oldName = project.name
           project.name = newName
           project.lastModificationDate = new Date().toISOString()
         } else {
@@ -267,7 +274,6 @@ export const useAppStore = create<AppState>()(
     set(
       produce((draft: AppState) => {
         updateTaskAtPath(draft.projects, taskPath, (task) => {
-          const oldName = task.name
           task.name = newName
           task.lastModificationDate = new Date().toISOString()
         })
@@ -347,8 +353,7 @@ export const useAppStore = create<AppState>()(
     if (fromIndex === toIndex) return
 
 
-    // Store task IDs for sync tracking after state update
-    let updatedTaskIds: string[] = []
+    let affectedTaskPaths: TaskPath[] = []
 
     set(
       produce((draft: AppState) => {
@@ -400,39 +405,11 @@ export const useAppStore = create<AppState>()(
         incompleteTasks.splice(fromIndex, 1)
         incompleteTasks.splice(toIndex, 0, movedTask)
 
-        // Use visual array to assign clean 0-indexed positions within each priority section
-        let preferredPosition = 0
-        let normalPosition = 0
-        let deferredPosition = 0
-        
-        incompleteTasks.forEach((task) => {
-          if (task.priority === 1) {
-            // Preferred priority section: 0,1,2,3...
-            task.position = preferredPosition++
-            task.lastModificationDate = new Date().toISOString()
-            updatedTaskIds.push(task.id)
-          } else if (task.priority === 0) {
-            // Normal priority section: 0,1,2,3...
-            task.position = normalPosition++
-            task.lastModificationDate = new Date().toISOString()
-            updatedTaskIds.push(task.id)
-          } else if (task.priority === -1) {
-            // Deferred priority section: 0,1,2,3...
-            task.position = deferredPosition++
-            task.lastModificationDate = new Date().toISOString()
-            updatedTaskIds.push(task.id)
-          }
-        })
-
-
+        affectedTaskPaths = reindexTaskPositions(incompleteTasks, parentPath)
       }),
     )
 
-    // Track each affected task for sync AFTER state update is committed
-    updatedTaskIds.forEach(taskId => {
-      const taskPath = [...parentPath, taskId]
-      trackTaskUpdated(taskPath)
-    })
+    affectedTaskPaths.forEach(trackTaskUpdated)
   },
 
   reorderProjects: (fromIndex, toIndex) => {
@@ -454,7 +431,7 @@ export const useAppStore = create<AppState>()(
   },
 
   moveTaskToNewParent: (taskPath, newParentPath, newPosition) => {
-    let result: { success: boolean; sourceAffectedTaskPaths: string[][]; destinationAffectedTaskPaths: string[][] } = { 
+    let result: { success: boolean; sourceAffectedTaskPaths: TaskPath[]; destinationAffectedTaskPaths: TaskPath[] } = {
       success: false, 
       sourceAffectedTaskPaths: [], 
       destinationAffectedTaskPaths: [] 
@@ -543,7 +520,7 @@ const sortByPriorityAndPosition = (tasks: TaskData[]): TaskData[] => (
 
 const resolveCurrentPath = (
   projects: ProjectData[],
-  currentPath: string[]
+  currentPath: TaskPath
 ): ResolvedCurrentPath => {
   if (isProjectList(currentPath)) {
     return { project: null, taskChain: [], currentTask: null }
@@ -569,7 +546,7 @@ const resolveCurrentPath = (
 const getTasksForResolvedPath = (
   project: ProjectData | null,
   currentTask: TaskData | null,
-  currentPath: string[],
+  currentPath: TaskPath,
   searchQuery: string,
   showCompleted: boolean
 ): TaskData[] => {
@@ -607,7 +584,7 @@ const getOrderedNumberMapForTask = (currentTask: TaskData | null): Record<string
 
 export const getCurrentTaskViewData = (
   projects: ProjectData[],
-  currentPath: string[],
+  currentPath: TaskPath,
   searchQuery: string,
   showCompleted: boolean
 ): CurrentTaskViewData => {
@@ -627,7 +604,7 @@ export const getCurrentTaskViewData = (
 
 export const getCurrentTasksForView = (
   projects: ProjectData[],
-  currentPath: string[],
+  currentPath: TaskPath,
   searchQuery: string,
   showCompleted: boolean
 ): TaskData[] => getCurrentTaskViewData(
@@ -639,12 +616,12 @@ export const getCurrentTasksForView = (
 
 export const getOrderedTaskNumberMap = (
   projects: ProjectData[],
-  currentPath: string[]
+  currentPath: TaskPath
 ): Record<string, number> => getOrderedNumberMapForTask(
   resolveCurrentPath(projects, currentPath).currentTask
 )
 
 export const getCurrentTaskChain = (
   projects: ProjectData[],
-  currentPath: string[]
+  currentPath: TaskPath
 ): TaskData[] => resolveCurrentPath(projects, currentPath).taskChain

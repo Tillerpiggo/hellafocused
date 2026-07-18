@@ -6,6 +6,7 @@ import { calculateTodaysTaskFocusPoints, isPathPrefix, serializePath } from '@/l
 import { calculateDueDateMultiplier, calculateTaskMultipliedPoints } from '@/lib/multiplier-utils'
 import { ProgressTask } from './progress-task'
 import { Button } from '@/components/ui/button'
+import type { TaskPath } from '@/lib/task-path'
 
 interface TodaysProgressCardProps {
   projects: ProjectData[]
@@ -24,10 +25,10 @@ export function TodaysProgressCard({ projects, completionsByDate }: TodaysProgre
 
   const todaysData = useMemo(() => {
     const today = new Date().toDateString()
-    const completedTasks: (TaskData & { projectName: string; path: string[]; focusPoints: number; multiplierBreakdown?: MultiplierBreakdown[]; multiplierTotal?: number })[] = []
+    const completedTasks: (TaskData & { projectName: string; path: TaskPath; focusPoints: number; multiplierBreakdown?: MultiplierBreakdown[]; multiplierTotal?: number })[] = []
     let totalFocusPoints = 0
 
-    const processTask = (task: TaskData, projectName: string, parentPath: string[] = []) => {
+    const processTask = (task: TaskData, projectName: string, parentPath: TaskPath = []) => {
       const currentPath = [...parentPath, task.id]
 
       if (task.completed && task.completionDate) {

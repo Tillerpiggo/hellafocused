@@ -22,13 +22,14 @@ import { useFocusStore } from "@/store/focus-store"
 import { useUIStore } from "@/store/ui-store"
 import { getProjectId, isProject, isProjectList, isTask } from "@/lib/task-utils"
 import { groupSearchResults, searchAllTasks } from "@/lib/search-utils"
+import type { TaskPath } from "@/lib/task-path"
 
 export function SessionBrowser({
   sessionId,
   onCreateFocusSession,
 }: {
   sessionId: string
-  onCreateFocusSession: (taskPath: string[]) => void
+  onCreateFocusSession: (taskPath: TaskPath) => void
 }) {
   const projects = useAppStore(state => state.projects)
   const showCompleted = useAppStore(state => state.showCompleted)
@@ -83,7 +84,7 @@ export function SessionBrowser({
 
   if (!session) return null
 
-  const navigate = (nextPath: string[]) => setBrowsePath(sessionId, nextPath)
+  const navigate = (nextPath: TaskPath) => setBrowsePath(sessionId, nextPath)
   const navigateBack = () => navigate(path.slice(0, -1))
   const focusHere = () => setSessionScope(sessionId, projects, path)
 

@@ -1,3 +1,5 @@
+import type { TaskPath } from "./task-path"
+
 export interface TaskData {
   id: string
   name: string
@@ -16,8 +18,8 @@ export interface TaskData {
 export interface FocusSession {
   id: string
   name: string
-  startPath: string[]
-  browsePath: string[]
+  startPath: TaskPath
+  browsePath: TaskPath
   view: 'focus' | 'browse'
   currentFocusTaskId: string | null
   completedCount: number

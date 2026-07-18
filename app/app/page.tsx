@@ -30,6 +30,7 @@ import { useRef, useMemo, useState, useEffect } from "react"
 import { SidebarLayout } from "@/components/sidebar/sidebar-layout"
 import { countSubtasksRecursively, findTaskAtPath, findProjectAtPath, getProjectId, isProject, isProjectList, isTask } from "@/lib/task-utils"
 import { searchAllTasks, groupSearchResults } from "@/lib/search-utils"
+import type { TaskPath } from "@/lib/task-path"
 
 const ACTIVE_TAB_STORAGE_KEY = 'hellafocused-active-tab'
 
@@ -100,7 +101,7 @@ export default function HomePage() {
   const sessions = useFocusStore(state => state.sessions)
   const createSession = useFocusStore(state => state.createSession)
 
-  const createAndOpenFocusSession = (startPath: string[], view: 'focus' | 'browse' = 'focus') => {
+  const createAndOpenFocusSession = (startPath: TaskPath, view: 'focus' | 'browse' = 'focus') => {
     const sessionId = createSession(projects, startPath, view)
     setActiveTab(`focus:${sessionId}`)
   }
@@ -266,7 +267,7 @@ export default function HomePage() {
     setTimeout(() => titleRef.current?.focus(), 0)
   }
 
-  const handleNavigateToSearchResult = (result: { path: string[] }) => {
+  const handleNavigateToSearchResult = (result: { path: TaskPath }) => {
     // Clear search when navigating to a result
     setSearchQuery("")
     setShowSearch(false)

@@ -3,11 +3,12 @@
 import { useState } from 'react'
 import { ChevronRight } from 'lucide-react'
 import { TaskData, MultiplierBreakdown } from '@/lib/types'
+import type { TaskPath } from '@/lib/task-path'
 
 interface ProgressTaskProps {
   task: TaskData & {
     projectName: string
-    path: string[]
+    path: TaskPath
     focusPoints: number
     multiplierBreakdown?: MultiplierBreakdown[]
     multiplierTotal?: number

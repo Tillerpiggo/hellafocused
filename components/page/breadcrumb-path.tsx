@@ -10,13 +10,14 @@ import {
 import { useAppStore } from "@/store/app-store"
 import { useNavigationStore } from "@/store/navigation-store"
 import { getProjectId } from "@/lib/task-utils"
+import type { TaskPath } from "@/lib/task-path"
 
 interface BreadcrumbPathProps {
   projectName: string
   taskChain: TaskData[]
-  path?: string[]
-  contextPath?: string[]
-  onNavigate?: (path: string[]) => void
+  path?: TaskPath
+  contextPath?: TaskPath
+  onNavigate?: (path: TaskPath) => void
 }
 
 export function BreadcrumbPath({ projectName, taskChain, path, contextPath, onNavigate }: BreadcrumbPathProps) {

@@ -9,8 +9,9 @@ import { Target, Layers, Plus, X, Timer } from "lucide-react"
 import { useGlobalTimerCheck } from "@/hooks/use-global-timer-check"
 import { useTimerTick } from "@/hooks/use-timer-tick"
 import { formatRemainingFull } from "./timer-picker"
+import type { TaskPath } from "@/lib/task-path"
 
-function useSessionName(startPath: string[]) {
+function useSessionName(startPath: TaskPath) {
   const projects = useAppStore(s => s.projects)
   const projectId = getProjectId(startPath)
   if (!projectId) return null
@@ -30,7 +31,7 @@ function SessionCard({
   onClick,
   onRemove,
 }: {
-  session: { id: string; startPath: string[]; currentFocusTaskId: string | null; completedCount: number; createdAt: number; timerEndTime?: number | null; timerFired?: boolean }
+  session: { id: string; startPath: TaskPath; currentFocusTaskId: string | null; completedCount: number; createdAt: number; timerEndTime?: number | null; timerFired?: boolean }
   isActive: boolean
   onClick: () => void
   onRemove: () => void

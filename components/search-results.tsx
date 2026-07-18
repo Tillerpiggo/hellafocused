@@ -1,21 +1,31 @@
 "use client"
 
-import { ChevronRight, ArrowRight, CheckCircle, Circle } from "lucide-react"
+import type React from "react"
+import { ChevronRight, ArrowRight, Check, CheckCircle, Circle, Edit, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
 import { cn } from "@/lib/utils"
 import { isPathPrefix } from "@/lib/task-utils"
 import type { SearchResult } from "@/lib/search-utils"
 import { highlightText } from "@/lib/search-utils"
+import type { TaskPath } from "@/lib/task-path"
 
 interface SearchResultsProps {
   results: SearchResult[]
   currentProjectResults: SearchResult[]
   otherProjectResults: SearchResult[]
   onNavigateToResult: (result: SearchResult) => void
-  currentPath: string[]
+  currentPath: TaskPath
   isInProject: boolean
   query: string
   className?: string
+  onRenameResult?: (result: SearchResult) => void
+  onToggleCompleteResult?: (result: SearchResult) => void
 }
 
 interface HighlightedTextProps {
@@ -50,7 +60,9 @@ export function SearchResults({
   currentPath,
   isInProject,
   query,
-  className 
+  className,
+  onRenameResult,
+  onToggleCompleteResult,
 }: SearchResultsProps) {
   if (results.length === 0) {
     return null
@@ -83,22 +95,34 @@ export function SearchResults({
           <div className="space-y-1">
             {/* Direct Children - shown as normal task items */}
             {directChildren.map((result, index) => (
-              <SearchTaskItem
+              <SearchResultContextMenu
                 key={`direct-${index}`}
                 result={result}
-                query={query}
-                onClick={() => onNavigateToResult(result)}
-              />
+                onRename={onRenameResult}
+                onToggleComplete={onToggleCompleteResult}
+              >
+                <SearchTaskItem
+                  result={result}
+                  query={query}
+                  onClick={() => onNavigateToResult(result)}
+                />
+              </SearchResultContextMenu>
             ))}
             
             {/* Other Current Project Results - shown as breadcrumb items */}
             {otherCurrentProjectResults.map((result, index) => (
-              <SearchResultItem
+              <SearchResultContextMenu
                 key={`current-${index}`}
                 result={result}
-                query={query}
-                onClick={() => onNavigateToResult(result)}
-              />
+                onRename={onRenameResult}
+                onToggleComplete={onToggleCompleteResult}
+              >
+                <SearchResultItem
+                  result={result}
+                  query={query}
+                  onClick={() => onNavigateToResult(result)}
+                />
+              </SearchResultContextMenu>
             ))}
           </div>
         </div>
@@ -112,17 +136,78 @@ export function SearchResults({
           </h3>
           <div className="space-y-1">
             {otherProjectResults.map((result, index) => (
-              <SearchResultItem
+              <SearchResultContextMenu
                 key={`other-${index}`}
                 result={result}
-                query={query}
-                onClick={() => onNavigateToResult(result)}
-              />
+                onRename={onRenameResult}
+                onToggleComplete={onToggleCompleteResult}
+              >
+                <SearchResultItem
+                  result={result}
+                  query={query}
+                  onClick={() => onNavigateToResult(result)}
+                />
+              </SearchResultContextMenu>
             ))}
           </div>
         </div>
       )}
     </div>
+  )
+}
+
+interface SearchResultContextMenuProps {
+  children: React.ReactElement
+  result: SearchResult
+  onRename?: (result: SearchResult) => void
+  onToggleComplete?: (result: SearchResult) => void
+}
+
+function SearchResultContextMenu({ children, result, onRename, onToggleComplete }: SearchResultContextMenuProps) {
+  if (!onRename && !onToggleComplete) return children
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <div className="w-full">{children}</div>
+      </ContextMenuTrigger>
+      <ContextMenuContent
+        className="z-[110] w-48"
+        onPointerUpCapture={(event) => {
+          const action = (event.target as HTMLElement).closest<HTMLElement>("[data-task-action]")?.dataset.taskAction
+          if (action === "complete") setTimeout(() => onToggleComplete?.(result), 0)
+          if (action === "rename") setTimeout(() => onRename?.(result), 0)
+        }}
+        onKeyDownCapture={(event) => {
+          if (event.key !== "Enter" && event.key !== " ") return
+          const action = (event.target as HTMLElement).closest<HTMLElement>("[data-task-action]")?.dataset.taskAction
+          if (action === "complete") setTimeout(() => onToggleComplete?.(result), 0)
+          if (action === "rename") setTimeout(() => onRename?.(result), 0)
+        }}
+      >
+        {onToggleComplete && (
+          <ContextMenuItem data-task-action="complete" className="gap-2 transition-colors">
+            {result.task.completed ? (
+              <>
+                <X className="menu-icon" />
+                Mark Incomplete
+              </>
+            ) : (
+              <>
+                <Check className="menu-icon" />
+                Mark Complete
+              </>
+            )}
+          </ContextMenuItem>
+        )}
+        {onRename && (
+          <ContextMenuItem data-task-action="rename" className="gap-2 transition-colors">
+            <Edit className="menu-icon" />
+            Rename Task
+          </ContextMenuItem>
+        )}
+      </ContextMenuContent>
+    </ContextMenu>
   )
 }
 
@@ -231,4 +316,4 @@ function SearchResultItem({ result, query, onClick }: SearchResultItemProps) {
       <ArrowRight className="h-4 w-4 text-muted-foreground ml-2 flex-shrink-0" />
     </Button>
   )
-} 
+}

@@ -1,5 +1,6 @@
 "use client"
 import type { TaskData } from "@/lib/types"
+import type { TaskPath } from "@/lib/task-path"
 import type React from "react"
 
 import { useAppStore } from "@/store/app-store"
@@ -17,13 +18,13 @@ import { useState, useRef, memo } from "react"
 
 interface TaskItemProps {
   task: TaskData
-  currentPath: string[] // Unified path to the parent of this task
+  currentPath: TaskPath // Unified path to the parent of this task
   isDragging?: boolean
   previewPriority?: number // For cross-section drag styling preview
   onEditingChange?: (isEditing: boolean) => void
   orderNumber?: number // When set, shows a numbered circle instead of a checkbox (parent is ordered)
   onNavigate?: (taskId: string) => void
-  onCreateFocusSession?: (taskPath: string[]) => void
+  onCreateFocusSession?: (taskPath: TaskPath) => void
 }
 
 export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false, previewPriority, onEditingChange, orderNumber, onNavigate, onCreateFocusSession }: TaskItemProps) {

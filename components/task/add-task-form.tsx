@@ -2,9 +2,10 @@
 import { useAppStore } from "@/store/app-store"
 import { AddForm } from "@/components/ui/add-form"
 import { isProject } from "@/lib/task-utils"
+import type { TaskPath } from "@/lib/task-path"
 
 interface AddTaskFormProps {
-  currentPath: string[] // Unified path including project and task hierarchy
+  currentPath: TaskPath // Unified path including project and task hierarchy
 }
 
 export function AddTaskForm({ currentPath }: AddTaskFormProps) {

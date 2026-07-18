@@ -7,7 +7,7 @@ import { TaskBreadcrumb } from "./task-breadcrumb"
 import { cn } from "@/lib/utils"
 import { useAppStore, getOrderedTaskNumberMap } from "@/store/app-store"
 import { useFocusStore, canShuffleCurrentTask } from "@/store/focus-store"
-import { getTaskParentChain, findTaskPath, findTaskAtPath, getProjectId } from "@/lib/task-utils"
+import { getTaskParentChain, findTaskAtPath } from "@/lib/task-utils"
 import { LinkifiedText } from "@/components/ui/linkified-text"
 import { EditableTitle } from "@/components/editable-title"
 import { TaskDescriptionEditor, type TaskDescriptionEditorRef } from "@/components/task/task-description-editor"
@@ -26,7 +26,6 @@ interface FocusTaskViewProps {
   onTogglePrefer: () => void
   showInfoOverlay?: boolean
   onShowInfoOverlay?: (show: boolean) => void
-  startPath: string[]
 }
 
 export function FocusTaskView({
@@ -37,7 +36,6 @@ export function FocusTaskView({
   onTogglePrefer,
   showInfoOverlay: externalShowInfoOverlay,
   onShowInfoOverlay,
-  startPath
 }: FocusTaskViewProps) {
   const priority = currentTask?.priority ?? 0
   const [isCompleting, setIsCompleting] = useState(false)
@@ -59,6 +57,8 @@ export function FocusTaskView({
   
   // Get parent chain for breadcrumb and store functions
   const canShuffle = useFocusStore(canShuffleCurrentTask)
+  const currentTaskPath = useFocusStore(state => state.currentFocusTaskPath)
+  const setCurrentFocusTask = useFocusStore(state => state.setCurrentFocusTask)
   const projects = useAppStore((state) => state.projects)
   const updateTaskName = useAppStore((state) => state.updateTaskName)
   const updateTaskDescription = useAppStore((state) => state.updateTaskDescription)
@@ -72,21 +72,15 @@ export function FocusTaskView({
   }, [currentTask, projects])
 
   const orderedStepInfo = useMemo(() => {
-    if (!currentTask) return null
-    const projectId = getProjectId(startPath)
-    if (!projectId) return null
-    const project = projects.find(p => p.id === projectId)
-    if (!project) return null
-    const taskPathInProject = findTaskPath(project.tasks, currentTask.id)
-    if (!taskPathInProject || taskPathInProject.length < 2) return null
-    const parentPath = [projectId, ...taskPathInProject.slice(0, -1)]
+    if (!currentTask || !currentTaskPath || currentTaskPath.length < 3) return null
+    const parentPath = currentTaskPath.slice(0, -1)
     const parent = findTaskAtPath(projects, parentPath)
     if (!parent?.isOrdered) return null
     const orderMap = getOrderedTaskNumberMap(projects, parentPath)
     const orderNumber = orderMap[currentTask.id]
     if (orderNumber === undefined) return null
     return { current: orderNumber, total: parent.subtasks.length }
-  }, [currentTask, projects, startPath])
+  }, [currentTask, currentTaskPath, projects])
 
   const handleDismissMultiplierBadge = useCallback(() => {
     setShowMultiplierBadge(false)
@@ -170,66 +164,28 @@ export function FocusTaskView({
   }, [showInfoOverlay])
 
   const handleTitleChange = (newTitle: string) => {
-    if (!currentTask || !newTitle.trim()) return
-    
-    const projectId = getProjectId(startPath)
-    if (!projectId) return
-    
-    const project = projects.find((p) => p.id === projectId)
-    if (project) {
-      const taskPathInProject = findTaskPath(project.tasks, currentTask.id)
-      if (taskPathInProject) {
-        const fullTaskPath = [projectId, ...taskPathInProject]
-        updateTaskName(fullTaskPath, newTitle)
-        
-        // Update the local currentFocusTask to reflect the change immediately
-        useFocusStore.setState({ 
-          currentFocusTask: { ...currentTask, name: newTitle } 
-        })
-      }
-    }
+    if (!currentTask || !currentTaskPath || !newTitle.trim()) return
+
+    updateTaskName(currentTaskPath, newTitle)
+    setCurrentFocusTask({ ...currentTask, name: newTitle }, currentTaskPath)
   }
 
   const handleDescriptionSave = (newDescription: string) => {
-    if (!currentTask) return
-    
-    const projectId = getProjectId(startPath)
-    if (!projectId) return
-    
-    const project = projects.find((p) => p.id === projectId)
-    if (project) {
-      const taskPathInProject = findTaskPath(project.tasks, currentTask.id)
-      if (taskPathInProject) {
-        const fullTaskPath = [projectId, ...taskPathInProject]
-        updateTaskDescription(fullTaskPath, newDescription)
-        
-        // Update the local currentFocusTask to reflect the change immediately
-        useFocusStore.setState({ 
-          currentFocusTask: { ...currentTask, description: newDescription || undefined } 
-        })
-      }
-    }
+    if (!currentTask || !currentTaskPath) return
+
+    updateTaskDescription(currentTaskPath, newDescription)
+    setCurrentFocusTask(
+      { ...currentTask, description: newDescription || undefined },
+      currentTaskPath,
+    )
     setShowDescriptionEditor(false)
   }
 
   const handleDueDateChange = (date: string | undefined) => {
-    if (!currentTask) return
+    if (!currentTask || !currentTaskPath) return
 
-    const projectId = getProjectId(startPath)
-    if (!projectId) return
-
-    const project = projects.find((p) => p.id === projectId)
-    if (project) {
-      const taskPathInProject = findTaskPath(project.tasks, currentTask.id)
-      if (taskPathInProject) {
-        const fullTaskPath = [projectId, ...taskPathInProject]
-        setTaskDueDate(fullTaskPath, date)
-
-        useFocusStore.setState({
-          currentFocusTask: { ...currentTask, dueDate: date || undefined }
-        })
-      }
-    }
+    setTaskDueDate(currentTaskPath, date)
+    setCurrentFocusTask({ ...currentTask, dueDate: date || undefined }, currentTaskPath)
   }
 
   const handleDescriptionCancel = () => {
@@ -511,4 +467,4 @@ export function FocusTaskView({
       )}
     </>
   )
-} 
+}

@@ -26,6 +26,7 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
   const [mounted, setMounted] = useState(false)
   const { resolvedTheme } = useTheme()
   const isDark = mounted ? resolvedTheme === 'dark' : false
+  const showSignupNote = !hasSession
 
   useEffect(() => {
     setMounted(true)
@@ -90,11 +91,18 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
                   )}
                 </Button>
               </Link>
-              {!hasSession && (
-                <p className="text-sm text-muted-foreground mt-2">
+              <div
+                aria-hidden={!showSignupNote}
+                className={`grid overflow-hidden transition-all duration-300 ease-out motion-reduce:transition-none ${
+                  showSignupNote
+                    ? "mt-2 grid-rows-[1fr] opacity-100"
+                    : "mt-0 grid-rows-[0fr] opacity-0"
+                }`}
+              >
+                <p className="min-h-0 overflow-hidden text-sm text-muted-foreground">
                   No signup required.
                 </p>
-              )}
+              </div>
             </div>
           </div>
 
@@ -103,12 +111,14 @@ export function HeroSection({ hasSession }: HeroSectionProps) {
             <div className="rounded-3xl border border-border/50 overflow-hidden shadow-2xl w-full mx-auto relative">
               <video
                 key={isDark ? 'dark' : 'light'}
-                src={isDark ? "/FocusDemo_Dark.mov" : "/FocusDemo_Light.mov"}
+                src={mounted ? (isDark ? "/FocusDemo_Dark.mov" : "/FocusDemo_Light.mov") : undefined}
+                width={2624}
+                height={1478}
                 autoPlay
                 loop
                 muted
                 playsInline
-                className="w-full h-auto"
+                className="block w-full h-auto"
               >
                 Your browser does not support the video tag.
               </video>

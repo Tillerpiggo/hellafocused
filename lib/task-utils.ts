@@ -1,4 +1,5 @@
 import type { TaskData, ProjectData } from "./types"
+import { TaskPath, type TaskPath as TaskPathData } from "./task-path"
 
 /**
  * Find and update a task with a task path with a certain update function
@@ -182,7 +183,7 @@ export const fillMissingPrioritiesForProjects = (projects: ProjectData[]): void 
  * 
  * Deferred tasks go to position 0, normal tasks go to end of normal group
  */
-export const toggleTaskDefer = (projects: ProjectData[], taskPath: string[]): string[][] => {
+export const toggleTaskDefer = (projects: ProjectData[], taskPath: TaskPathData): TaskPathData[] => {
   const task = findTaskAtPath(projects, taskPath)
   if (!task) return []
 
@@ -204,7 +205,7 @@ export const toggleTaskDefer = (projects: ProjectData[], taskPath: string[]): st
 
   const isCurrentlyDeferred = task.priority === -1
   const newPriority = isCurrentlyDeferred ? 0 : -1
-  const affectedTaskPaths: string[][] = []
+  const affectedTaskPaths: TaskPathData[] = []
 
   // Update task priority and timestamp
   task.priority = newPriority
@@ -248,7 +249,7 @@ export const toggleTaskDefer = (projects: ProjectData[], taskPath: string[]): st
  * 
  * Preferred tasks go to end of preferred group, normal tasks go to position 0
  */
-export const toggleTaskPrefer = (projects: ProjectData[], taskPath: string[]): string[][] => {
+export const toggleTaskPrefer = (projects: ProjectData[], taskPath: TaskPathData): TaskPathData[] => {
   const task = findTaskAtPath(projects, taskPath)
   if (!task) return []
 
@@ -270,7 +271,7 @@ export const toggleTaskPrefer = (projects: ProjectData[], taskPath: string[]): s
 
   const isCurrentlyPreferred = task.priority === 1
   const newPriority = isCurrentlyPreferred ? 0 : 1
-  const affectedTaskPaths: string[][] = []
+  const affectedTaskPaths: TaskPathData[] = []
 
   // Update task priority and timestamp
   task.priority = newPriority
@@ -300,24 +301,45 @@ export const toggleTaskPrefer = (projects: ProjectData[], taskPath: string[]): s
   return affectedTaskPaths
 }
 
+/** Reassign zero-based positions within each priority section. */
+export const reindexTaskPositions = (
+  tasksInVisualOrder: TaskData[],
+  parentPath: TaskPathData,
+  forceUpdatedTaskIds: string[] = [],
+): TaskPathData[] => {
+  const nextPositionByPriority = new Map<number, number>()
+  const forceUpdated = new Set(forceUpdatedTaskIds)
+  const updatedAt = new Date().toISOString()
+  const affectedPaths: TaskPathData[] = []
+
+  for (const task of tasksInVisualOrder) {
+    const nextPosition = nextPositionByPriority.get(task.priority) ?? 0
+    nextPositionByPriority.set(task.priority, nextPosition + 1)
+
+    if (task.position === nextPosition && !forceUpdated.has(task.id)) continue
+
+    task.position = nextPosition
+    task.lastModificationDate = updatedAt
+    affectedPaths.push(TaskPath.append(parentPath, task.id))
+  }
+
+  return affectedPaths
+}
+
 /**
- * Move task with priority change in a single atomic operation
- * 
- * 4-step approach that preserves multi-0-indexing:
- * 1. Convert visual destination index to section-local position
- * 2. Remove from source section (fill position gaps)
- * 3. Insert into target section (make room at target position)
- * 4. Set moved task's new position and priority
+ * Move a task to its final global visual index while changing priority.
+ * `globalDestinationIndex` follows @hello-pangea/dnd semantics: it is the
+ * task's index in the final list after the source has been removed.
  */
 export const moveTaskWithPriorityChange = (
   projects: ProjectData[], 
-  taskPath: string[], 
+  taskPath: TaskPathData,
   globalSourceIndex: number,
   globalDestinationIndex: number,
   newPriority: number
-): void => {
+): TaskPathData[] => {
   const task = findTaskAtPath(projects, taskPath)
-  if (!task) return
+  if (!task) return []
 
   // Get parent tasks array
   const parentPath = taskPath.slice(0, -1)
@@ -325,58 +347,38 @@ export const moveTaskWithPriorityChange = (
   
   if (parentPath.length === 1) {
     const project = findProjectAtPath(projects, parentPath)
-    if (!project) return
+    if (!project) return []
     parentTasks = project.tasks
   } else {
     const parentTask = findTaskAtPath(projects, parentPath)
-    if (!parentTask) return
+    if (!parentTask) return []
     parentTasks = parentTask.subtasks
   }
 
-  // Step 1: Change priority FIRST
-  task.priority = newPriority
-  task.lastModificationDate = new Date().toISOString()
-
-  // Step 2: NOW compute section counts with correct priorities
-  const sortedTasks = parentTasks
+  // Build the source visual list before changing priority. Sorting after the
+  // change would move the task into its new section before applying the drop.
+  const visualTasks = parentTasks
     .filter(t => !t.completed)
     .sort((a, b) => {
       if (a.priority !== b.priority) return b.priority - a.priority
       if (a.position !== undefined && b.position !== undefined) return a.position - b.position
+      if (a.position !== undefined) return -1
+      if (b.position !== undefined) return 1
       return a.lastModificationDate.localeCompare(b.lastModificationDate)
     })
-  
-  // Step 3: Create visual array and perform the move
-  const visualArray = sortedTasks.slice() // Copy the sorted visual array
-  
-  // Find current position of moved task in visual array
-  const currentVisualIndex = visualArray.findIndex(t => t.id === task.id)
-  
-  // Remove task from current visual position
-  if (currentVisualIndex !== -1) {
-    visualArray.splice(currentVisualIndex, 1)
-  }
-  
-  // Insert task at target visual position
-  visualArray.splice(globalDestinationIndex, 0, task)
-  
-  // Step 5: Reassign all positions based on final visual array order
-  let preferredPosition = 0
-  let normalPosition = 0
-  let deferredPosition = 0
-  
-  visualArray.forEach((t) => {
-    if (t.priority === 1) {
-      t.position = preferredPosition++
-      t.lastModificationDate = new Date().toISOString()
-    } else if (t.priority === 0) {
-      t.position = normalPosition++
-      t.lastModificationDate = new Date().toISOString()
-    } else if (t.priority === -1) {
-      t.position = deferredPosition++
-      t.lastModificationDate = new Date().toISOString()
-    }
-  })
+
+  const sourceIndex = visualTasks[globalSourceIndex]?.id === task.id
+    ? globalSourceIndex
+    : visualTasks.findIndex(candidate => candidate.id === task.id)
+  if (sourceIndex === -1) return []
+
+  visualTasks.splice(sourceIndex, 1)
+  task.priority = newPriority
+
+  const destinationIndex = Math.max(0, Math.min(globalDestinationIndex, visualTasks.length))
+  visualTasks.splice(destinationIndex, 0, task)
+
+  return reindexTaskPositions(visualTasks, parentPath, [task.id])
 }
 
 /**
@@ -386,7 +388,7 @@ export const moveTaskWithPriorityChange = (
  * and does NOT modify the task's position. Use this when you want to
  * control positioning separately (e.g., during drag operations).
  */
-export const setTaskPriority = (projects: ProjectData[], taskPath: string[], newPriority: number): void => {
+export const setTaskPriority = (projects: ProjectData[], taskPath: TaskPathData, newPriority: number): void => {
   const task = findTaskAtPath(projects, taskPath)
   if (!task) return
 
@@ -410,10 +412,38 @@ export const findTaskPath = (tasks: TaskData[], targetId: string, currentPath: s
   return null
 }
 
+export interface IndexedTaskPath {
+  task: TaskData
+  path: TaskPathData
+  priorities: number[]
+}
+
+/**
+ * Index a project's task tree in one traversal.
+ *
+ * Focus selection uses both the path and the priority chain, so building them
+ * together avoids recursively searching the same tree once per leaf.
+ */
+export const indexTaskPaths = (tasks: TaskData[], projectId: string): Map<string, IndexedTaskPath> => {
+  const index = new Map<string, IndexedTaskPath>()
+
+  const visit = (tasksAtLevel: TaskData[], parentPath: TaskPathData, parentPriorities: number[]) => {
+    for (const task of tasksAtLevel) {
+      const path = TaskPath.append(parentPath, task.id)
+      const priorities = [...parentPriorities, task.priority]
+      index.set(task.id, { task, path, priorities })
+      visit(task.subtasks, path, priorities)
+    }
+  }
+
+  visit(tasks, TaskPath.from(projectId), [])
+  return index
+}
+
 /**
  * Get ALL leaf nodes of a task at a certain unified path (includes project ID)
  */
-export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: string[]): { leaves: TaskData[], updatedPath: string[] } => {
+export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: TaskPathData): { leaves: TaskData[], updatedPath: TaskPathData } => {
   if (isProjectList(fullPath)) return { leaves: [], updatedPath: fullPath }
   
   // Make sure the project exists
@@ -488,7 +518,7 @@ export const getHierarchicalLeafNodes = (projects: ProjectData[], fullPath: stri
 /**
  * Find a task by unified path (includes projectId)
  */
-export const findTaskAtPath = (projects: ProjectData[], taskPath: string[]): TaskData | null => {
+export const findTaskAtPath = (projects: ProjectData[], taskPath: TaskPathData): TaskData | null => {
   if (!isTask(taskPath)) return null // Project level or invalid
   
   const project = projects.find(p => p.id === taskPath[0])
@@ -500,7 +530,7 @@ export const findTaskAtPath = (projects: ProjectData[], taskPath: string[]): Tas
 /**
  * Find a project by unified path
  */
-export const findProjectAtPath = (projects: ProjectData[], taskPath: string[]): ProjectData | null => {
+export const findProjectAtPath = (projects: ProjectData[], taskPath: TaskPathData): ProjectData | null => {
   if (taskPath.length === 0) return null
   return projects.find(p => p.id === taskPath[0]) || null
 }
@@ -508,7 +538,7 @@ export const findProjectAtPath = (projects: ProjectData[], taskPath: string[]): 
 /**
  * Update a task by unified path
  */
-export const updateTaskAtPath = (projects: ProjectData[], taskPath: string[], updateFn: (task: TaskData) => void): boolean => {
+export const updateTaskAtPath = (projects: ProjectData[], taskPath: TaskPathData, updateFn: (task: TaskData) => void): boolean => {
   if (taskPath.length <= 1) return false
   
   const project = projects.find(p => p.id === taskPath[0])
@@ -521,7 +551,7 @@ export const updateTaskAtPath = (projects: ProjectData[], taskPath: string[], up
  * Delete by unified path (can delete project or task) and update positions
  * Returns array of affected task paths that had their positions updated
  */
-export const deleteAtPath = (projects: ProjectData[], taskPath: string[]): string[][] => {
+export const deleteAtPath = (projects: ProjectData[], taskPath: TaskPathData): TaskPathData[] => {
   if (isProjectList(taskPath)) return []
   
   if (isProject(taskPath)) {
@@ -546,7 +576,7 @@ export const deleteAtPath = (projects: ProjectData[], taskPath: string[]): strin
 /**
  * Add a task to parent by unified path
  */
-export const addTaskToParent = (projects: ProjectData[], parentPath: string[], taskData: TaskData): TaskData | null => {
+export const addTaskToParent = (projects: ProjectData[], parentPath: TaskPathData, taskData: TaskData): TaskData | null => {
   if (parentPath.length === 0) return null
   
   const project = projects.find(p => p.id === parentPath[0])
@@ -565,13 +595,20 @@ export const addTaskToParent = (projects: ProjectData[], parentPath: string[], t
   return taskData
 }
 
+/**
+ * Get the other tasks that share a parent with the task at `taskPath`.
+ */
+export const getSiblingTasks = (projects: ProjectData[], taskPath: TaskPathData): TaskData[] => {
+  return TaskPath.getSiblingTasks(projects, taskPath)
+}
+
 
 
 /**
  * Insert a task into a new parent at a specific position
  * Returns array of affected task paths that had their positions updated
  */
-export const insertTaskIntoNewParent = (projects: ProjectData[], newParentPath: string[], task: TaskData, position?: number): string[][] => {
+export const insertTaskIntoNewParent = (projects: ProjectData[], newParentPath: TaskPathData, task: TaskData, position?: number): TaskPathData[] => {
   if (newParentPath.length === 0) return []
   
   const project = projects.find(p => p.id === newParentPath[0])
@@ -595,7 +632,7 @@ export const insertTaskIntoNewParent = (projects: ProjectData[], newParentPath: 
   const insertPosition = position !== undefined ? Math.min(position, targetTasks.length) : targetTasks.length
   
   // First update positions of existing tasks that will be shifted (position >= insertPosition)
-  const affectedTaskPaths: string[][] = []
+  const affectedTaskPaths: TaskPathData[] = []
   targetTasks.forEach((t) => {
     if (t.position !== undefined && t.position >= insertPosition) {
       t.position = t.position + 1
@@ -620,10 +657,10 @@ export const insertTaskIntoNewParent = (projects: ProjectData[], newParentPath: 
  * Move a task (and all its subtasks) from one parent to another
  * Returns object with success status and arrays of affected task paths for sync
  */
-export const moveTaskToNewParent = (projects: ProjectData[], taskPath: string[], newParentPath: string[], newPosition?: number): {
+export const moveTaskToNewParent = (projects: ProjectData[], taskPath: TaskPathData, newParentPath: TaskPathData, newPosition?: number): {
   success: boolean
-  sourceAffectedTaskPaths: string[][]
-  destinationAffectedTaskPaths: string[][]
+  sourceAffectedTaskPaths: TaskPathData[]
+  destinationAffectedTaskPaths: TaskPathData[]
 } => {
   // Validate paths
   if (taskPath.length <= 1 || newParentPath.length === 0) {
@@ -664,25 +701,18 @@ export const moveTaskToNewParent = (projects: ProjectData[], taskPath: string[],
  * Check if a task path is a descendant of another path
  * Used to prevent dropping a task into its own subtasks
  */
-export const isTaskDescendantOf = (taskPath: string[], ancestorPath: string[]): boolean => {
-  if (ancestorPath.length >= taskPath.length) return false
-  
-  for (let i = 0; i < ancestorPath.length; i++) {
-    if (taskPath[i] !== ancestorPath[i]) return false
-  }
-  
-  return true
+export const isTaskDescendantOf = (taskPath: TaskPathData, ancestorPath: TaskPathData): boolean => {
+  return TaskPath.isDescendantOf(taskPath, ancestorPath)
 }
 
 /**
  * Check if two paths are equal
  */
-export const arePathsEqual = (path1: string[], path2: string[]): boolean => {
-  if (path1.length !== path2.length) return false
-  return path1.every((segment, index) => segment === path2[index])
+export const arePathsEqual = (path1: TaskPathData, path2: TaskPathData): boolean => {
+  return TaskPath.equals(path1, path2)
 }
 
-export const isValidTaskDropTarget = (taskPath: string[], targetPath: string[]): boolean => {
+export const isValidTaskDropTarget = (taskPath: TaskPathData, targetPath: TaskPathData): boolean => {
   if (isProjectList(targetPath)) return false
   return !arePathsEqual(targetPath, taskPath) && !isTaskDescendantOf(targetPath, taskPath)
 }
@@ -691,8 +721,8 @@ export const isValidTaskDropTarget = (taskPath: string[], targetPath: string[]):
  * Get all valid drop targets for a given task
  * Returns array of paths where the task can be dropped
  */
-export const getValidDropTargets = (projects: ProjectData[], taskPath: string[]): string[][] => {
-  const validTargets: string[][] = []
+export const getValidDropTargets = (projects: ProjectData[], taskPath: TaskPathData): TaskPathData[] => {
+  const validTargets: TaskPathData[] = []
   
   // Add project roots as valid targets
   projects.forEach(project => {
@@ -759,7 +789,7 @@ export const reorderProjects = (projects: ProjectData[], fromIndex: number, toIn
 /**
  * Get the display name for a path (for debugging/UI purposes)
  */
-export const getPathDisplayName = (projects: ProjectData[], path: string[]): string => {
+export const getPathDisplayName = (projects: ProjectData[], path: TaskPathData): string => {
   if (path.length === 0) return "Project List"
   
   const project = projects.find(p => p.id === path[0])
@@ -772,22 +802,17 @@ export const getPathDisplayName = (projects: ProjectData[], path: string[]): str
 }
 
 // Helper functions for unified paths
-export const getProjectId = (taskPath: string[]): string | null => {
-  if (!taskPath || taskPath.length === 0) return null
-  return taskPath[0] || null
+export const getProjectId = (taskPath: TaskPathData): string | null => {
+  return TaskPath.projectId(taskPath)
 }
-export const isProject = (taskPath: string[]): boolean => taskPath && taskPath.length === 1
-export const isTask = (taskPath: string[]): boolean => taskPath && taskPath.length > 1
-export const isProjectList = (taskPath: string[]): boolean => !taskPath || taskPath.length === 0
+export const isProject = (taskPath: TaskPathData): boolean => TaskPath.isProject(taskPath)
+export const isTask = (taskPath: TaskPathData): boolean => TaskPath.isTask(taskPath)
+export const isProjectList = (taskPath: TaskPathData): boolean => TaskPath.isProjectList(taskPath)
 
-export const serializePath = (path: string[]): string => path.join('/')
+export const serializePath = (path: TaskPathData): string => TaskPath.serialize(path)
 
-export const isPathPrefix = (path: string[], prefix: string[]): boolean => {
-  if (prefix.length > path.length) return false
-  for (let i = 0; i < prefix.length; i++) {
-    if (path[i] !== prefix[i]) return false
-  }
-  return true
+export const isPathPrefix = (path: TaskPathData, prefix: TaskPathData): boolean => {
+  return TaskPath.isPrefixOf(prefix, path)
 }
 
 /**

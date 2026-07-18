@@ -56,6 +56,7 @@ describe('Focus Store - Hierarchical Priority', () => {
     useFocusStore.setState({
       focusModeProjectLeaves: [],
       currentFocusTask: null,
+      currentFocusTaskPath: null,
       focusStartPath: [],
       showAddTasksView: false,
       showSubtaskCelebration: false,
@@ -291,6 +292,57 @@ describe('Focus Store - Hierarchical Priority', () => {
     
     // Should handle empty priority array gracefully
     expect(selectedTask?.id).toBe('leafTask')
+    expect(useFocusStore.getState().currentFocusTaskPath).toEqual(['project1', 'leafTask'])
+  })
+
+  test('stores the selected task path while traversing the focus tree once', () => {
+    const leaf = createTask('leaf', 'Leaf', 0)
+    const parent = createTask('parent', 'Parent', 1, [leaf])
+    const projects = createTestProject([parent])
+    const mockUseAppStore = require('./app-store').useAppStore
+    mockUseAppStore.getState.mockReturnValue({ projects })
+
+    useFocusStore.setState({
+      focusStartPath: ['project1'],
+      focusModeProjectLeaves: [leaf],
+      currentFocusTask: null,
+      currentFocusTaskPath: null,
+    })
+
+    useFocusStore.getState().getNextFocusTask()
+
+    expect(useFocusStore.getState().currentFocusTask?.id).toBe('leaf')
+    expect(useFocusStore.getState().currentFocusTaskPath).toEqual([
+      'project1',
+      'parent',
+      'leaf',
+    ])
+  })
+
+  test('uses the stored current path when add-tasks view creates a new subtask', () => {
+    const child = createTask('child', 'Child', 0)
+    const parent = createTask('parent', 'Parent', 0, [child])
+    const projects = createTestProject([parent])
+    const mockUseAppStore = require('./app-store').useAppStore
+    mockUseAppStore.getState.mockReturnValue({ projects })
+
+    useFocusStore.setState({
+      focusStartPath: ['project1'],
+      focusModeProjectLeaves: [parent],
+      currentFocusTask: parent,
+      currentFocusTaskPath: ['project1', 'parent'],
+      showAddTasksView: true,
+    })
+
+    useFocusStore.getState().setShowAddTasksView(false)
+
+    expect(useFocusStore.getState().focusStartPath).toEqual(['project1', 'parent'])
+    expect(useFocusStore.getState().currentFocusTask?.id).toBe('child')
+    expect(useFocusStore.getState().currentFocusTaskPath).toEqual([
+      'project1',
+      'parent',
+      'child',
+    ])
   })
 
   test('12. Complex scenario - Mixed hierarchy depths and priorities', () => {

@@ -3,17 +3,18 @@ import { Draggable } from '@hello-pangea/dnd'
 import React, { memo, useState } from 'react'
 import { TaskItem } from './task-item'
 import type { TaskData } from '@/lib/types'
+import type { TaskPath } from '@/lib/task-path'
 import { cn } from '@/lib/utils'
 
 interface SortableTaskItemProps {
   task: TaskData
   index: number
-  currentPath: string[]
+  currentPath: TaskPath
   disabled?: boolean
   previewPriority?: number | null
   orderNumber?: number
   onNavigate?: (taskId: string) => void
-  onCreateFocusSession?: (taskPath: string[]) => void
+  onCreateFocusSession?: (taskPath: TaskPath) => void
 }
 
 export const SortableTaskItem = memo(function SortableTaskItem({ task, index, currentPath, disabled, previewPriority, orderNumber, onNavigate, onCreateFocusSession }: SortableTaskItemProps) {

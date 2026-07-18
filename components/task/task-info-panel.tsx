@@ -4,9 +4,10 @@ import { useState } from "react"
 import { FileText, Link, Paperclip, Calendar, ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import type { TaskPath } from "@/lib/task-path"
 
 interface TaskInfoPanelProps {
-  taskPath: string[]
+  taskPath: TaskPath
   taskName: string
 }
 

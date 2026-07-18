@@ -1,13 +1,14 @@
 import { create } from "zustand"
 import { createJSONStorage, persist, type StateStorage } from "zustand/middleware"
 import { isProject, isProjectList, isTaskDescendantOf } from "@/lib/task-utils"
+import type { TaskPath } from "@/lib/task-path"
 
 interface NavigationState {
-  currentPath: string[]
-  navigationContext: string[]
+  currentPath: TaskPath
+  navigationContext: TaskPath
   selectProject: (projectId: string | null) => void
   navigateToTask: (taskId: string) => void
-  navigateToPath: (path: string[]) => void
+  navigateToPath: (path: TaskPath) => void
   navigateBack: () => void
   resetNavigation: () => void
 }
