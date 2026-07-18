@@ -10,6 +10,7 @@ import { ProjectPageHeader } from "@/components/project/project-page-header"
 import { TaskPageHeader } from "@/components/task/task-page-header"
 import { PageNavigation } from "@/components/page/page-navigation"
 import { BreadcrumbPath } from "@/components/page/breadcrumb-path"
+import { useMarkAppPageReady } from "@/components/app-initialization-shell"
 
 import { TopBar } from "@/components/top-bar"
 import { useAppStore, getCurrentTaskViewData } from "@/store/app-store"
@@ -17,7 +18,7 @@ import { useNavigationStore } from "@/store/navigation-store"
 import { useSyncStore } from "@/store/sync-store"
 import { useUIStore } from "@/store/ui-store"
 import { useFocusStore } from "@/store/focus-store"
-import { Loader2, CheckSquare, TrendingUp } from "lucide-react"
+import { CheckSquare, TrendingUp } from "lucide-react"
 import { AddTaskForm } from "@/components/task/add-task-form"
 import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
@@ -56,6 +57,8 @@ function getInitialActiveTab() {
 }
 
 export default function HomePage() {
+  useMarkAppPageReady()
+
   const projects = useAppStore(s => s.projects)
   const currentPath = useNavigationStore(s => s.currentPath)
   const navigateBack = useNavigationStore(s => s.navigateBack)
@@ -112,9 +115,6 @@ export default function HomePage() {
     { value: 'tasks', label: 'Tasks', icon: CheckSquare },
     { value: 'progress', label: 'Progress', icon: TrendingUp },
   ]
-
-  // Show loading until authentication is complete.
-  const shouldShowLoading = !isInitialized
 
   // Clear search query when navigating
   useEffect(() => {
@@ -432,25 +432,15 @@ export default function HomePage() {
         isMenuOpen={isMobileMenuOpen}
       />
       
-      {/* Loading state */}
-      {shouldShowLoading ? (
-        <main className="h-full flex items-center justify-center pt-14">
-          <div className="flex flex-col items-center space-y-4">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            <div className="text-sm text-muted-foreground">Initializing...</div>
-          </div>
-        </main>
-      ) : (
-        <SidebarLayout
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          isSidebarOpen={isMobileMenuOpen}
-          setIsSidebarOpen={setIsMobileMenuOpen}
-        >
-          {renderTabContent()}
-        </SidebarLayout>
-      )}
+      <SidebarLayout
+        tabs={tabs}
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        isSidebarOpen={isMobileMenuOpen}
+        setIsSidebarOpen={setIsMobileMenuOpen}
+      >
+        {renderTabContent()}
+      </SidebarLayout>
       
       <TaskCompletionDialog
         isOpen={showTaskCompletionDialog}

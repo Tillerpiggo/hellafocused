@@ -11,6 +11,21 @@
   }
 }
 
+@keyframes app-spinner-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-app-spinner {
+  animation: app-spinner-rotate 1.3s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
 .perspective-1000 {
   perspective: 1000px;
 }
