@@ -184,6 +184,7 @@ export function FocusView({
     } else {
       return (
         <FocusTaskView
+          key={activeSessionId ?? "focus-task"}
           currentTask={currentFocusTask}
           completeFocusTask={completeFocusTask}
           getNextFocusTask={() => {
@@ -195,6 +196,7 @@ export function FocusView({
           onTogglePrefer={handleTogglePrefer}
           showInfoOverlay={showInfoOverlay}
           onShowInfoOverlay={setShowInfoOverlay}
+          animateInitialTask={presentation === "fullscreen"}
         />
       )
     }

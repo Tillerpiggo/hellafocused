@@ -21,6 +21,7 @@ interface FocusTaskViewProps {
   onTogglePrefer: () => void
   showInfoOverlay?: boolean
   onShowInfoOverlay?: (show: boolean) => void
+  animateInitialTask?: boolean
 }
 
 export function FocusTaskView({
@@ -31,13 +32,14 @@ export function FocusTaskView({
   onTogglePrefer,
   showInfoOverlay: externalShowInfoOverlay,
   onShowInfoOverlay,
+  animateInitialTask = true,
 }: FocusTaskViewProps) {
   const priority = currentTask?.priority ?? 0
   const [isCompleting, setIsCompleting] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [taskKey, setTaskKey] = useState(0)
-  const [displayedTaskName, setDisplayedTaskName] = useState("")
-  const [displayedTaskId, setDisplayedTaskId] = useState("")
+  const [displayedTaskName, setDisplayedTaskName] = useState(currentTask?.name ?? "")
+  const [displayedTaskId, setDisplayedTaskId] = useState(currentTask?.id ?? "")
   // const [displayedTaskDescription, setDisplayedTaskDescription] = useState<string | undefined>(undefined)
   const [internalShowInfoOverlay, setInternalShowInfoOverlay] = useState(false)
   const [isOverlayClosing, setIsOverlayClosing] = useState(false)
@@ -47,6 +49,7 @@ export function FocusTaskView({
   // Use external control if provided, otherwise use internal state
   const showInfoOverlay = externalShowInfoOverlay !== undefined ? externalShowInfoOverlay : internalShowInfoOverlay
   const setShowInfoOverlay = onShowInfoOverlay || setInternalShowInfoOverlay
+  const shouldAnimateTask = animateInitialTask || taskKey > 0 || isTransitioning
   
   // Get parent chain for breadcrumb and store functions
   const canShuffle = useFocusStore(canShuffleCurrentTask)
@@ -214,7 +217,11 @@ export function FocusTaskView({
           <div className="relative max-w-4xl w-full z-10 flex flex-col items-center">
             {orderedStepInfo ? (
               <div className={`flex flex-col items-center gap-5 mb-12 ${
-                isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"
+                isTransitioning
+                  ? "animate-slide-up-out"
+                  : shouldAnimateTask
+                    ? "animate-slide-up-in"
+                    : ""
               }`}>
                 <span className="inline-flex items-center justify-center h-14 w-14 rounded-full bg-primary/15 text-primary text-2xl font-semibold">
                   {orderedStepInfo.current}
@@ -239,7 +246,11 @@ export function FocusTaskView({
                 value={displayedTaskName || currentTask?.name || ""}
                 onChange={handleTitleChange}
                 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-center leading-relaxed break-words transition-colors duration-500 ease-out mb-12 ${
-                  isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"
+                  isTransitioning
+                    ? "animate-slide-up-out"
+                    : shouldAnimateTask
+                      ? "animate-slide-up-in"
+                      : ""
                 } ${
                   priority === 1
                     ? "text-priority-text"
