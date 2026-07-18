@@ -8,9 +8,10 @@ import { cn } from '@/lib/utils'
 interface SortableProjectItemProps {
   project: ProjectData
   index: number
+  onSelect?: (projectId: string) => void
 }
 
-export const SortableProjectItem = memo(function SortableProjectItem({ project, index }: SortableProjectItemProps) {
+export const SortableProjectItem = memo(function SortableProjectItem({ project, index, onSelect }: SortableProjectItemProps) {
   return (
     <Draggable 
       draggableId={project.id} 
@@ -51,6 +52,7 @@ export const SortableProjectItem = memo(function SortableProjectItem({ project, 
           >
             <ProjectListItem
               project={project}
+              onSelect={onSelect}
               isDragging={snapshot.isDragging && !snapshot.isDropAnimating}
             />
           </div>

@@ -2,12 +2,13 @@ import { useSyncStore } from '@/store/sync-store'
 import { syncEngine } from './sync-engine'
 import { useAppStore } from '@/store/app-store'
 import { findTaskAtPath } from '@/lib/task-utils'
+import type { FocusSession } from './types'
 import type { SyncActionType, SyncData, SyncAction } from './sync-types'
 
 // Bridge function that intercepts mutations
 export const trackChange = (
   type: SyncActionType, 
-  entityType: 'project' | 'task',
+  entityType: 'project' | 'task' | 'focus_session',
   entityId: string,
   data: SyncData,
   projectId?: string,
@@ -111,4 +112,16 @@ export const trackTaskDeleted = (taskPath: string[]) => {
   const parentId = taskPath.length > 2 ? taskPath[taskPath.length - 2] : undefined
   
   trackChange('delete', 'task', taskId, null, projectId, parentId)
-} 
+}
+
+export const trackFocusSessionCreated = (session: FocusSession) => {
+  trackChange('create', 'focus_session', session.id, session)
+}
+
+export const trackFocusSessionUpdated = (session: FocusSession) => {
+  trackChange('update', 'focus_session', session.id, session)
+}
+
+export const trackFocusSessionDeleted = (sessionId: string) => {
+  trackChange('delete', 'focus_session', sessionId, null)
+}

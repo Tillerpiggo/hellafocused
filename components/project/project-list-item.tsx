@@ -8,9 +8,10 @@ import { cn } from "@/lib/utils"
 interface ProjectListItemProps {
   project: ProjectData
   isDragging?: boolean
+  onSelect?: (projectId: string) => void
 }
 
-export function ProjectListItem({ project, isDragging }: ProjectListItemProps) {
+export function ProjectListItem({ project, isDragging, onSelect }: ProjectListItemProps) {
   const selectProject = useAppStore((state) => state.selectProject)
 
   return (
@@ -19,7 +20,7 @@ export function ProjectListItem({ project, isDragging }: ProjectListItemProps) {
         "cursor-pointer shadow-none hover:shadow-md transition-all duration-300 hover:border-primary/30 border-border/50 rounded-2xl group bg-card",
         isDragging && "shadow-lg border-primary/50 bg-card/90"
       )}
-      onClick={() => selectProject(project.id)}
+      onClick={() => onSelect ? onSelect(project.id) : selectProject(project.id)}
     >
       <CardHeader className="p-6">
         <div className="flex justify-between items-center">

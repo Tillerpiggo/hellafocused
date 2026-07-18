@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import { X, Plus, Star, Clock, Info, FileText, Timer } from "lucide-react"
+import { Minimize2, Plus, Star, Clock, Info, FileText, Timer } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { PriorityDropdown } from "./priority-dropdown"
 import { TimerPicker, formatRemainingFull } from "./timer-picker"
@@ -102,8 +102,8 @@ export function FocusHeaderButtons({
         className="absolute top-6 left-6 h-10 w-10 rounded-full opacity-50 hover:opacity-100 transition-opacity z-10"
         onClick={onExitFocus}
       >
-        <X className="h-5 w-5" />
-        <span className="sr-only">Exit focus mode</span>
+        <Minimize2 className="h-5 w-5" />
+        <span className="sr-only">Exit full screen</span>
       </Button>
 
       {/* Buttons in top right */}
@@ -253,4 +253,4 @@ export function FocusHeaderButtons({
       </div>
     </>
   )
-} 
+}

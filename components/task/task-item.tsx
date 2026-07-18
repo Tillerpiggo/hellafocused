@@ -21,9 +21,10 @@ interface TaskItemProps {
   previewPriority?: number // For cross-section drag styling preview
   onEditingChange?: (isEditing: boolean) => void
   orderNumber?: number // When set, shows a numbered circle instead of a checkbox (parent is ordered)
+  onNavigate?: (taskId: string) => void
 }
 
-export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false, previewPriority, onEditingChange, orderNumber }: TaskItemProps) {
+export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false, previewPriority, onEditingChange, orderNumber, onNavigate }: TaskItemProps) {
   const navigateToTask = useAppStore((state) => state.navigateToTask)
   const updateTaskName = useAppStore((state) => state.updateTaskName)
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
@@ -51,7 +52,8 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
   const handleNavigate = () => {
     if (!isEditing) {
       // Always navigate, even if task is completed
-      navigateToTask(task.id)
+      if (onNavigate) onNavigate(task.id)
+      else navigateToTask(task.id)
     }
   }
 

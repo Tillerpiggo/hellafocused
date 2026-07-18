@@ -1,9 +1,8 @@
 "use client"
 import { useAppStore } from "@/store/app-store"
-import { useUIStore } from "@/store/ui-store"
 import { useFocusStore } from "@/store/focus-store"
 import { findTaskPath, getProjectId } from "@/lib/task-utils"
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useEffect, useState, useCallback } from "react"
 import { AddTasksView } from "./add-tasks-view"
 import { AllTasksCompletedView } from "./all-tasks-completed-view"
 import { NoTasksAvailableView } from "./no-tasks-available-view"
@@ -11,11 +10,10 @@ import { FocusTaskView } from "./focus-task-view"
 import { FocusHeaderButtons } from "./focus-header-buttons"
 import { useTimerTick } from "@/hooks/use-timer-tick"
 
-export function FocusView() {
+export function FocusView({ onExitFocus }: { onExitFocus?: () => void }) {
   const projects = useAppStore((state) => state.projects)
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
   const toggleTaskPrefer = useAppStore((state) => state.toggleTaskPrefer)
-  const setFocusMode = useUIStore((state) => state.setFocusMode)
 
   const {
     currentFocusTask,
@@ -27,7 +25,6 @@ export function FocusView() {
     activeSessionId,
     sessions,
     initializeFocus,
-    resetFocus,
     completeFocusTask,
     getNextFocusTask,
     setShowAddTasksView,
@@ -71,10 +68,9 @@ export function FocusView() {
     setTimeout(() => {
       useFocusStore.setState({ showSubtaskCelebration: false })
       saveCurrentSessionState()
-      resetFocus()
-      setFocusMode(false)
+      onExitFocus?.()
     }, 500)
-  }, [resetFocus, setFocusMode, saveCurrentSessionState])
+  }, [onExitFocus, saveCurrentSessionState])
 
   const handleToggleDefer = useCallback((autoAdvance = true) => {
     if (!currentFocusTask) return
@@ -160,24 +156,22 @@ export function FocusView() {
     }
   }, [currentFocusTask?.priority, handleTogglePrefer, handleToggleDefer])
 
-  // Track whether this is a session switch (not initial mount)
-  const prevSessionId = useRef(activeSessionId)
+  const activeSession = sessions.find(session => session.id === activeSessionId)
+  const activeScopeKey = activeSession?.startPath.join('/') ?? ''
 
-  // Initialize focus when active session changes
+  // Rebuild the task pool when this session or its synced scope changes.
   useEffect(() => {
-    if (!activeSessionId) return
-    const activeSession = sessions.find(s => s.id === activeSessionId)
     if (!activeSession) return
+    initializeFocus(projects, activeSession.startPath)
+  }, [activeSessionId, activeScopeKey, initializeFocus, projects]) // eslint-disable-line react-hooks/exhaustive-deps
 
-    // If session switched, reinitialize from session's startPath
-    if (prevSessionId.current !== activeSessionId) {
-      prevSessionId.current = activeSessionId
-      initializeFocus(projects, activeSession.startPath)
-    } else {
-      // Initial mount — initialize from current startPath
-      initializeFocus(projects, activeSession.startPath)
-    }
-  }, [activeSessionId]) // eslint-disable-line react-hooks/exhaustive-deps
+  // A Next action on another device updates the active task without changing tabs.
+  useEffect(() => {
+    const syncedTaskId = activeSession?.currentFocusTaskId
+    if (!syncedTaskId || currentFocusTask?.id === syncedTaskId) return
+    const syncedTask = focusModeProjectLeaves.find(task => task.id === syncedTaskId && !task.completed)
+    if (syncedTask) useFocusStore.setState({ currentFocusTask: syncedTask })
+  }, [activeSession?.currentFocusTaskId, currentFocusTask?.id, focusModeProjectLeaves])
 
   // Handle initial load animation
   useEffect(() => {

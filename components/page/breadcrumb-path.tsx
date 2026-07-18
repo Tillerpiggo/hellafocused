@@ -13,14 +13,20 @@ import { getProjectId } from "@/lib/task-utils"
 interface BreadcrumbPathProps {
   projectName: string
   taskChain: TaskData[]
+  path?: string[]
+  contextPath?: string[]
+  onNavigate?: (path: string[]) => void
 }
 
-export function BreadcrumbPath({ projectName, taskChain }: BreadcrumbPathProps) {
+export function BreadcrumbPath({ projectName, taskChain, path, contextPath, onNavigate }: BreadcrumbPathProps) {
   const [isOpen, setIsOpen] = useState(false)
   const navigateToPath = useAppStore(s => s.navigateToPath)
-  const currentPath = useAppStore(s => s.currentPath)
-  const navigationContext = useAppStore(s => s.navigationContext)
+  const storeCurrentPath = useAppStore(s => s.currentPath)
+  const storeNavigationContext = useAppStore(s => s.navigationContext)
   const projects = useAppStore(s => s.projects)
+  const currentPath = path ?? storeCurrentPath
+  const navigationContext = contextPath ?? (path ? currentPath : storeNavigationContext)
+  const navigate = onNavigate ?? navigateToPath
 
   const projectId = getProjectId(currentPath)
   
@@ -59,7 +65,7 @@ export function BreadcrumbPath({ projectName, taskChain }: BreadcrumbPathProps) 
   
   const handleNavigateToProject = () => {
     if (projectId) {
-      navigateToPath([projectId])
+      navigate([projectId])
       setIsOpen(false)
     }
   }
@@ -68,7 +74,7 @@ export function BreadcrumbPath({ projectName, taskChain }: BreadcrumbPathProps) 
     if (projectId) {
       // Build path: project + task IDs up to the selected task
       const taskPath = [projectId, ...dropdownTaskChain.slice(0, taskIndex + 1).map(task => task.id)]
-      navigateToPath(taskPath)
+      navigate(taskPath)
       setIsOpen(false)
     }
   }

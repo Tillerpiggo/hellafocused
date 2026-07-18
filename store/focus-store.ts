@@ -12,6 +12,11 @@ import {
   arePathsEqual,
 } from "@/lib/task-utils"
 import { useAppStore } from "./app-store"
+import {
+  trackFocusSessionCreated,
+  trackFocusSessionDeleted,
+  trackFocusSessionUpdated,
+} from "@/lib/sync-bridge"
 
 interface FocusState {
   // Transient focus state (not persisted)
@@ -35,15 +40,60 @@ interface FocusState {
   updateFocusLeaves: (projects: ProjectData[]) => void
 
   // Session actions
+  createSession: (projects: ProjectData[], startPath: string[]) => string
   createOrResumeSession: (projects: ProjectData[], startPath: string[]) => void
   switchSession: (sessionId: string, projects: ProjectData[]) => void
   removeSession: (sessionId: string) => void
+  renameSession: (sessionId: string, name: string) => void
+  setSessionView: (sessionId: string, view: 'focus' | 'browse') => void
+  setSessionBrowsePath: (sessionId: string, path: string[]) => void
+  setSessionScope: (sessionId: string, projects: ProjectData[], path: string[]) => void
   saveCurrentSessionState: () => void
 
   // Timer actions
   setTimer: (sessionId: string, durationMs: number) => void
   clearTimer: (sessionId: string) => void
+  fireTimer: (sessionId: string) => void
   clearTimerFired: (sessionId: string) => void
+}
+
+function getSessionName(projects: ProjectData[], path: string[]): string {
+  if (path.length === 0) return "Focus session"
+  if (path.length === 1) {
+    return projects.find(project => project.id === path[0])?.name || "Focus session"
+  }
+  return findTaskAtPath(projects, path)?.name || "Focus session"
+}
+
+function normalizeSession(session: Partial<FocusSession>, index: number): FocusSession {
+  const createdAt = session.createdAt ?? Date.now()
+  return {
+    id: session.id || crypto.randomUUID(),
+    name: session.name || "Focus session",
+    startPath: session.startPath || [],
+    browsePath: session.browsePath || session.startPath || [],
+    view: session.view || 'focus',
+    currentFocusTaskId: session.currentFocusTaskId ?? null,
+    completedCount: session.completedCount ?? 0,
+    createdAt,
+    updatedAt: session.updatedAt || new Date(createdAt).toISOString(),
+    position: session.position ?? index,
+    timerEndTime: session.timerEndTime ?? null,
+    timerFired: session.timerFired ?? false,
+  }
+}
+
+function updateAndTrackSession(
+  set: (partial: Partial<FocusState>) => void,
+  get: () => FocusState,
+  sessionId: string,
+  update: (session: FocusSession) => FocusSession,
+) {
+  const current = get().sessions.find(session => session.id === sessionId)
+  if (!current) return
+  const next = { ...update(current), updatedAt: new Date().toISOString() }
+  set({ sessions: get().sessions.map(session => session.id === sessionId ? next : session) })
+  trackFocusSessionUpdated(next)
 }
 
 export const useFocusStore = create<FocusState>()(
@@ -61,25 +111,33 @@ export const useFocusStore = create<FocusState>()(
       sessions: [],
       activeSessionId: null,
 
-      createOrResumeSession: (projects, startPath) => {
+      createSession: (projects, startPath) => {
         const { sessions } = get()
-        const existing = sessions.find(s => arePathsEqual(s.startPath, startPath))
-
-        if (existing) {
-          get().switchSession(existing.id, projects)
-          return
-        }
-
+        const now = Date.now()
         const newSession: FocusSession = {
           id: crypto.randomUUID(),
-          startPath,
+          name: getSessionName(projects, startPath),
+          startPath: [...startPath],
+          browsePath: [...startPath],
+          view: 'focus',
           currentFocusTaskId: null,
           completedCount: 0,
-          createdAt: Date.now(),
+          createdAt: now,
+          updatedAt: new Date(now).toISOString(),
+          position: sessions.length,
+          timerEndTime: null,
+          timerFired: false,
         }
 
         set({ sessions: [...sessions, newSession], activeSessionId: newSession.id })
         get().initializeFocus(projects, startPath)
+        trackFocusSessionCreated(newSession)
+        return newSession.id
+      },
+
+      // Kept as a compatibility alias. Focus now always creates a new workspace.
+      createOrResumeSession: (projects, startPath) => {
+        get().createSession(projects, startPath)
       },
 
       switchSession: (sessionId, projects) => {
@@ -117,20 +175,44 @@ export const useFocusStore = create<FocusState>()(
         const updated = sessions.filter(s => s.id !== sessionId)
 
         if (sessionId === activeSessionId) {
-          if (updated.length > 0) {
-            // Switch to most recently created remaining session
-            const mostRecent = updated.reduce((a, b) => a.createdAt > b.createdAt ? a : b)
-            set({ sessions: updated, activeSessionId: mostRecent.id })
-            const projects = useAppStore.getState().projects
-            get().switchSession(mostRecent.id, projects)
-          } else {
-            set({
-              sessions: [],
-              activeSessionId: null,
-            })
-          }
+          set({
+            sessions: updated,
+            activeSessionId: null,
+            focusModeProjectLeaves: [],
+            currentFocusTask: null,
+            focusStartPath: [],
+          })
         } else {
           set({ sessions: updated })
+        }
+        trackFocusSessionDeleted(sessionId)
+      },
+
+      renameSession: (sessionId, name) => {
+        const trimmed = name.trim()
+        if (!trimmed) return
+        updateAndTrackSession(set, get, sessionId, session => ({ ...session, name: trimmed }))
+      },
+
+      setSessionView: (sessionId, view) => {
+        updateAndTrackSession(set, get, sessionId, session => ({ ...session, view }))
+      },
+
+      setSessionBrowsePath: (sessionId, path) => {
+        updateAndTrackSession(set, get, sessionId, session => ({ ...session, browsePath: [...path] }))
+      },
+
+      setSessionScope: (sessionId, projects, path) => {
+        updateAndTrackSession(set, get, sessionId, session => ({
+          ...session,
+          startPath: [...path],
+          browsePath: [...path],
+          view: 'focus',
+          currentFocusTaskId: null,
+        }))
+        if (get().activeSessionId === sessionId) {
+          set({ currentFocusTask: null, lastFocusedTaskId: null })
+          get().initializeFocus(projects, path)
         }
       },
 
@@ -138,12 +220,13 @@ export const useFocusStore = create<FocusState>()(
         const { activeSessionId, currentFocusTask, sessions } = get()
         if (!activeSessionId) return
 
-        const updated = sessions.map(s =>
-          s.id === activeSessionId
-            ? { ...s, currentFocusTaskId: currentFocusTask?.id || null }
-            : s
-        )
-        set({ sessions: updated })
+        const current = sessions.find(session => session.id === activeSessionId)
+        const nextTaskId = currentFocusTask?.id || null
+        if (!current || current.currentFocusTaskId === nextTaskId) return
+        updateAndTrackSession(set, get, activeSessionId, session => ({
+          ...session,
+          currentFocusTaskId: nextTaskId,
+        }))
       },
 
       updateFocusLeaves: (projects) => {
@@ -296,6 +379,7 @@ export const useFocusStore = create<FocusState>()(
 
           return { currentFocusTask: null }
         })
+        get().saveCurrentSessionState()
       },
 
       completeFocusTask: () => {
@@ -344,44 +428,41 @@ export const useFocusStore = create<FocusState>()(
           // Increment completed count and save
           const { activeSessionId, sessions } = get()
           if (activeSessionId) {
-            set({
-              sessions: sessions.map(s =>
-                s.id === activeSessionId
-                  ? { ...s, completedCount: s.completedCount + 1 }
-                  : s
-              )
-            })
+            updateAndTrackSession(set, get, activeSessionId, session => ({
+              ...session,
+              completedCount: session.completedCount + 1,
+            }))
           }
           get().saveCurrentSessionState()
         }
       },
 
       setTimer: (sessionId, durationMs) => {
-        set({
-          sessions: get().sessions.map(s =>
-            s.id === sessionId
-              ? { ...s, timerEndTime: Date.now() + durationMs, timerFired: false }
-              : s
-          ),
-        })
+        updateAndTrackSession(set, get, sessionId, session => ({
+          ...session,
+          timerEndTime: Date.now() + durationMs,
+          timerFired: false,
+        }))
       },
 
       clearTimer: (sessionId) => {
-        set({
-          sessions: get().sessions.map(s =>
-            s.id === sessionId
-              ? { ...s, timerEndTime: null, timerFired: false }
-              : s
-          ),
-        })
+        updateAndTrackSession(set, get, sessionId, session => ({
+          ...session,
+          timerEndTime: null,
+          timerFired: false,
+        }))
+      },
+
+      fireTimer: (sessionId) => {
+        updateAndTrackSession(set, get, sessionId, session => ({
+          ...session,
+          timerEndTime: null,
+          timerFired: true,
+        }))
       },
 
       clearTimerFired: (sessionId) => {
-        set({
-          sessions: get().sessions.map(s =>
-            s.id === sessionId ? { ...s, timerFired: false } : s
-          ),
-        })
+        updateAndTrackSession(set, get, sessionId, session => ({ ...session, timerFired: false }))
       },
 
       setShowAddTasksView: (show) => {
@@ -440,7 +521,9 @@ export const useFocusStore = create<FocusState>()(
         if (!state) return
         const now = Date.now()
         let changed = false
-        const updated = state.sessions.map(s => {
+        const updated = state.sessions.map((rawSession, index) => {
+          const s = normalizeSession(rawSession, index)
+          if (s !== rawSession) changed = true
           if (s.timerEndTime && s.timerEndTime <= now && !s.timerFired) {
             changed = true
             return { ...s, timerFired: true, timerEndTime: null }

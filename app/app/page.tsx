@@ -2,8 +2,8 @@
 import { ProjectListView } from "@/components/project/project-list-view"
 import { AddProjectForm } from "@/components/project/add-project-form"
 import { TaskListView } from "@/components/task/task-list-view"
-import { FocusView } from "@/components/focus/focus-view"
-import { SessionDock } from "@/components/focus/session-dock"
+import { FocusSessionWorkspace } from "@/components/focus/focus-session-workspace"
+import { FocusButton } from "@/components/focus/focus-button"
 import { TaskCompletionDialog } from "@/components/task/task-completion-dialog"
 import { DeleteConfirmationDialog } from "@/components/task/delete-confirmation-dialog"
 import { ProjectPageHeader } from "@/components/project/project-page-header"
@@ -15,6 +15,7 @@ import { TopBar } from "@/components/top-bar"
 import { useAppStore, getCurrentTasksForView, getCurrentTaskChain, getOrderedTaskNumberMap } from "@/store/app-store"
 import { useSyncStore } from "@/store/sync-store"
 import { useUIStore } from "@/store/ui-store"
+import { useFocusStore } from "@/store/focus-store"
 import { Loader2, CheckSquare, TrendingUp } from "lucide-react"
 import { AddTaskForm } from "@/components/task/add-task-form"
 import { SearchInput } from "@/components/search-input"
@@ -64,13 +65,14 @@ export default function HomePage() {
     attemptDeletion,
     confirmDeletion,
     cancelDeletion,
-    isFocusMode,
   } = uiStore
   const titleRef = useRef<EditableTitleRef>(null)
   const searchInputRef = useRef<HTMLInputElement>(null)
   
   // Tab state for sidebar navigation
   const [activeTab, setActiveTab] = useState('tasks')
+  const sessions = useFocusStore(state => state.sessions)
+  const createSession = useFocusStore(state => state.createSession)
   
   // Mobile menu state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -97,6 +99,28 @@ export default function HomePage() {
       searchInputRef.current.focus()
     }
   }, [showSearch])
+
+  useEffect(() => {
+    const focusId = new URLSearchParams(window.location.search).get('focus')
+    if (focusId && sessions.some(session => session.id === focusId)) {
+      setActiveTab(`focus:${focusId}`)
+    }
+  }, []) // Session links are restored once on entry; navigation remains device-local.
+
+  useEffect(() => {
+    const focusId = activeTab.startsWith('focus:') ? activeTab.slice(6) : null
+    const url = new URL(window.location.href)
+    if (focusId) url.searchParams.set('focus', focusId)
+    else url.searchParams.delete('focus')
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`)
+  }, [activeTab])
+
+  useEffect(() => {
+    if (activeTab.startsWith('focus:')) {
+      const sessionId = activeTab.slice(6)
+      if (!sessions.some(session => session.id === sessionId)) setActiveTab('tasks')
+    }
+  }, [activeTab, sessions])
 
   const tasksToDisplay = useMemo(
     () => isTransitioning ? [] : getCurrentTasksForView(projects, currentPath, searchQuery, showCompleted),
@@ -155,15 +179,6 @@ export default function HomePage() {
         }
       })()
     : null
-
-  if (isFocusMode) {
-    return (
-      <div className="bg-background text-foreground">
-        <FocusView />
-        <SessionDock />
-      </div>
-    )
-  }
 
   const getBackButtonText = () => {
     if (isProjectList(currentPath)) return ""
@@ -244,6 +259,14 @@ export default function HomePage() {
   }
 
   const renderTabContent = () => {
+    if (activeTab.startsWith('focus:')) {
+      return (
+        <FocusSessionWorkspace
+          sessionId={activeTab.slice(6)}
+        />
+      )
+    }
+
     if (activeTab === 'progress') {
       return <ProgressView projects={projects} />
     }
@@ -276,6 +299,11 @@ export default function HomePage() {
 
     const currentProjectId = getProjectId(currentPath)
     if (!currentProjectId) return null
+
+    const handleCreateFocusSession = () => {
+      const sessionId = createSession(projects, currentPath)
+      setActiveTab(`focus:${sessionId}`)
+    }
 
     return (
       <div className={`space-y-6 pb-32 ${fadeClass}`}>
@@ -369,6 +397,7 @@ export default function HomePage() {
 
         {/* Show AddTaskForm for all levels */}
         {!isProjectList(currentPath) && <AddTaskForm currentPath={currentPath} />}
+        <FocusButton onClick={handleCreateFocusSession} />
       </div>
     )
   }
@@ -418,7 +447,6 @@ export default function HomePage() {
           subtaskCount={pendingDeletionItem.subtaskCount}
         />
       )}
-      <SessionDock />
     </div>
   )
 }

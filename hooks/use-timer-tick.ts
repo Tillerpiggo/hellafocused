@@ -39,13 +39,7 @@ export function useTimerTick(sessionId: string | null): TimerDisplay | null {
     }
     const remaining = timerEndTime - Date.now()
     if (remaining <= 0) {
-      useFocusStore.setState(state => ({
-        sessions: state.sessions.map(s =>
-          s.id === sessionId
-            ? { ...s, timerFired: true, timerEndTime: null }
-            : s
-        ),
-      }))
+      if (sessionId) useFocusStore.getState().fireTimer(sessionId)
       setDisplay(null)
       return
     }

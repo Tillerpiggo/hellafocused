@@ -14,9 +14,10 @@ interface TaskListViewProps {
   currentPath: string[] // Unified path including project and task hierarchy
   parentIsOrdered?: boolean
   orderedNumberMap?: Record<string, number>
+  onNavigateToTask?: (taskId: string) => void
 }
 
-export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumberMap }: TaskListViewProps) {
+export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumberMap, onNavigateToTask }: TaskListViewProps) {
   const reorderTasks = useAppStore((state) => state.reorderTasks)
   const moveTaskWithPriorityChange = useAppStore((state) => state.moveTaskWithPriorityChange)
 
@@ -128,31 +129,21 @@ export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumbe
                   disabled={task.completed}
                   previewPriority={task.id === draggedTaskId ? previewPriority : undefined}
                   orderNumber={parentIsOrdered ? (orderedNumberMap?.[task.id] ?? index + 1) : undefined}
+                  onNavigate={onNavigateToTask}
                 />
               ))}
-              {canExpand && (
-                <div
-                  className="grid transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.25,0.1,0.25,1)]"
-                  style={{
-                    gridTemplateRows: expanded ? '1fr' : '0fr',
-                    opacity: expanded ? 1 : 0,
-                  }}
-                >
-                  <div className="overflow-hidden">
-                    {overflowTasks.map((task, i) => (
-                      <SortableTaskItem
-                        key={task.id}
-                        task={task}
-                        index={effectiveVisible + i}
-                        currentPath={currentPath}
-                        disabled={task.completed}
-                        previewPriority={task.id === draggedTaskId ? previewPriority : undefined}
-                        orderNumber={parentIsOrdered ? (orderedNumberMap?.[task.id] ?? effectiveVisible + i + 1) : undefined}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
+              {expanded && overflowTasks.map((task, i) => (
+                <SortableTaskItem
+                  key={task.id}
+                  task={task}
+                  index={effectiveVisible + i}
+                  currentPath={currentPath}
+                  disabled={task.completed}
+                  previewPriority={task.id === draggedTaskId ? previewPriority : undefined}
+                  orderNumber={parentIsOrdered ? (orderedNumberMap?.[task.id] ?? effectiveVisible + i + 1) : undefined}
+                  onNavigate={onNavigateToTask}
+                />
+              ))}
               {provided.placeholder}
             </div>
           )}

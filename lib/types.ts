@@ -15,10 +15,15 @@ export interface TaskData {
 
 export interface FocusSession {
   id: string
+  name: string
   startPath: string[]
+  browsePath: string[]
+  view: 'focus' | 'browse'
   currentFocusTaskId: string | null
   completedCount: number
   createdAt: number
+  updatedAt: string
+  position: number
   timerEndTime?: number | null
   timerFired?: boolean
 }

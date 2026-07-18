@@ -1,11 +1,34 @@
-import { supabase, type DatabaseProject, type DatabaseTask } from './supabase'
+import { supabase, type DatabaseProject, type DatabaseTask, type DatabaseFocusSession } from './supabase'
 import { useAppStore } from '@/store/app-store'
+import { useFocusStore } from '@/store/focus-store'
 import { useSyncStore } from '@/store/sync-store'
 import { mergeManager } from './merge-manager'
-import type { ProjectData, TaskData } from './types'
+import type { ProjectData, TaskData, FocusSession } from './types'
 import type { RealtimePostgresChangesPayload, User } from '@supabase/supabase-js'
 import { findTaskAtPath, findProjectAtPath, isProjectList, isProject } from './task-utils'
 import type { SyncAction } from './sync-types'
+
+function formatSupabaseError(error: unknown): string {
+  if (error instanceof Error) return error.message
+  if (typeof error === 'string') return error
+
+  if (error && typeof error === 'object') {
+    const errorDetails = error as Record<string, unknown>
+    const details = ['message', 'code', 'details', 'hint']
+      .map((key) => errorDetails[key])
+      .filter((value): value is string => typeof value === 'string' && value.length > 0)
+
+    if (details.length > 0) return details.join(' | ')
+
+    try {
+      return JSON.stringify(error)
+    } catch {
+      return String(error)
+    }
+  }
+
+  return String(error)
+}
 
 class SyncEngine {
   private syncInterval: NodeJS.Timeout | null = null
@@ -169,6 +192,8 @@ class SyncEngine {
             await this.createProject(change.data as ProjectData)
           } else if (change.entityType === 'task') {
             await this.createTask(change.data as TaskData, change.projectId!, change.parentId)
+          } else if (change.entityType === 'focus_session') {
+            await this.upsertFocusSession(change.data as FocusSession)
           }
           break
         case 'update':
@@ -176,6 +201,8 @@ class SyncEngine {
             await this.updateProject(change.entityId, change.data as ProjectData)
           } else if (change.entityType === 'task') {
             await this.updateTask(change.entityId, change.data as TaskData, change.projectId, change.parentId)
+          } else if (change.entityType === 'focus_session') {
+            await this.upsertFocusSession(change.data as FocusSession)
           }
           break
         case 'delete':
@@ -183,6 +210,8 @@ class SyncEngine {
             await this.deleteProject(change.entityId)
           } else if (change.entityType === 'task') {
             await this.deleteTask(change.entityId)
+          } else if (change.entityType === 'focus_session') {
+            await this.deleteFocusSession(change.entityId)
           }
           break
       }
@@ -499,17 +528,79 @@ class SyncEngine {
     return results
   }
 
+  private async fetchAllFocusSessions(userId: string): Promise<DatabaseFocusSession[]> {
+    const { data, error } = await supabase
+      .from('focus_sessions')
+      .select('*')
+      .eq('user_id', userId)
+      .order('position')
+
+    if (error) throw new Error(`Failed to fetch focus sessions: ${error.message}`)
+    return (data || []) as DatabaseFocusSession[]
+  }
+
+  private async mergeFocusSessions(cloudSessions: DatabaseFocusSession[]) {
+    const localSessions = useFocusStore.getState().sessions
+    const pending = new Set(
+      Object.values(useSyncStore.getState().pendingChanges)
+        .filter(change => !change.synced && change.entityType === 'focus_session')
+        .map(change => change.entityId)
+    )
+    const cloudById = new Map(cloudSessions.map(session => [session.id, session]))
+    const localById = new Map(localSessions.map(session => [session.id, session]))
+
+    const merged = cloudSessions.filter(cloud => !cloud.is_deleted).map(cloud => {
+      const local = localById.get(cloud.id)
+      if (local && (pending.has(cloud.id) || local.updatedAt >= cloud.updated_at)) return local
+      return {
+        id: cloud.id,
+        name: cloud.name,
+        startPath: cloud.start_path,
+        browsePath: cloud.browse_path,
+        view: cloud.view,
+        currentFocusTaskId: cloud.current_focus_task_id ?? null,
+        completedCount: cloud.completed_count,
+        createdAt: new Date(cloud.created_at).getTime(),
+        updatedAt: cloud.updated_at,
+        position: cloud.position,
+        timerEndTime: cloud.timer_end_time ?? null,
+        timerFired: cloud.timer_fired,
+      } satisfies FocusSession
+    })
+
+    for (const local of localSessions) {
+      const cloud = cloudById.get(local.id)
+      if (!cloud) {
+        merged.push(local)
+        await this.upsertFocusSession(local)
+      } else if (cloud.is_deleted && pending.has(local.id)) {
+        merged.push(local)
+      } else if (cloud.is_deleted && local.updatedAt > cloud.updated_at) {
+        merged.push(local)
+        await this.upsertFocusSession(local)
+      }
+    }
+
+    merged.sort((a, b) => a.position - b.position || a.createdAt - b.createdAt)
+    useFocusStore.setState({ sessions: merged })
+  }
+
   async mergeWithCloud() {
     try {
       const userId = await this.getCurrentUserId()
 
-      const [cloudProjects, cloudTasks] = await Promise.all([
+      const [cloudProjects, cloudTasks, cloudFocusSessions] = await Promise.all([
         this.fetchAllProjects(userId),
-        this.fetchAllTasks(userId)
+        this.fetchAllTasks(userId),
+        this.fetchAllFocusSessions(userId).catch(error => {
+          console.warn('Focus-session sync unavailable until its database migration is applied:', error)
+          return null
+        }),
       ])
 
       if (cloudProjects && cloudTasks) {
         await mergeManager.mergeCloudWithLocal(cloudProjects, cloudTasks)
+        if (cloudFocusSessions) await this.mergeFocusSessions(cloudFocusSessions)
         this.validateAndFixCurrentPath()
         useSyncStore.getState().updateLastSyncedAt()
       }
@@ -617,8 +708,27 @@ class SyncEngine {
         )
         .subscribe()
 
+      const focusSessionsSubscription = supabase
+        .channel('focus-sessions-changes')
+        .on('postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'focus_sessions',
+            filter: `user_id=eq.${userId}`
+          },
+          (payload: RealtimePostgresChangesPayload<DatabaseFocusSession>) => {
+            const newInstanceId = payload.new && 'device_id' in payload.new ? payload.new.device_id : null
+            const oldInstanceId = payload.old && 'device_id' in payload.old ? payload.old.device_id : null
+            if (newInstanceId !== this.instanceId && oldInstanceId !== this.instanceId) {
+              this.debouncedMergeWithCloud()
+            }
+          }
+        )
+        .subscribe()
+
       // Store subscriptions for cleanup
-      this.realtimeSubscriptions = [projectsSubscription, tasksSubscription]
+      this.realtimeSubscriptions = [projectsSubscription, tasksSubscription, focusSessionsSubscription]
       
       console.log('🔄 Real-time sync subscriptions established for instance:', this.instanceId)
     }).catch(error => {
@@ -779,6 +889,44 @@ class SyncEngine {
     }
   }
 
+  private async upsertFocusSession(session: FocusSession) {
+    const userId = await this.getCurrentUserId()
+    const { error } = await supabase.from('focus_sessions').upsert({
+      id: session.id,
+      user_id: userId,
+      name: session.name,
+      start_path: session.startPath,
+      browse_path: session.browsePath,
+      view: session.view,
+      current_focus_task_id: session.currentFocusTaskId,
+      completed_count: session.completedCount,
+      timer_end_time: session.timerEndTime ?? null,
+      timer_fired: session.timerFired ?? false,
+      position: session.position,
+      created_at: new Date(session.createdAt).toISOString(),
+      updated_at: session.updatedAt,
+      device_id: this.instanceId,
+      is_deleted: false,
+    }, { onConflict: 'id' })
+
+    if (error) throw new Error(`Failed to sync focus session: ${formatSupabaseError(error)}`)
+  }
+
+  private async deleteFocusSession(sessionId: string) {
+    const userId = await this.getCurrentUserId()
+    const { error } = await supabase
+      .from('focus_sessions')
+      .update({
+        is_deleted: true,
+        updated_at: new Date().toISOString(),
+        device_id: this.instanceId,
+      })
+      .eq('id', sessionId)
+      .eq('user_id', userId)
+
+    if (error) throw new Error(`Failed to delete focus session: ${formatSupabaseError(error)}`)
+  }
+
 
 
   cleanup() {
@@ -890,6 +1038,7 @@ class SyncEngine {
     try {
       // Clear app store data
       useAppStore.getState().clearLocalState()
+      useFocusStore.setState({ sessions: [], activeSessionId: null })
       
       // Clear sync store data but preserve pending changes
       useSyncStore.getState().clearSyncState()
@@ -925,4 +1074,4 @@ if (typeof window !== 'undefined') {
     syncEngine
   }
   console.log('🔧 Debug utilities available at window.hellafocusedDebug')
-} 
+}

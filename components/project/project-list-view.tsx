@@ -10,9 +10,10 @@ const DEFAULT_VISIBLE = 3
 
 interface ProjectListViewProps {
   projects: ProjectData[]
+  onSelectProject?: (projectId: string) => void
 }
 
-export function ProjectListView({ projects }: ProjectListViewProps) {
+export function ProjectListView({ projects, onSelectProject }: ProjectListViewProps) {
   const reorderProjects = useAppStore((state) => state.reorderProjects)
   const [expanded, setExpanded] = useState(false)
 
@@ -53,6 +54,7 @@ export function ProjectListView({ projects }: ProjectListViewProps) {
                   key={project.id}
                   project={project}
                   index={index}
+                  onSelect={onSelectProject}
                 />
               ))}
               {canExpand && (
@@ -69,6 +71,7 @@ export function ProjectListView({ projects }: ProjectListViewProps) {
                         key={project.id}
                         project={project}
                         index={DEFAULT_VISIBLE + i}
+                        onSelect={onSelectProject}
                       />
                     ))}
                   </div>

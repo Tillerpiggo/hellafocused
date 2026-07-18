@@ -7,17 +7,11 @@ export function useGlobalTimerCheck() {
     const check = () => {
       const now = Date.now()
       const { sessions } = useFocusStore.getState()
-      let changed = false
-      const updated = sessions.map(s => {
+      sessions.forEach(s => {
         if (s.timerEndTime && s.timerEndTime <= now && !s.timerFired) {
-          changed = true
-          return { ...s, timerFired: true, timerEndTime: null }
+          useFocusStore.getState().fireTimer(s.id)
         }
-        return s
       })
-      if (changed) {
-        useFocusStore.setState({ sessions: updated })
-      }
     }
 
     const interval = setInterval(check, 5000)

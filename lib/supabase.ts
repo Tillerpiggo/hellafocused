@@ -74,4 +74,22 @@ export interface DatabaseTask {
   updated_at: string
   device_id?: string
   is_deleted: boolean
-} 
+}
+
+export interface DatabaseFocusSession {
+  id: string
+  user_id: string
+  name: string
+  start_path: string[]
+  browse_path: string[]
+  view: 'focus' | 'browse'
+  current_focus_task_id?: string | null
+  completed_count: number
+  timer_end_time?: number | null
+  timer_fired: boolean
+  position: number
+  created_at: string
+  updated_at: string
+  device_id?: string
+  is_deleted: boolean
+}
