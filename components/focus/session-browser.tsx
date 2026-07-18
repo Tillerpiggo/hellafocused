@@ -14,6 +14,7 @@ import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
 import { NavigationSkeleton } from "@/components/skeleton/navigation-skeleton"
 import { FocusButton } from "./focus-button"
+import { SessionNotepad } from "./session-notepad"
 import { type EditableTitleRef } from "@/components/editable-title"
 import {
   getCurrentTaskChain,
@@ -214,6 +215,7 @@ export function SessionBrowser({ sessionId }: { sessionId: string }) {
           )}
           <AddTaskForm currentPath={path} />
           <FocusButton onClick={focusHere} />
+          <SessionNotepad sessionId={sessionId} />
         </div>
       )}
     </TasksView>

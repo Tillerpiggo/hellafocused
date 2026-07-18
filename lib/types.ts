@@ -21,6 +21,7 @@ export interface FocusSession {
   view: 'focus' | 'browse'
   currentFocusTaskId: string | null
   completedCount: number
+  notes: string
   createdAt: number
   updatedAt: string
   position: number

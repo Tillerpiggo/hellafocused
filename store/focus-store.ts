@@ -48,6 +48,8 @@ interface FocusState {
   setSessionView: (sessionId: string, view: 'focus' | 'browse') => void
   setSessionBrowsePath: (sessionId: string, path: string[]) => void
   setSessionScope: (sessionId: string, projects: ProjectData[], path: string[]) => void
+  setSessionNotes: (sessionId: string, notes: string) => void
+  flushSessionNotesSync: (sessionId: string) => void
   saveCurrentSessionState: () => void
 
   // Timer actions
@@ -65,6 +67,8 @@ function getSessionName(projects: ProjectData[], path: string[]): string {
   return findTaskAtPath(projects, path)?.name || "Focus session"
 }
 
+const sessionNotesSyncTimers = new Map<string, ReturnType<typeof setTimeout>>()
+
 function normalizeSession(session: Partial<FocusSession>, index: number): FocusSession {
   const createdAt = session.createdAt ?? Date.now()
   return {
@@ -75,6 +79,7 @@ function normalizeSession(session: Partial<FocusSession>, index: number): FocusS
     view: session.view || 'focus',
     currentFocusTaskId: session.currentFocusTaskId ?? null,
     completedCount: session.completedCount ?? 0,
+    notes: session.notes ?? "",
     createdAt,
     updatedAt: session.updatedAt || new Date(createdAt).toISOString(),
     position: session.position ?? index,
@@ -122,6 +127,7 @@ export const useFocusStore = create<FocusState>()(
           view: 'focus',
           currentFocusTaskId: null,
           completedCount: 0,
+          notes: "",
           createdAt: now,
           updatedAt: new Date(now).toISOString(),
           position: sessions.length,
@@ -214,6 +220,34 @@ export const useFocusStore = create<FocusState>()(
           set({ currentFocusTask: null, lastFocusedTaskId: null })
           get().initializeFocus(projects, path)
         }
+      },
+
+      setSessionNotes: (sessionId, notes) => {
+        const current = get().sessions.find(session => session.id === sessionId)
+        if (!current) return
+
+        const next = { ...current, notes, updatedAt: new Date().toISOString() }
+        set({ sessions: get().sessions.map(session => session.id === sessionId ? next : session) })
+
+        const pendingTimer = sessionNotesSyncTimers.get(sessionId)
+        if (pendingTimer) clearTimeout(pendingTimer)
+
+        const timer = setTimeout(() => {
+          const latest = get().sessions.find(session => session.id === sessionId)
+          if (latest) trackFocusSessionUpdated(latest)
+          sessionNotesSyncTimers.delete(sessionId)
+        }, 800)
+        sessionNotesSyncTimers.set(sessionId, timer)
+      },
+
+      flushSessionNotesSync: (sessionId) => {
+        const pendingTimer = sessionNotesSyncTimers.get(sessionId)
+        if (!pendingTimer) return
+
+        clearTimeout(pendingTimer)
+        sessionNotesSyncTimers.delete(sessionId)
+        const latest = get().sessions.find(session => session.id === sessionId)
+        if (latest) trackFocusSessionUpdated(latest)
       },
 
       saveCurrentSessionState: () => {

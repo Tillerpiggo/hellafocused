@@ -85,6 +85,7 @@ export interface DatabaseFocusSession {
   view: 'focus' | 'browse'
   current_focus_task_id?: string | null
   completed_count: number
+  notes: string | null
   timer_end_time?: number | null
   timer_fired: boolean
   position: number

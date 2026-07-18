@@ -1,5 +1,21 @@
-import { useFocusStore } from './focus-store'
-import type { ProjectData, TaskData } from '@/lib/types'
+import type { FocusSession, ProjectData, TaskData } from '@/lib/types'
+
+const localStorageValues = new Map<string, string>()
+Object.defineProperty(globalThis, 'localStorage', {
+  configurable: true,
+  value: {
+    getItem: (key: string) => localStorageValues.get(key) ?? null,
+    setItem: (key: string, value: string) => localStorageValues.set(key, value),
+    removeItem: (key: string) => localStorageValues.delete(key),
+    clear: () => localStorageValues.clear(),
+  },
+})
+
+jest.mock('@/lib/sync-bridge', () => ({
+  trackFocusSessionCreated: jest.fn(),
+  trackFocusSessionDeleted: jest.fn(),
+  trackFocusSessionUpdated: jest.fn(),
+}))
 
 // Helper to create test tasks
 function createTask(id: string, name: string, priority: number, subtasks: TaskData[] = []): TaskData {
@@ -32,6 +48,28 @@ jest.mock('./app-store', () => ({
     }))
   }
 }))
+
+const { useFocusStore } = require('./focus-store') as typeof import('./focus-store')
+const { trackFocusSessionUpdated } = require('@/lib/sync-bridge') as typeof import('@/lib/sync-bridge')
+
+function createFocusSession(overrides: Partial<FocusSession> = {}): FocusSession {
+  return {
+    id: 'session1',
+    name: 'Test session',
+    startPath: ['project1'],
+    browsePath: ['project1'],
+    view: 'browse',
+    currentFocusTaskId: null,
+    completedCount: 0,
+    notes: '',
+    createdAt: Date.parse('2026-01-01T00:00:00.000Z'),
+    updatedAt: '2026-01-01T00:00:00.000Z',
+    position: 0,
+    timerEndTime: null,
+    timerFired: false,
+    ...overrides,
+  }
+}
 
 describe('Focus Store - Hierarchical Priority', () => {
   beforeEach(() => {
@@ -329,5 +367,79 @@ describe('Focus Store - Hierarchical Priority', () => {
     const normalParentTasks = ['preferredChild', 'preferredGrandchild']
     const selectedFromNormal = selections.some(id => normalParentTasks.includes(id))
     expect(selectedFromNormal).toBe(false) // Should never select from normal parent
+  })
+})
+
+describe('Focus Store - Session Notes', () => {
+  beforeEach(() => {
+    jest.useFakeTimers()
+    jest.setSystemTime(new Date('2026-07-18T12:00:00.000Z'))
+    localStorage.clear()
+    jest.clearAllMocks()
+    useFocusStore.setState({ sessions: [], activeSessionId: null })
+  })
+
+  afterEach(() => {
+    for (const session of useFocusStore.getState().sessions) {
+      useFocusStore.getState().flushSessionNotesSync(session.id)
+    }
+    jest.useRealTimers()
+  })
+
+  test('rehydration defaults missing notes to an empty string', async () => {
+    const { notes: _notes, ...sessionWithoutNotes } = createFocusSession()
+    localStorage.setItem('focus-sessions', JSON.stringify({
+      state: { sessions: [sessionWithoutNotes], activeSessionId: sessionWithoutNotes.id },
+      version: 0,
+    }))
+
+    await useFocusStore.persist.rehydrate()
+
+    expect(useFocusStore.getState().sessions[0].notes).toBe('')
+  })
+
+  test('setSessionNotes updates notes and updatedAt immediately', () => {
+    useFocusStore.setState({ sessions: [createFocusSession()] })
+
+    useFocusStore.getState().setSessionNotes('session1', 'A useful thought')
+
+    const session = useFocusStore.getState().sessions[0]
+    expect(session.notes).toBe('A useful thought')
+    expect(session.updatedAt).toBe('2026-07-18T12:00:00.000Z')
+    expect(trackFocusSessionUpdated).not.toHaveBeenCalled()
+  })
+
+  test('debounces rapid notes changes into one sync update', () => {
+    useFocusStore.setState({ sessions: [createFocusSession()] })
+
+    useFocusStore.getState().setSessionNotes('session1', 'First')
+    jest.advanceTimersByTime(400)
+    useFocusStore.getState().setSessionNotes('session1', 'Second')
+    jest.advanceTimersByTime(400)
+    useFocusStore.getState().setSessionNotes('session1', 'Final')
+
+    expect(trackFocusSessionUpdated).not.toHaveBeenCalled()
+    jest.advanceTimersByTime(800)
+
+    expect(trackFocusSessionUpdated).toHaveBeenCalledTimes(1)
+    expect(trackFocusSessionUpdated).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'session1', notes: 'Final' })
+    )
+  })
+
+  test('flushSessionNotesSync tracks pending notes once without a later duplicate', () => {
+    useFocusStore.setState({ sessions: [createFocusSession()] })
+    useFocusStore.getState().setSessionNotes('session1', 'Flush me')
+
+    useFocusStore.getState().flushSessionNotesSync('session1')
+
+    expect(trackFocusSessionUpdated).toHaveBeenCalledTimes(1)
+    expect(trackFocusSessionUpdated).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 'session1', notes: 'Flush me' })
+    )
+
+    jest.advanceTimersByTime(800)
+    useFocusStore.getState().flushSessionNotesSync('session1')
+    expect(trackFocusSessionUpdated).toHaveBeenCalledTimes(1)
   })
 })

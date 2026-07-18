@@ -9,6 +9,7 @@ import { NoTasksAvailableView } from "./no-tasks-available-view"
 import { FocusTaskView } from "./focus-task-view"
 import { FocusHeaderButtons } from "./focus-header-buttons"
 import { useTimerTick } from "@/hooks/use-timer-tick"
+import { SessionNotepad } from "./session-notepad"
 
 export function FocusView({ onExitFocus }: { onExitFocus?: () => void }) {
   const projects = useAppStore((state) => state.projects)
@@ -277,6 +278,7 @@ export function FocusView({ onExitFocus }: { onExitFocus?: () => void }) {
 
         {/* Conditional main content */}
         {renderMainContent()}
+        {activeSessionId && <SessionNotepad sessionId={activeSessionId} placement="corner" />}
       </div>
 
       {/* Add Tasks View */}
