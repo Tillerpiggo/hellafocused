@@ -29,7 +29,7 @@ export function LandingNavigation({ hasSession, user }: LandingNavigationProps) 
                 Discord
               </Link>
               <ThemeToggle />
-              <ProfileDropdown user={user} showBackToApp={true} />
+              <ProfileDropdown user={user} showBackToApp={true} signOutRedirectPath="/" />
             </div>
           ) : (
             // Not authenticated - show Feedback, Discord, Theme toggle and Try Now buttons immediately
