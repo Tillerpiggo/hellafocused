@@ -62,11 +62,11 @@ interface FocusState {
   setNotepadOpen: (open: boolean) => void
   saveCurrentSessionState: () => void
 
-  // Timer actions
-  setTimer: (sessionId: string, durationMs: number) => void
-  clearTimer: (sessionId: string) => void
-  fireTimer: (sessionId: string) => void
-  clearTimerFired: (sessionId: string) => void
+  // Pending actions
+  markPending: (sessionId: string, remindInMs: number | null) => void
+  resolvePending: (sessionId: string) => void
+  setPendingReason: (sessionId: string, reason: string) => void
+  fireReminder: (sessionId: string) => void
 }
 
 function getSessionName(projects: ProjectData[], path: TaskPath): string {
@@ -79,8 +79,13 @@ function getSessionName(projects: ProjectData[], path: TaskPath): string {
 
 const sessionNotesSyncTimers = new Map<string, ReturnType<typeof setTimeout>>()
 
-function normalizeSession(session: Partial<FocusSession>, index: number): FocusSession {
+// Sessions persisted before the pending rework stored their reminder under timer fields
+type LegacyTimerFields = { timerEndTime?: number | null; timerFired?: boolean }
+
+function normalizeSession(session: Partial<FocusSession> & LegacyTimerFields, index: number): FocusSession {
   const createdAt = session.createdAt ?? Date.now()
+  const remindAt = session.remindAt ?? session.timerEndTime ?? null
+  const reminderFired = session.reminderFired ?? session.timerFired ?? false
   return {
     id: session.id || crypto.randomUUID(),
     name: session.name || "Focus session",
@@ -93,8 +98,10 @@ function normalizeSession(session: Partial<FocusSession>, index: number): FocusS
     createdAt,
     updatedAt: session.updatedAt || new Date(createdAt).toISOString(),
     position: session.position ?? index,
-    timerEndTime: session.timerEndTime ?? null,
-    timerFired: session.timerFired ?? false,
+    pending: session.pending ?? (remindAt !== null || reminderFired),
+    pendingReason: session.pendingReason ?? "",
+    remindAt,
+    reminderFired,
   }
 }
 
@@ -143,8 +150,10 @@ export const useFocusStore = create<FocusState>()(
           createdAt: now,
           updatedAt: new Date(now).toISOString(),
           position: sessions.reduce((max, session) => Math.max(max, session.position), -1) + 1,
-          timerEndTime: null,
-          timerFired: false,
+          pending: false,
+          pendingReason: "",
+          remindAt: null,
+          reminderFired: false,
         }
 
         get().saveCurrentSessionState()
@@ -179,8 +188,10 @@ export const useFocusStore = create<FocusState>()(
           createdAt: now,
           updatedAt: new Date(now).toISOString(),
           position: sessions.reduce((max, session) => Math.max(max, session.position), -1) + 1,
-          timerEndTime: null,
-          timerFired: false,
+          pending: false,
+          pendingReason: "",
+          remindAt: null,
+          reminderFired: false,
         }
 
         get().saveCurrentSessionState()
@@ -337,8 +348,10 @@ export const useFocusStore = create<FocusState>()(
           createdAt: now,
           updatedAt,
           position: insertionIndex,
-          timerEndTime: null,
-          timerFired: false,
+          pending: false,
+          pendingReason: "",
+          remindAt: null,
+          reminderFired: false,
         }
 
         orderedSessions.splice(insertionIndex, 0, duplicatedSession)
@@ -633,32 +646,40 @@ export const useFocusStore = create<FocusState>()(
         }
       },
 
-      setTimer: (sessionId, durationMs) => {
+      // Doubles as re-snooze: keeps the reason, resets any fired reminder
+      markPending: (sessionId, remindInMs) => {
         updateAndTrackSession(set, get, sessionId, session => ({
           ...session,
-          timerEndTime: Date.now() + durationMs,
-          timerFired: false,
+          pending: true,
+          remindAt: remindInMs === null ? null : Date.now() + remindInMs,
+          reminderFired: false,
         }))
       },
 
-      clearTimer: (sessionId) => {
+      resolvePending: (sessionId) => {
         updateAndTrackSession(set, get, sessionId, session => ({
           ...session,
-          timerEndTime: null,
-          timerFired: false,
+          pending: false,
+          pendingReason: "",
+          remindAt: null,
+          reminderFired: false,
         }))
       },
 
-      fireTimer: (sessionId) => {
+      setPendingReason: (sessionId, reason) => {
         updateAndTrackSession(set, get, sessionId, session => ({
           ...session,
-          timerEndTime: null,
-          timerFired: true,
+          pendingReason: reason.trim(),
         }))
       },
 
-      clearTimerFired: (sessionId) => {
-        updateAndTrackSession(set, get, sessionId, session => ({ ...session, timerFired: false }))
+      // Firing marks "check on it" but the session stays pending until resolved
+      fireReminder: (sessionId) => {
+        updateAndTrackSession(set, get, sessionId, session => ({
+          ...session,
+          remindAt: null,
+          reminderFired: true,
+        }))
       },
 
       setShowAddTasksView: (show) => {
@@ -716,22 +737,21 @@ export const useFocusStore = create<FocusState>()(
         activeSessionId: state.activeSessionId,
         notepadOpen: state.notepadOpen,
       }),
-      onRehydrateStorage: () => (state) => {
-        if (!state) return
+      // Runs during hydration (unlike onRehydrateStorage's callback, which is
+      // silently swallowed for sync storage): normalizes legacy timer fields
+      // and fires reminders that expired while the app was closed.
+      merge: (persisted, current) => {
+        const stored = persisted as Partial<FocusState> | undefined
+        if (!stored) return current
         const now = Date.now()
-        let changed = false
-        const updated = state.sessions.map((rawSession, index) => {
-          const s = normalizeSession(rawSession, index)
-          if (s !== rawSession) changed = true
-          if (s.timerEndTime && s.timerEndTime <= now && !s.timerFired) {
-            changed = true
-            return { ...s, timerFired: true, timerEndTime: null }
+        const sessions = (stored.sessions ?? []).map((rawSession, index) => {
+          const session = normalizeSession(rawSession, index)
+          if (session.remindAt && session.remindAt <= now && !session.reminderFired) {
+            return { ...session, reminderFired: true, remindAt: null }
           }
-          return s
+          return session
         })
-        if (changed) {
-          useFocusStore.setState({ sessions: updated })
-        }
+        return { ...current, ...stored, sessions }
       },
     }
   )
@@ -746,13 +766,3 @@ export function canShuffleCurrentTask(state: FocusState): boolean {
   return available.length > 0
 }
 
-export function getActiveSessionTimer(state: FocusState) {
-  const session = state.sessions.find(s => s.id === state.activeSessionId)
-  if (!session) return null
-  if (!session.timerEndTime && !session.timerFired) return null
-  return { timerEndTime: session.timerEndTime ?? null, timerFired: session.timerFired ?? false }
-}
-
-export function hasAnyFiredTimer(state: FocusState) {
-  return state.sessions.some(s => s.timerFired === true)
-}

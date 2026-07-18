@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { FocusView } from "./focus-view"
+import { PendingBanner } from "./pending-banner"
 import { SessionBrowser } from "./session-browser"
 import { useAppStore } from "@/store/app-store"
 import { useFocusStore } from "@/store/focus-store"
@@ -35,6 +36,7 @@ export function FocusSessionWorkspace({
   return (
     <div className="relative min-h-[calc(100vh-3.5rem)]">
       <SessionBrowser sessionId={sessionId} onCreateFocusSession={onCreateFocusSession} />
+      {session.view !== 'focus' && <PendingBanner sessionId={sessionId} />}
       {session.view === 'focus' && (
         <div className="fixed inset-0 z-[100] bg-background text-foreground">
           <FocusView onExitFocus={() => setSessionView(sessionId, 'browse')} />

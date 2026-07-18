@@ -597,8 +597,10 @@ class SyncEngine {
         createdAt: new Date(cloud.created_at).getTime(),
         updatedAt: cloud.updated_at,
         position: cloud.position,
-        timerEndTime: cloud.timer_end_time ?? null,
-        timerFired: cloud.timer_fired,
+        pending: cloud.pending ?? false,
+        pendingReason: cloud.pending_reason ?? "",
+        remindAt: cloud.remind_at ?? null,
+        reminderFired: cloud.reminder_fired,
       } satisfies FocusSession
     })
 
@@ -933,8 +935,10 @@ class SyncEngine {
       current_focus_task_id: session.currentFocusTaskId,
       completed_count: session.completedCount,
       notes: session.notes ?? "",
-      timer_end_time: session.timerEndTime ?? null,
-      timer_fired: session.timerFired ?? false,
+      pending: session.pending ?? false,
+      pending_reason: session.pendingReason ?? "",
+      remind_at: session.remindAt ?? null,
+      reminder_fired: session.reminderFired ?? false,
       position: session.position,
       created_at: new Date(session.createdAt).toISOString(),
       updated_at: session.updatedAt,

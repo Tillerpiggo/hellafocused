@@ -5,10 +5,10 @@ import { useNavigationStore } from "@/store/navigation-store"
 import { useUIStore } from "@/store/ui-store"
 import { useFocusStore } from "@/store/focus-store"
 import { findTaskAtPath, findProjectAtPath, getProjectId } from "@/lib/task-utils"
-import { Target, Layers, Plus, X, Timer } from "lucide-react"
-import { useGlobalTimerCheck } from "@/hooks/use-global-timer-check"
-import { useTimerTick } from "@/hooks/use-timer-tick"
-import { formatRemainingFull } from "./timer-picker"
+import { Target, Layers, Plus, X, Hourglass } from "lucide-react"
+import { useGlobalReminderCheck } from "@/hooks/use-global-reminder-check"
+import { useReminderTick } from "@/hooks/use-reminder-tick"
+import { formatRemainingFull } from "./pending-picker"
 import type { TaskPath } from "@/lib/task-path"
 
 function useSessionName(startPath: TaskPath) {
@@ -31,14 +31,14 @@ function SessionCard({
   onClick,
   onRemove,
 }: {
-  session: { id: string; startPath: TaskPath; currentFocusTaskId: string | null; completedCount: number; createdAt: number; timerEndTime?: number | null; timerFired?: boolean }
+  session: { id: string; startPath: TaskPath; currentFocusTaskId: string | null; completedCount: number; createdAt: number; pending?: boolean; pendingReason?: string; remindAt?: number | null; reminderFired?: boolean }
   isActive: boolean
   onClick: () => void
   onRemove: () => void
 }) {
   const name = useSessionName(session.startPath)
   const isUnavailable = name === null
-  const timerDisplay = useTimerTick(session.timerEndTime ? session.id : null)
+  const reminderDisplay = useReminderTick(session.remindAt ? session.id : null)
   const [isHovered, setIsHovered] = useState(false)
   const dockShortRef = useRef<HTMLSpanElement>(null)
   const dockFullRef = useRef<HTMLSpanElement>(null)
@@ -48,7 +48,7 @@ function SessionCard({
     const short = dockShortRef.current?.offsetWidth
     const full = dockFullRef.current?.offsetWidth
     setDockLabelWidth(isHovered && full ? full : short)
-  }, [isHovered, timerDisplay?.label, session.timerEndTime])
+  }, [isHovered, reminderDisplay?.label, session.remindAt])
 
   return (
     <div
@@ -71,32 +71,32 @@ function SessionCard({
           <div className={`text-sm font-medium truncate ${isUnavailable ? "text-muted-foreground italic" : ""}`}>
             {isUnavailable ? "Session unavailable" : name}
           </div>
-          {!isUnavailable && (session.completedCount > 0 || timerDisplay) && (
+          {!isUnavailable && (session.completedCount > 0 || reminderDisplay) && (
             <div className="flex items-center gap-2 mt-0.5">
               {session.completedCount > 0 && (
                 <span className="text-xs text-muted-foreground">
                   {session.completedCount} completed
                 </span>
               )}
-              {timerDisplay && (
+              {reminderDisplay && (
                 <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Timer className="h-3 w-3" />
+                  <Hourglass className="h-3 w-3" />
                   <span
                     className="relative inline-block overflow-hidden align-middle tabular-nums transition-[width] duration-300 ease-in-out"
                     style={{ width: dockLabelWidth }}
                   >
                     <span
                       ref={dockShortRef}
-                      className={`inline-block whitespace-nowrap transition-opacity duration-300 ease-in-out ${isHovered && session.timerEndTime ? "opacity-0" : "opacity-100"}`}
+                      className={`inline-block whitespace-nowrap transition-opacity duration-300 ease-in-out ${isHovered && session.remindAt ? "opacity-0" : "opacity-100"}`}
                     >
-                      {timerDisplay.label}
+                      {reminderDisplay.label}
                     </span>
-                    {session.timerEndTime && (
+                    {session.remindAt && (
                       <span
                         ref={dockFullRef}
                         className={`absolute left-0 top-0 whitespace-nowrap transition-opacity duration-300 ease-in-out ${isHovered ? "opacity-100" : "opacity-0"}`}
                       >
-                        {formatRemainingFull(session.timerEndTime - Date.now())}
+                        {formatRemainingFull(session.remindAt - Date.now())}
                       </span>
                     )}
                   </span>
@@ -104,10 +104,20 @@ function SessionCard({
               )}
             </div>
           )}
-          {!isUnavailable && session.timerFired && (
+          {!isUnavailable && session.pending && !session.remindAt && !session.reminderFired && (
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="h-2 w-2 rounded-full bg-muted-foreground/40 flex-shrink-0" />
+              <span className="text-xs text-muted-foreground truncate">
+                {session.pendingReason?.trim() ? `Waiting on ${session.pendingReason.trim()}` : "Pending"}
+              </span>
+            </div>
+          )}
+          {!isUnavailable && session.reminderFired && (
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="h-2 w-2 rounded-full bg-primary animate-pulse flex-shrink-0" />
-              <span className="text-xs text-primary font-medium">Timer done</span>
+              <span className="text-xs text-primary font-medium truncate">
+                {session.pendingReason?.trim() ? `Check: ${session.pendingReason.trim()}` : "Check on this"}
+              </span>
             </div>
           )}
         </div>
@@ -142,15 +152,15 @@ export function SessionDock() {
   const removeSession = useFocusStore(s => s.removeSession)
   const saveCurrentSessionState = useFocusStore(s => s.saveCurrentSessionState)
 
-  const anyFiredTimer = useFocusStore(s =>
-    s.sessions.some(session => session.timerFired === true)
+  const anyFiredReminder = useFocusStore(s =>
+    s.sessions.some(session => session.reminderFired === true)
   )
-  const anyInactiveFiredTimer = useFocusStore(s =>
-    s.sessions.some(session => session.timerFired === true && session.id !== s.activeSessionId)
+  const anyInactiveFiredReminder = useFocusStore(s =>
+    s.sessions.some(session => session.reminderFired === true && session.id !== s.activeSessionId)
   )
-  const showDockBadge = isFocusMode ? anyInactiveFiredTimer : anyFiredTimer
+  const showDockBadge = isFocusMode ? anyInactiveFiredReminder : anyFiredReminder
 
-  useGlobalTimerCheck()
+  useGlobalReminderCheck()
 
   const handleFocusClick = useCallback(() => {
     createOrResumeSession(projects, currentPath)

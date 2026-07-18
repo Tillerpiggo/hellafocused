@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useState } from "rea
 import { AppLoadingState } from "@/components/app-loading-state"
 import { syncEngine } from "@/lib/sync-engine"
 import { useSyncStore } from "@/store/sync-store"
+import { useGlobalReminderCheck } from "@/hooks/use-global-reminder-check"
 
 const AppPageReadyContext = createContext<(() => void) | null>(null)
 
@@ -19,6 +20,8 @@ export function AppInitializationShell({ children }: { children: React.ReactNode
   const isInitialized = useSyncStore((state) => state.isInitialized)
   const [isPageReady, setIsPageReady] = useState(false)
   const markPageReady = useCallback(() => setIsPageReady(true), [])
+
+  useGlobalReminderCheck()
 
   useEffect(() => {
     if (isInitialized) return

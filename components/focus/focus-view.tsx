@@ -7,7 +7,7 @@ import { AllTasksCompletedView } from "./all-tasks-completed-view"
 import { NoTasksAvailableView } from "./no-tasks-available-view"
 import { FocusTaskView } from "./focus-task-view"
 import { FocusHeaderButtons } from "./focus-header-buttons"
-import { useTimerTick } from "@/hooks/use-timer-tick"
+import { PendingBanner } from "./pending-banner"
 import { SessionNotepad } from "./session-notepad"
 
 export function FocusView({ onExitFocus }: { onExitFocus?: () => void }) {
@@ -31,31 +31,20 @@ export function FocusView({ onExitFocus }: { onExitFocus?: () => void }) {
   const setShowSubtaskCelebration = useFocusStore(state => state.setShowSubtaskCelebration)
   const refreshFocusLeaves = useFocusStore(state => state.refreshFocusLeaves)
   const saveCurrentSessionState = useFocusStore(state => state.saveCurrentSessionState)
-  const setTimer = useFocusStore(s => s.setTimer)
-  const clearTimer = useFocusStore(s => s.clearTimer)
-  const timerFired = useFocusStore(s => {
+  const markPending = useFocusStore(s => s.markPending)
+  const resolvePending = useFocusStore(s => s.resolvePending)
+  const isPending = useFocusStore(s => {
     const session = s.sessions.find(ss => ss.id === s.activeSessionId)
-    return session?.timerFired ?? false
+    return session?.pending ?? false
   })
-  const timerEndTime = useFocusStore(s => {
-    const session = s.sessions.find(ss => ss.id === s.activeSessionId)
-    return session?.timerEndTime ?? null
-  })
-  const hasActiveTimer = !!timerEndTime
-  const timerDisplay = useTimerTick(activeSessionId)
 
-  const handleSetTimer = useCallback((durationMs: number) => {
-    if (activeSessionId) setTimer(activeSessionId, durationMs)
-  }, [activeSessionId, setTimer])
+  const handleMarkPending = useCallback((remindInMs: number | null) => {
+    if (activeSessionId) markPending(activeSessionId, remindInMs)
+  }, [activeSessionId, markPending])
 
-  const handleClearTimer = useCallback(() => {
-    if (activeSessionId) clearTimer(activeSessionId)
-  }, [activeSessionId, clearTimer])
-
-  const clearTimerFired = useFocusStore(s => s.clearTimerFired)
-  const handleAcknowledgeTimer = useCallback(() => {
-    if (activeSessionId) clearTimerFired(activeSessionId)
-  }, [activeSessionId, clearTimerFired])
+  const handleResolvePending = useCallback(() => {
+    if (activeSessionId) resolvePending(activeSessionId)
+  }, [activeSessionId, resolvePending])
 
   const [isInitialLoad, setIsInitialLoad] = useState(true)
   const [isExiting, setIsExiting] = useState(false)
@@ -221,14 +210,12 @@ export function FocusView({ onExitFocus }: { onExitFocus?: () => void }) {
           onShowTaskDetails={currentFocusTask ? () => setShowInfoOverlay(true) : undefined}
           hasDescription={!!currentFocusTask?.description}
           isTransitioning={isTransitioning}
-          timerDisplay={timerDisplay}
-          timerFired={timerFired}
-          hasActiveTimer={hasActiveTimer}
-          timerEndTime={timerEndTime}
-          onSetTimer={handleSetTimer}
-          onClearTimer={handleClearTimer}
-          onAcknowledgeTimer={handleAcknowledgeTimer}
+          isPending={isPending}
+          onMarkPending={handleMarkPending}
+          onResolvePending={handleResolvePending}
         />
+
+        {activeSessionId && <PendingBanner sessionId={activeSessionId} />}
 
         {/* Conditional main content */}
         {renderMainContent()}

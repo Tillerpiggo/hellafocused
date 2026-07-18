@@ -26,8 +26,10 @@ export interface FocusSession {
   createdAt: number
   updatedAt: string
   position: number
-  timerEndTime?: number | null
-  timerFired?: boolean
+  pending?: boolean
+  pendingReason?: string
+  remindAt?: number | null
+  reminderFired?: boolean
 }
 
 export interface ProjectData {

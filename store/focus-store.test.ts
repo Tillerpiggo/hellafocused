@@ -53,8 +53,10 @@ function createFocusSession(id: string, position: number, createdAt: number): Fo
     createdAt,
     updatedAt: new Date(createdAt).toISOString(),
     position,
-    timerEndTime: null,
-    timerFired: false,
+    pending: false,
+    pendingReason: "",
+    remindAt: null,
+    reminderFired: false,
   }
 }
 
@@ -83,8 +85,10 @@ function createNotesSession(overrides: Partial<FocusSession> = {}): FocusSession
     createdAt: Date.parse('2026-01-01T00:00:00.000Z'),
     updatedAt: '2026-01-01T00:00:00.000Z',
     position: 0,
-    timerEndTime: null,
-    timerFired: false,
+    pending: false,
+    pendingReason: "",
+    remindAt: null,
+    reminderFired: false,
     ...overrides,
   }
 }
@@ -596,8 +600,10 @@ describe('Focus Store - Session Reordering', () => {
       view: 'browse' as const,
       currentFocusTaskId: 'task1',
       completedCount: 4,
-      timerEndTime: Date.now() + 60_000,
-      timerFired: true,
+      pending: true,
+      pendingReason: "code review",
+      remindAt: Date.now() + 60_000,
+      reminderFired: true,
     }
     const second = createFocusSession('second', 1, 2000)
     const third = createFocusSession('third', 2, 3000)
@@ -618,8 +624,10 @@ describe('Focus Store - Session Reordering', () => {
       view: first.view,
       currentFocusTaskId: first.currentFocusTaskId,
       completedCount: first.completedCount,
-      timerEndTime: null,
-      timerFired: false,
+      pending: false,
+      pendingReason: "",
+      remindAt: null,
+      reminderFired: false,
     })
     expect(duplicated.id).not.toBe(first.id)
   })

@@ -13,23 +13,30 @@ import {
   type DropResult,
   type Sensor,
 } from "@hello-pangea/dnd"
-import { Copy, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react"
+import { CheckCircle2, Copy, Hourglass, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react"
 import { useFocusStore } from "@/store/focus-store"
 import { useAppStore } from "@/store/app-store"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu"
 import { cn } from "@/lib/utils"
 import type { FocusSession } from "@/lib/types"
+import { PENDING_PRESETS } from "@/components/focus/pending-picker"
 import { useOptionMouseSensor } from "./use-option-mouse-sensor"
 
 const focusSessionSensors: Sensor[] = [
@@ -50,6 +57,27 @@ interface DragOrigin {
   width: number
   height: number
   rowStep: number
+}
+
+function pendingTooltip(session: FocusSession): string {
+  const reason = session.pendingReason?.trim()
+  if (session.reminderFired) return reason ? `Check on this — waiting on ${reason}` : "Check on this"
+  return reason ? `Waiting on ${reason}` : "Pending"
+}
+
+// Waiting rows fade back ("rest easy"); fired rows keep full strength ("check on this")
+function isWaiting(session: FocusSession): boolean {
+  return !!session.pending && !session.reminderFired
+}
+
+// Sized to sit centered in the row's 16px left-padding gutter
+function pendingDotClass(session: FocusSession, active: boolean): string {
+  return cn(
+    "absolute left-[5px] top-1/2 h-1.5 w-1.5 -translate-y-1/2 rounded-full",
+    session.reminderFired
+      ? active ? "bg-primary-foreground" : "bg-primary"
+      : active ? "bg-primary-foreground/40" : "bg-muted-foreground/40"
+  )
 }
 
 function StationarySessionRow({
@@ -81,6 +109,7 @@ function StationarySessionRow({
         zIndex: 60,
       }}
     >
+      {session.pending && <span className={pendingDotClass(session, active)} />}
       <span className="min-w-0 flex-1 truncate text-left">{session.name}</span>
       <span className="grid h-8 w-8 shrink-0 place-items-center opacity-0">
         <MoreHorizontal className="h-4 w-4" />
@@ -132,6 +161,8 @@ function SessionRow({
   onClose: () => void
 }) {
   const renameSession = useFocusStore(state => state.renameSession)
+  const markPending = useFocusStore(state => state.markPending)
+  const resolvePending = useFocusStore(state => state.resolvePending)
   const [editing, setEditing] = useState(false)
   const [draftName, setDraftName] = useState(session.name)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -224,6 +255,12 @@ function SessionRow({
                       className="absolute inset-0 rounded-lg"
                       aria-label={`Open ${session.name}`}
                     />
+                    {session.pending && (
+                      <span
+                        title={pendingTooltip(session)}
+                        className={cn(pendingDotClass(session, active), "z-[1]")}
+                      />
+                    )}
                     <span className="pointer-events-none relative z-[1] min-w-0 flex-1 truncate text-left">
                       {session.name}
                     </span>
@@ -257,6 +294,27 @@ function SessionRow({
                       <DropdownMenuItem onClick={() => setEditing(true)}>
                         <Pencil className="mr-2 h-4 w-4" /> Rename
                       </DropdownMenuItem>
+                      {session.pending && (
+                        <DropdownMenuItem onClick={() => resolvePending(session.id)}>
+                          <CheckCircle2 className="mr-2 h-4 w-4" /> Resolve pending
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuSub>
+                        <DropdownMenuSubTrigger>
+                          <Hourglass className="mr-2 h-4 w-4" />
+                          {session.pending ? "Remind again" : "Mark pending"}
+                        </DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                          {PENDING_PRESETS.map(preset => (
+                            <DropdownMenuItem key={preset.ms} onClick={() => markPending(session.id, preset.ms)}>
+                              {preset.label}
+                            </DropdownMenuItem>
+                          ))}
+                          <DropdownMenuItem onClick={() => markPending(session.id, null)} className="text-muted-foreground">
+                            No reminder
+                          </DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                      </DropdownMenuSub>
                       <DropdownMenuItem onClick={closeSession} className="text-destructive focus:text-destructive">
                         <Trash2 className="mr-2 h-4 w-4" /> Close permanently
                       </DropdownMenuItem>
@@ -269,6 +327,27 @@ function SessionRow({
               <ContextMenuItem onClick={() => setEditing(true)}>
                 <Pencil className="mr-2 h-4 w-4" /> Rename
               </ContextMenuItem>
+              {session.pending && (
+                <ContextMenuItem onClick={() => resolvePending(session.id)}>
+                  <CheckCircle2 className="mr-2 h-4 w-4" /> Resolve pending
+                </ContextMenuItem>
+              )}
+              <ContextMenuSub>
+                <ContextMenuSubTrigger>
+                  <Hourglass className="mr-2 h-4 w-4" />
+                  {session.pending ? "Remind again" : "Mark pending"}
+                </ContextMenuSubTrigger>
+                <ContextMenuSubContent>
+                  {PENDING_PRESETS.map(preset => (
+                    <ContextMenuItem key={preset.ms} onClick={() => markPending(session.id, preset.ms)}>
+                      {preset.label}
+                    </ContextMenuItem>
+                  ))}
+                  <ContextMenuItem onClick={() => markPending(session.id, null)} className="text-muted-foreground">
+                    No reminder
+                  </ContextMenuItem>
+                </ContextMenuSubContent>
+              </ContextMenuSub>
               <ContextMenuItem onClick={closeSession} className="text-destructive focus:text-destructive">
                 <Trash2 className="mr-2 h-4 w-4" /> Close permanently
               </ContextMenuItem>
