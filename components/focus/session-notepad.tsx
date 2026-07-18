@@ -23,7 +23,6 @@ export function SessionNotepad({
   const setNotepadOpen = useFocusStore(state => state.setNotepadOpen)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const prevOpenRef = useRef(isOpen)
-  const hasNotes = notes.trim().length > 0
 
   useEffect(() => {
     return () => flushSessionNotesSync(sessionId)
@@ -96,12 +95,7 @@ export function SessionNotepad({
         )}
       >
         <span className="pointer-events-none absolute inset-0 rounded-full bg-primary/0 transition-colors duration-300 group-hover:bg-primary/5" />
-        <span className="relative">
-          <NotebookPen className="h-4 w-4" />
-          {hasNotes && !isOpen && (
-            <span className="absolute -right-1 -top-1 h-1.5 w-1.5 rounded-full bg-foreground/30" />
-          )}
-        </span>
+        <NotebookPen className="relative h-4 w-4" />
       </button>
     </>
   )
