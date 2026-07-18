@@ -143,30 +143,35 @@ export function FocusSessionTabs({ activeTab, onTabChange, onNavigate }: FocusSe
   if (sessions.length === 0) return null
 
   return (
-    <div className="mt-1 space-y-1">
-      {sessions.map(session => (
-        <SessionRow
-          key={session.id}
-          session={session}
-          active={activeTab === `focus:${session.id}`}
-          onOpen={() => {
-            switchSession(session.id, projects)
-            onTabChange(`focus:${session.id}`)
-          }}
-          onNavigate={onNavigate}
-        />
-      ))}
-      <button
-        onClick={() => onTabChange(`focus:${createBrowseSession()}`)}
-        className={cn(
-          "session-ghost-row flex h-12 w-full items-center rounded-lg pl-4 pr-4 text-left text-sm font-medium text-muted-foreground",
-          "hover:bg-accent hover:text-accent-foreground",
-          "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-        )}
-      >
-        <Plus className="mr-3 h-4 w-4 shrink-0" />
-        <span className="whitespace-nowrap">New session</span>
-      </button>
+    <div className="mt-4">
+      <div className="mb-1 flex items-center justify-between pl-4 pr-2">
+        <span className="text-xs font-medium text-muted-foreground/60">Sessions</span>
+        <button
+          onClick={() => onTabChange(`focus:${createBrowseSession()}`)}
+          aria-label="New session"
+          className={cn(
+            "grid h-6 w-6 place-items-center rounded-md text-muted-foreground/50 transition-colors duration-200",
+            "hover:bg-accent hover:text-accent-foreground",
+            "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          )}
+        >
+          <Plus className="h-3.5 w-3.5" />
+        </button>
+      </div>
+      <div className="space-y-1">
+        {sessions.map(session => (
+          <SessionRow
+            key={session.id}
+            session={session}
+            active={activeTab === `focus:${session.id}`}
+            onOpen={() => {
+              switchSession(session.id, projects)
+              onTabChange(`focus:${session.id}`)
+            }}
+            onNavigate={onNavigate}
+          />
+        ))}
+      </div>
     </div>
   )
 }
