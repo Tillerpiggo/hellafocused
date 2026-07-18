@@ -1,5 +1,5 @@
 import { useFocusStore } from './focus-store'
-import type { ProjectData, TaskData } from '@/lib/types'
+import type { FocusSession, ProjectData, TaskData } from '@/lib/types'
 
 // Helper to create test tasks
 function createTask(id: string, name: string, priority: number, subtasks: TaskData[] = []): TaskData {
@@ -22,6 +22,23 @@ function createTestProject(tasks: TaskData[]): ProjectData[] {
     lastModificationDate: new Date().toISOString(),
     tasks
   }]
+}
+
+function createFocusSession(id: string, position: number, createdAt: number): FocusSession {
+  return {
+    id,
+    name: id,
+    startPath: ['project1'],
+    browsePath: ['project1'],
+    view: 'focus',
+    currentFocusTaskId: null,
+    completedCount: 0,
+    createdAt,
+    updatedAt: new Date(createdAt).toISOString(),
+    position,
+    timerEndTime: null,
+    timerFired: false,
+  }
 }
 
 // Mock useAppStore
@@ -329,5 +346,62 @@ describe('Focus Store - Hierarchical Priority', () => {
     const normalParentTasks = ['preferredChild', 'preferredGrandchild']
     const selectedFromNormal = selections.some(id => normalParentTasks.includes(id))
     expect(selectedFromNormal).toBe(false) // Should never select from normal parent
+  })
+})
+
+describe('Focus Store - Session Reordering', () => {
+  beforeEach(() => {
+    useFocusStore.setState({ sessions: [], activeSessionId: null })
+  })
+
+  test('reorders from visual position and persists gap-free positions', () => {
+    const first = createFocusSession('first', 0, 1000)
+    const second = createFocusSession('second', 1, 2000)
+    const third = createFocusSession('third', 2, 3000)
+
+    // Keep state deliberately out of array order to verify the visual position contract.
+    useFocusStore.setState({ sessions: [third, first, second], activeSessionId: 'first' })
+
+    useFocusStore.getState().reorderSessions(0, 2)
+
+    const state = useFocusStore.getState()
+    expect(state.sessions.map(session => session.id)).toEqual(['second', 'third', 'first'])
+    expect(state.sessions.map(session => session.position)).toEqual([0, 1, 2])
+    expect(state.activeSessionId).toBe('first')
+  })
+
+  test('duplicates at the visual drop position without moving the source', () => {
+    const first = {
+      ...createFocusSession('first', 0, 1000),
+      browsePath: ['project1', 'task1'],
+      view: 'browse' as const,
+      currentFocusTaskId: 'task1',
+      completedCount: 4,
+      timerEndTime: Date.now() + 60_000,
+      timerFired: true,
+    }
+    const second = createFocusSession('second', 1, 2000)
+    const third = createFocusSession('third', 2, 3000)
+    useFocusStore.setState({ sessions: [first, second, third], activeSessionId: 'first' })
+
+    const duplicatedId = useFocusStore.getState().duplicateSession(0, 2)
+
+    const state = useFocusStore.getState()
+    expect(state.sessions.map(session => session.id)).toEqual(['first', 'second', duplicatedId, 'third'])
+    expect(state.sessions.map(session => session.position)).toEqual([0, 1, 2, 3])
+    expect(state.activeSessionId).toBe('first')
+
+    const duplicated = state.sessions[2]
+    expect(duplicated).toMatchObject({
+      name: first.name,
+      startPath: first.startPath,
+      browsePath: first.browsePath,
+      view: first.view,
+      currentFocusTaskId: first.currentFocusTaskId,
+      completedCount: first.completedCount,
+      timerEndTime: null,
+      timerFired: false,
+    })
+    expect(duplicated.id).not.toBe(first.id)
   })
 })

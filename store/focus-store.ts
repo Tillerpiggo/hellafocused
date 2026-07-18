@@ -45,6 +45,8 @@ interface FocusState {
   createOrResumeSession: (projects: ProjectData[], startPath: string[]) => void
   switchSession: (sessionId: string, projects: ProjectData[]) => void
   removeSession: (sessionId: string) => void
+  reorderSessions: (fromIndex: number, toIndex: number) => void
+  duplicateSession: (fromIndex: number, toIndex: number) => string | null
   renameSession: (sessionId: string, name: string) => void
   setSessionView: (sessionId: string, view: 'focus' | 'browse') => void
   setSessionBrowsePath: (sessionId: string, path: string[]) => void
@@ -236,6 +238,84 @@ export const useFocusStore = create<FocusState>()(
           set({ sessions: updated })
         }
         trackFocusSessionDeleted(sessionId)
+      },
+
+      reorderSessions: (fromIndex, toIndex) => {
+        if (fromIndex === toIndex) return
+
+        const orderedSessions = get().sessions
+          .slice()
+          .sort((a, b) => a.position - b.position || a.createdAt - b.createdAt)
+
+        if (
+          fromIndex < 0 ||
+          toIndex < 0 ||
+          fromIndex >= orderedSessions.length ||
+          toIndex >= orderedSessions.length
+        ) return
+
+        const [movedSession] = orderedSessions.splice(fromIndex, 1)
+        orderedSessions.splice(toIndex, 0, movedSession)
+
+        const updatedAt = new Date().toISOString()
+        const changedSessions: FocusSession[] = []
+        const reorderedSessions = orderedSessions.map((session, position) => {
+          if (session.position === position) return session
+
+          const updatedSession = { ...session, position, updatedAt }
+          changedSessions.push(updatedSession)
+          return updatedSession
+        })
+
+        set({ sessions: reorderedSessions })
+        changedSessions.forEach(trackFocusSessionUpdated)
+      },
+
+      duplicateSession: (fromIndex, insertionIndex) => {
+        const orderedSessions = get().sessions
+          .slice()
+          .sort((a, b) => a.position - b.position || a.createdAt - b.createdAt)
+
+        if (
+          fromIndex < 0 ||
+          insertionIndex < 0 ||
+          fromIndex >= orderedSessions.length ||
+          insertionIndex > orderedSessions.length
+        ) return null
+
+        const sourceSession = orderedSessions[fromIndex]
+        const now = Date.now()
+        const updatedAt = new Date(now).toISOString()
+        const duplicatedSession: FocusSession = {
+          ...sourceSession,
+          id: crypto.randomUUID(),
+          startPath: [...sourceSession.startPath],
+          browsePath: [...sourceSession.browsePath],
+          createdAt: now,
+          updatedAt,
+          position: insertionIndex,
+          timerEndTime: null,
+          timerFired: false,
+        }
+
+        orderedSessions.splice(insertionIndex, 0, duplicatedSession)
+
+        const changedSessions: FocusSession[] = []
+        const nextSessions = orderedSessions.map((session, position) => {
+          if (session.id === duplicatedSession.id) {
+            return { ...session, position }
+          }
+          if (session.position === position) return session
+
+          const updatedSession = { ...session, position, updatedAt }
+          changedSessions.push(updatedSession)
+          return updatedSession
+        })
+
+        set({ sessions: nextSessions })
+        trackFocusSessionCreated(nextSessions[insertionIndex])
+        changedSessions.forEach(trackFocusSessionUpdated)
+        return duplicatedSession.id
       },
 
       renameSession: (sessionId, name) => {
