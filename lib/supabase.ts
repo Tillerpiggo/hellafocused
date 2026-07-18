@@ -85,8 +85,10 @@ export interface DatabaseFocusSession {
   current_focus_task_id?: string | null
   completed_count: number
   notes: string | null
-  timer_end_time?: number | null
-  timer_fired: boolean
+  pending: boolean
+  pending_reason: string | null
+  remind_at?: number | null
+  reminder_fired: boolean
   position: number
   created_at: string
   updated_at: string

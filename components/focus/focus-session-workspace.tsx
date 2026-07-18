@@ -2,6 +2,7 @@
 
 import { useEffect } from "react"
 import { FocusView } from "./focus-view"
+import { PendingBanner } from "./pending-banner"
 import { SessionBrowser } from "./session-browser"
 import { DockedSessionView } from "./docked-session-view"
 import { useAppStore } from "@/store/app-store"
@@ -36,7 +37,10 @@ export function FocusSessionWorkspace({
   return (
     <div className="relative min-h-[calc(100vh-3.5rem)]">
       {session.view === 'browse' && (
-        <SessionBrowser sessionId={sessionId} onCreateFocusSession={onCreateFocusSession} />
+        <>
+          <SessionBrowser sessionId={sessionId} onCreateFocusSession={onCreateFocusSession} />
+          <PendingBanner sessionId={sessionId} />
+        </>
       )}
       {session.view === 'docked' && <DockedSessionView sessionId={sessionId} />}
       {session.view === 'focus' && (

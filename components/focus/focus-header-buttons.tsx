@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button"
-import { Minimize2, Plus, Star, Clock, Info, FileText, Timer } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { Minimize2, Plus, Star, Clock, Info, FileText, Hourglass } from "lucide-react"
+import { useEffect, useState } from "react"
 import { PriorityDropdown } from "./priority-dropdown"
-import { TimerPicker, formatRemainingFull } from "./timer-picker"
+import { PendingPicker } from "./pending-picker"
 import { cn } from "@/lib/utils"
 
 interface FocusHeaderButtonsProps {
@@ -13,13 +13,9 @@ interface FocusHeaderButtonsProps {
   onShowTaskDetails?: () => void
   hasDescription?: boolean
   isTransitioning?: boolean
-  timerDisplay?: { label: string; isLastMinute: boolean } | null
-  timerFired?: boolean
-  hasActiveTimer?: boolean
-  timerEndTime?: number | null
-  onSetTimer?: (durationMs: number) => void
-  onClearTimer?: () => void
-  onAcknowledgeTimer?: () => void
+  isPending?: boolean
+  onMarkPending?: (remindInMs: number | null) => void
+  onResolvePending?: () => void
 }
 
 export function FocusHeaderButtons({
@@ -30,34 +26,10 @@ export function FocusHeaderButtons({
   onShowTaskDetails,
   hasDescription,
   isTransitioning,
-  timerDisplay,
-  timerFired,
-  hasActiveTimer,
-  timerEndTime,
-  onSetTimer,
-  onClearTimer,
-  onAcknowledgeTimer,
+  isPending,
+  onMarkPending,
+  onResolvePending,
 }: FocusHeaderButtonsProps) {
-  const [timerDismissing, setTimerDismissing] = useState(false)
-  const [timerHovered, setTimerHovered] = useState(false)
-  const timerShortRef = useRef<HTMLSpanElement>(null)
-  const timerFullRef = useRef<HTMLSpanElement>(null)
-  const [timerLabelWidth, setTimerLabelWidth] = useState<number | undefined>(undefined)
-
-  useEffect(() => {
-    const short = timerShortRef.current?.offsetWidth
-    const full = timerFullRef.current?.offsetWidth
-    setTimerLabelWidth(timerHovered && full ? full : short)
-  }, [timerHovered, timerDisplay?.label, timerEndTime])
-
-  const handleTimerDismiss = () => {
-    setTimerDismissing(true)
-    setTimeout(() => {
-      onAcknowledgeTimer?.()
-      setTimerDismissing(false)
-    }, 500)
-  }
-
   const [justBecamePreferred, setJustBecamePreferred] = useState(false)
   const [justBecameUnpreferred, setJustBecameUnpreferred] = useState(false)
   const [prevPriority, setPrevPriority] = useState(currentTaskPriority)
@@ -127,80 +99,17 @@ export function FocusHeaderButtons({
           </PriorityDropdown>
         )}
 
-        {/* Timer button — fired state is a plain dismiss button, otherwise dropdown trigger */}
-        {onSetTimer && onClearTimer && (
-          (timerFired || timerDismissing) ? (
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={!timerDismissing ? handleTimerDismiss : undefined}
-              onKeyDown={(e) => { if (!timerDismissing && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); handleTimerDismiss() } }}
-              className={cn(
-                "h-10 rounded-full flex items-center gap-1.5 px-3 cursor-pointer transition-all duration-500 ease-in-out",
-                timerDismissing
-                  ? "opacity-0"
-                  : "opacity-80 hover:opacity-100"
-              )}
-            >
-              <div className="relative flex-shrink-0">
-                <Timer className={cn("h-4 w-4 transition-colors duration-500 ease-in-out", timerDismissing ? "text-foreground" : "text-primary")} />
-                <span className={cn(
-                  "absolute -top-1 -right-1 h-2 w-2 rounded-full bg-primary transition-all duration-500 ease-in-out",
-                  timerDismissing ? "scale-0 opacity-0" : "scale-100 opacity-100"
-                )} />
-              </div>
-              <span className={cn(
-                "text-xs font-medium text-primary whitespace-nowrap transition-opacity duration-300 ease-in-out",
-                timerDismissing ? "opacity-0" : "opacity-100"
-              )}>Timer done</span>
+        {/* Mark-pending button — hidden while pending; the banner owns that state */}
+        {onMarkPending && onResolvePending && !isPending && (
+          <PendingPicker
+            isPending={false}
+            onMarkPending={onMarkPending}
+            onResolve={onResolvePending}
+          >
+            <div className="h-10 w-10 rounded-full flex items-center justify-center cursor-pointer opacity-50 hover:opacity-100 transition-opacity">
+              <Hourglass className="h-4 w-4 text-foreground" />
             </div>
-          ) : (
-            <TimerPicker
-              hasActiveTimer={hasActiveTimer ?? false}
-              timerEndTime={timerEndTime}
-              onSetTimer={onSetTimer}
-              onClearTimer={onClearTimer}
-            >
-              <div
-                onMouseEnter={() => setTimerHovered(true)}
-                onMouseLeave={() => setTimerHovered(false)}
-                className={cn(
-                  "h-10 rounded-full flex items-center justify-center cursor-pointer transition-all duration-300 ease-in-out gap-1.5",
-                  timerDisplay ? "px-3" : "w-10",
-                  !timerDisplay && "opacity-50 hover:opacity-100",
-                )}
-              >
-                <Timer className="h-4 w-4 text-foreground" />
-                {timerDisplay && (
-                  <span
-                    className="relative inline-block overflow-hidden align-middle text-xs font-medium tabular-nums text-muted-foreground transition-[width] duration-300 ease-in-out"
-                    style={{ width: timerLabelWidth }}
-                  >
-                    <span
-                      ref={timerShortRef}
-                      className={cn(
-                        "inline-block whitespace-nowrap transition-opacity duration-300 ease-in-out",
-                        timerHovered && timerEndTime ? "opacity-0" : "opacity-100"
-                      )}
-                    >
-                      {timerDisplay.label}
-                    </span>
-                    {timerEndTime && (
-                      <span
-                        ref={timerFullRef}
-                        className={cn(
-                          "absolute left-0 top-0 whitespace-nowrap transition-opacity duration-300 ease-in-out",
-                          timerHovered ? "opacity-100" : "opacity-0"
-                        )}
-                      >
-                        {formatRemainingFull(timerEndTime - Date.now())}
-                      </span>
-                    )}
-                  </span>
-                )}
-              </div>
-            </TimerPicker>
-          )
+          </PendingPicker>
         )}
 
         {/* Task details button */}

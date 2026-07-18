@@ -7,15 +7,15 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { XCircle } from "lucide-react"
+import { CheckCircle2 } from "lucide-react"
 import type React from "react"
 
-interface TimerPickerProps {
+interface PendingPickerProps {
   children: React.ReactNode
-  hasActiveTimer: boolean
-  timerEndTime?: number | null
-  onSetTimer: (durationMs: number) => void
-  onClearTimer: () => void
+  isPending: boolean
+  remindAt?: number | null
+  onMarkPending: (remindInMs: number | null) => void
+  onResolve: () => void
 }
 
 const MS_SECOND = 1000
@@ -23,7 +23,8 @@ const MS_MINUTE = 60 * MS_SECOND
 const MS_HOUR = 60 * MS_MINUTE
 const MS_DAY = 24 * MS_HOUR
 
-const PRESETS = [
+export const PENDING_PRESETS = [
+  { label: "1 min", ms: MS_MINUTE },
   { label: "5 min", ms: 5 * MS_MINUTE },
   { label: "15 min", ms: 15 * MS_MINUTE },
   { label: "1 hour", ms: MS_HOUR },
@@ -60,7 +61,7 @@ export function formatRemainingFull(ms: number): string {
   return parts.join(" ")
 }
 
-export function TimerPicker({ children, hasActiveTimer, timerEndTime, onSetTimer, onClearTimer }: TimerPickerProps) {
+export function PendingPicker({ children, isPending, remindAt, onMarkPending, onResolve }: PendingPickerProps) {
   const [showCustom, setShowCustom] = useState(false)
   const [customValue, setCustomValue] = useState("")
   const [customUnit, setCustomUnit] = useState<CustomUnit>("min")
@@ -68,12 +69,12 @@ export function TimerPicker({ children, hasActiveTimer, timerEndTime, onSetTimer
   const [remainingLabel, setRemainingLabel] = useState<string | null>(null)
 
   useEffect(() => {
-    if (!isOpen || !timerEndTime) {
+    if (!isOpen || !remindAt) {
       setRemainingLabel(null)
       return
     }
     const update = () => {
-      const remaining = timerEndTime - Date.now()
+      const remaining = remindAt - Date.now()
       if (remaining <= 0) {
         setRemainingLabel(null)
         return
@@ -83,12 +84,12 @@ export function TimerPicker({ children, hasActiveTimer, timerEndTime, onSetTimer
     update()
     const interval = setInterval(update, 1000)
     return () => clearInterval(interval)
-  }, [isOpen, timerEndTime])
+  }, [isOpen, remindAt])
 
   const handleCustomSubmit = () => {
     const val = parseInt(customValue, 10)
     if (val >= 1 && val <= UNIT_MAX[customUnit]) {
-      onSetTimer(val * UNIT_TO_MS[customUnit])
+      onMarkPending(val * UNIT_TO_MS[customUnit])
       setShowCustom(false)
       setCustomValue("")
     }
@@ -107,29 +108,38 @@ export function TimerPicker({ children, hasActiveTimer, timerEndTime, onSetTimer
         {children}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-44">
-        {hasActiveTimer && (
+        {isPending && (
           <>
             {remainingLabel && (
               <div className="px-2 py-1.5 text-xs text-muted-foreground tabular-nums">
-                {remainingLabel} remaining
+                {remainingLabel} until reminder
               </div>
             )}
-            <DropdownMenuItem onClick={onClearTimer} className="gap-2 cursor-pointer text-destructive">
-              <XCircle className="h-4 w-4" />
-              Cancel timer
+            <DropdownMenuItem onClick={onResolve} className="gap-2 cursor-pointer">
+              <CheckCircle2 className="h-4 w-4" />
+              Resolve
             </DropdownMenuItem>
             <DropdownMenuSeparator />
           </>
         )}
-        {PRESETS.map(preset => (
+        <div className="px-2 py-1.5 text-xs text-muted-foreground">
+          {isPending ? "Remind again in" : "Pending — remind in"}
+        </div>
+        {PENDING_PRESETS.map(preset => (
           <DropdownMenuItem
             key={preset.ms}
-            onClick={() => onSetTimer(preset.ms)}
+            onClick={() => onMarkPending(preset.ms)}
             className="cursor-pointer"
           >
             {preset.label}
           </DropdownMenuItem>
         ))}
+        <DropdownMenuItem
+          onClick={() => onMarkPending(null)}
+          className="cursor-pointer text-muted-foreground"
+        >
+          No reminder
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         {!showCustom ? (
           <DropdownMenuItem

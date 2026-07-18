@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from "react"
 import { useFocusStore } from "@/store/focus-store"
 
-interface TimerDisplay {
+interface ReminderDisplay {
   label: string
   isLastMinute: boolean
 }
@@ -18,44 +18,44 @@ function formatRemaining(ms: number): string {
   return `${Math.ceil(ms / MS_DAY)}d`
 }
 
-export function useTimerTick(sessionId: string | null): TimerDisplay | null {
-  const timerEndTime = useFocusStore(s => {
+export function useReminderTick(sessionId: string | null): ReminderDisplay | null {
+  const remindAt = useFocusStore(s => {
     if (!sessionId) return null
     const session = s.sessions.find(ss => ss.id === sessionId)
-    return session?.timerEndTime ?? null
+    return session?.remindAt ?? null
   })
-  const timerFired = useFocusStore(s => {
+  const reminderFired = useFocusStore(s => {
     if (!sessionId) return false
     const session = s.sessions.find(ss => ss.id === sessionId)
-    return session?.timerFired ?? false
+    return session?.reminderFired ?? false
   })
 
-  const [display, setDisplay] = useState<TimerDisplay | null>(null)
+  const [display, setDisplay] = useState<ReminderDisplay | null>(null)
 
   const computeDisplay = useCallback(() => {
-    if (!timerEndTime) {
+    if (!remindAt) {
       setDisplay(null)
       return
     }
-    const remaining = timerEndTime - Date.now()
+    const remaining = remindAt - Date.now()
     if (remaining <= 0) {
-      if (sessionId) useFocusStore.getState().fireTimer(sessionId)
+      if (sessionId) useFocusStore.getState().fireReminder(sessionId)
       setDisplay(null)
       return
     }
     const isLastMinute = remaining < 60_000
     const label = formatRemaining(remaining)
     setDisplay({ label, isLastMinute })
-  }, [timerEndTime, sessionId])
+  }, [remindAt, sessionId])
 
   useEffect(() => {
-    if (!timerEndTime) {
+    if (!remindAt) {
       setDisplay(null)
       return
     }
     computeDisplay()
     const tickInterval = () => {
-      const remaining = timerEndTime - Date.now()
+      const remaining = remindAt - Date.now()
       if (remaining > MS_HOUR) return 60_000
       if (remaining > MS_MINUTE) return 10_000
       return 1000
@@ -67,8 +67,8 @@ export function useTimerTick(sessionId: string | null): TimerDisplay | null {
     }
     timer = setTimeout(tick, tickInterval())
     return () => clearTimeout(timer)
-  }, [timerEndTime, computeDisplay])
+  }, [remindAt, computeDisplay])
 
-  if (timerFired) return null
+  if (reminderFired) return null
   return display
 }
