@@ -149,6 +149,11 @@
   --link-color: 16 65% 42%;
   --link-hover: 16 70% 34%;
   --link-decoration: 16 40% 68%;
+
+  /* Text selection & caret */
+  --selection: 20 90% 85%;
+  --selection-foreground: 15 30% 15%;
+  --caret: 16 85% 55%;                   /* matches primary */
 }
 
 /* Sunset Ember - Dark mode */
@@ -292,4 +297,9 @@
   --link-color: 18 55% 68%;
   --link-hover: 18 50% 75%;
   --link-decoration: 18 35% 38%;
+
+  /* Text selection & caret - dark */
+  --selection: 18 60% 30%;
+  --selection-foreground: 25 25% 95%;
+  --caret: 18 82% 60%;                   /* matches primary */
 }

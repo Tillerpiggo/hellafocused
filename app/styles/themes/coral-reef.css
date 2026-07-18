@@ -149,6 +149,11 @@
   --link-color: 8 60% 48%;
   --link-hover: 8 65% 38%;
   --link-decoration: 8 30% 70%;
+
+  /* Text selection & caret */
+  --selection: 10 85% 86%;
+  --selection-foreground: 8 30% 15%;
+  --caret: 8 82% 62%;                   /* matches primary */
 }
 
 /* Coral Reef - Dark mode */
@@ -292,4 +297,9 @@
   --link-color: 8 45% 70%;
   --link-hover: 8 40% 76%;
   --link-decoration: 8 30% 38%;
+
+  /* Text selection & caret - dark */
+  --selection: 8 55% 32%;
+  --selection-foreground: 10 20% 95%;
+  --caret: 8 80% 65%;                   /* matches primary */
 }

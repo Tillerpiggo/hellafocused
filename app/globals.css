@@ -56,6 +56,13 @@
     @apply bg-background text-foreground;
     /* Create stacking context for Safari backdrop-filter */
     transform: translateZ(0);
+    /* Theme-aware text cursor; inherits into all inputs/textareas/contenteditables */
+    caret-color: hsl(var(--caret));
+  }
+
+  ::selection {
+    background-color: hsl(var(--selection));
+    color: hsl(var(--selection-foreground));
   }
 
   body,

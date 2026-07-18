@@ -149,6 +149,11 @@
   --link-color: 158 55% 35%;
   --link-hover: 158 60% 28%;
   --link-decoration: 155 25% 68%;
+
+  /* Text selection & caret */
+  --selection: 155 55% 84%;
+  --selection-foreground: 155 25% 12%;
+  --caret: 158 72% 42%;                   /* matches primary */
 }
 
 /* Emerald Forest - Dark mode */
@@ -292,4 +297,9 @@
   --link-color: 158 40% 65%;
   --link-hover: 158 35% 72%;
   --link-decoration: 155 28% 35%;
+
+  /* Text selection & caret - dark */
+  --selection: 158 45% 26%;
+  --selection-foreground: 150 20% 95%;
+  --caret: 158 68% 55%;                   /* matches primary */
 }
