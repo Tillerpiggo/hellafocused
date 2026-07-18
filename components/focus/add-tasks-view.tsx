@@ -7,6 +7,7 @@ import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
 import { SearchTaskItem } from "@/components/search-results"
 import { useAppStore } from "@/store/app-store"
+import { useNavigationStore } from "@/store/navigation-store"
 import { useFocusStore } from "@/store/focus-store"
 import { ArrowDown, ArrowLeft, ChevronRight } from "lucide-react"
 import type { TaskData } from "@/lib/types"
@@ -37,7 +38,7 @@ export function AddTasksView({ isVisible, onClose }: AddTasksViewProps) {
   const [completedInSession, setCompletedInSession] = useState<Set<string>>(new Set())
   const viewRef = useRef<HTMLDivElement>(null)
   const projects = useAppStore(s => s.projects)
-  const globalCurrentPath = useAppStore(s => s.currentPath)
+  const globalCurrentPath = useNavigationStore(s => s.currentPath)
   const addSubtaskToParent = useAppStore(s => s.addSubtaskToParent)
   const toggleTaskCompletion = useAppStore(s => s.toggleTaskCompletion)
   const { currentFocusTask } = useFocusStore()

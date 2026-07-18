@@ -1,4 +1,4 @@
-import { moveTaskWithPriorityChange, toggleTaskPrefer } from './task-utils'
+import { isValidTaskDropTarget, moveTaskWithPriorityChange, toggleTaskPrefer } from './task-utils'
 import type { ProjectData, TaskData } from './types'
 
 // Helper to create test tasks
@@ -34,6 +34,23 @@ function getVisualArray(tasks: TaskData[]): TaskData[] {
       return a.lastModificationDate.localeCompare(b.lastModificationDate)
     })
 }
+
+describe('isValidTaskDropTarget', () => {
+  const taskPath = ['project', 'parent', 'task']
+
+  test('accepts project roots, ancestors, and unrelated tasks', () => {
+    expect(isValidTaskDropTarget(taskPath, ['project'])).toBe(true)
+    expect(isValidTaskDropTarget(taskPath, ['project', 'parent'])).toBe(true)
+    expect(isValidTaskDropTarget(taskPath, ['other-project', 'other-task'])).toBe(true)
+  })
+
+  test('rejects the project list, the task itself, and descendants', () => {
+    expect(isValidTaskDropTarget(taskPath, [])).toBe(false)
+    expect(isValidTaskDropTarget(taskPath, taskPath)).toBe(false)
+    expect(isValidTaskDropTarget(taskPath, [...taskPath, 'child'])).toBe(false)
+    expect(isValidTaskDropTarget(taskPath, [...taskPath, 'child', 'grandchild'])).toBe(false)
+  })
+})
 
 describe('moveTaskWithPriorityChange', () => {
   

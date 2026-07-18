@@ -3,6 +3,7 @@ import type { TaskData } from "@/lib/types"
 import type React from "react"
 
 import { useAppStore } from "@/store/app-store"
+import { useNavigationStore } from "@/store/navigation-store"
 import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, Circle, ChevronRight, Star, Clock, Edit3 } from "lucide-react"
@@ -22,10 +23,11 @@ interface TaskItemProps {
   onEditingChange?: (isEditing: boolean) => void
   orderNumber?: number // When set, shows a numbered circle instead of a checkbox (parent is ordered)
   onNavigate?: (taskId: string) => void
+  onCreateFocusSession?: (taskPath: string[]) => void
 }
 
-export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false, previewPriority, onEditingChange, orderNumber, onNavigate }: TaskItemProps) {
-  const navigateToTask = useAppStore((state) => state.navigateToTask)
+export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false, previewPriority, onEditingChange, orderNumber, onNavigate, onCreateFocusSession }: TaskItemProps) {
+  const navigateToTask = useNavigationStore((state) => state.navigateToTask)
   const updateTaskName = useAppStore((state) => state.updateTaskName)
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
   const toggleTaskPrefer = useAppStore((state) => state.toggleTaskPrefer)
@@ -184,6 +186,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         onTogglePrefer={() => toggleTaskPrefer(taskPath)}
         onDelete={() => attemptDeletion(taskPath)}
         onMove={() => setIsMoveDialogOpen(true)}
+        onCreateFocusSession={() => onCreateFocusSession?.(taskPath)}
         onSetDueDate={() => setShowDueDatePicker(true)}
         hasDueDate={!!task.dueDate}
         isCompleted={task.completed}

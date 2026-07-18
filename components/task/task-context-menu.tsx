@@ -11,6 +11,7 @@ interface TaskContextMenuProps {
   onTogglePrefer: () => void
   onDelete: () => void
   onMove: () => void
+  onCreateFocusSession: () => void
   onSetDueDate: () => void
   hasDueDate: boolean
   isCompleted: boolean
@@ -18,7 +19,7 @@ interface TaskContextMenuProps {
   isPreferred: boolean
 }
 
-export function TaskContextMenu({ children, onEdit, onToggleComplete, onToggleDefer, onTogglePrefer, onDelete, onMove, onSetDueDate, hasDueDate, isCompleted, isDeferred, isPreferred }: TaskContextMenuProps) {
+export function TaskContextMenu({ children, onEdit, onToggleComplete, onToggleDefer, onTogglePrefer, onDelete, onMove, onCreateFocusSession, onSetDueDate, hasDueDate, isCompleted, isDeferred, isPreferred }: TaskContextMenuProps) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
@@ -43,6 +44,15 @@ export function TaskContextMenu({ children, onEdit, onToggleComplete, onToggleDe
         <ContextMenuItem onClick={onMove} className="gap-2 transition-colors">
           <Move className="menu-icon" />
           Move Task
+        </ContextMenuItem>
+        <ContextMenuItem onClick={onCreateFocusSession} className="gap-2 transition-colors">
+          <span className="menu-icon flex items-center justify-center">
+            <span className="relative flex h-2 w-2">
+              <span className="focus-dot-ripple absolute inset-0 rounded-full bg-primary" />
+              <span className="relative h-2 w-2 rounded-full bg-primary/90" />
+            </span>
+          </span>
+          Focus
         </ContextMenuItem>
         <ContextMenuItem onClick={onSetDueDate} className="gap-2 transition-colors">
           <Calendar className="menu-icon" />

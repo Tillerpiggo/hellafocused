@@ -41,7 +41,6 @@ const focusSessionSensors: Sensor[] = [
 interface FocusSessionTabsProps {
   activeTab: string
   onTabChange: (value: string) => void
-  onNavigate?: () => void
 }
 
 interface DragOrigin {
@@ -123,24 +122,32 @@ function SessionRow({
   active,
   isDuplicateDragging,
   onOpen,
-  onNavigate,
+  onClose,
 }: {
   session: FocusSession
   index: number
   active: boolean
   isDuplicateDragging: boolean
   onOpen: () => void
-  onNavigate?: () => void
+  onClose: () => void
 }) {
   const renameSession = useFocusStore(state => state.renameSession)
-  const removeSession = useFocusStore(state => state.removeSession)
   const [editing, setEditing] = useState(false)
   const [draftName, setDraftName] = useState(session.name)
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => setDraftName(session.name), [session.name])
   useEffect(() => {
-    if (editing) inputRef.current?.select()
+    if (!editing) return
+
+    // Wait until the menu has closed and finished restoring focus, then move
+    // focus back to the rename field and select the complete session title.
+    const frame = requestAnimationFrame(() => {
+      inputRef.current?.focus()
+      inputRef.current?.select()
+    })
+
+    return () => cancelAnimationFrame(frame)
   }, [editing])
 
   const commitName = () => {
@@ -151,8 +158,7 @@ function SessionRow({
   }
 
   const closeSession = () => {
-    removeSession(session.id)
-    if (active) onNavigate?.()
+    onClose()
   }
 
   return (
@@ -209,7 +215,7 @@ function SessionRow({
                         setEditing(false)
                       }
                     }}
-                    className="min-w-0 flex-1 border-b border-current/40 bg-transparent text-sm font-medium outline-none"
+                    className="min-w-0 flex-1 border-0 bg-transparent text-sm font-medium outline-none"
                   />
                 ) : (
                   <>
@@ -281,12 +287,13 @@ function SessionRow({
   )
 }
 
-export function FocusSessionTabs({ activeTab, onTabChange, onNavigate }: FocusSessionTabsProps) {
+export function FocusSessionTabs({ activeTab, onTabChange }: FocusSessionTabsProps) {
   const sessions = useFocusStore(state => state.sessions)
   const switchSession = useFocusStore(state => state.switchSession)
   const createBrowseSession = useFocusStore(state => state.createBrowseSession)
   const reorderSessions = useFocusStore(state => state.reorderSessions)
   const duplicateSession = useFocusStore(state => state.duplicateSession)
+  const removeSession = useFocusStore(state => state.removeSession)
   const projects = useAppStore(state => state.projects)
   const altPressedRef = useRef(false)
   const duplicateDragRef = useRef(false)
@@ -472,7 +479,13 @@ export function FocusSessionTabs({ activeTab, onTabChange, onNavigate }: FocusSe
                           switchSession(session.id, projects)
                           onTabChange(`focus:${session.id}`)
                         }}
-                        onNavigate={onNavigate}
+                        onClose={() => {
+                          const wasActive = activeTab === `focus:${session.id}`
+                          const nextSessionId = removeSession(session.id, projects)
+                          if (wasActive) {
+                            onTabChange(nextSessionId ? `focus:${nextSessionId}` : 'tasks')
+                          }
+                        }}
                       />
                       {isDuplicateSource && (
                         <CopyBaseSessionRow

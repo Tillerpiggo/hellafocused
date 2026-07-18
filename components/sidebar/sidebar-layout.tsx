@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import { GripVertical, X, MessageSquare, Settings } from 'lucide-react'
+import { X, MessageSquare, Settings } from 'lucide-react'
 import { Group, Panel, Separator, useDefaultLayout } from 'react-resizable-panels'
 import { Button } from '@/components/ui/button'
 import { FeedbackPopup } from '@/components/ui/feedback-popup'
@@ -138,7 +138,6 @@ export function SidebarLayout({
                 <FocusSessionTabs
                   activeTab={activeTab}
                   onTabChange={onTabChange}
-                  onNavigate={() => onTabChange('tasks')}
                 />
               </div>
               <div className="mt-auto px-2 pb-4">
@@ -164,24 +163,11 @@ export function SidebarLayout({
             id="sidebar-resize-handle"
             aria-label="Resize sidebar"
             className={cn(
-              "group relative z-40 mt-14 h-[calc(100%-3.5rem)] w-px outline-none",
+              "relative z-40 mt-14 h-[calc(100%-3.5rem)] w-px outline-none",
               "bg-border/50 transition-colors duration-200",
               "data-[separator=hover]:bg-primary/30 data-[separator=active]:bg-primary/60 data-[separator=focus]:bg-primary/40",
             )}
-          >
-            <div
-              className={cn(
-                "pointer-events-none absolute left-1/2 top-1/2 flex h-10 w-4 -translate-x-1/2 -translate-y-1/2 items-center justify-center",
-                "scale-90 rounded-full border border-border/70 bg-background/90 text-muted-foreground shadow-sm backdrop-blur-md",
-                "opacity-0 transition-all duration-200 ease-out",
-                "group-data-[separator=hover]:scale-100 group-data-[separator=hover]:opacity-100",
-                "group-data-[separator=active]:scale-100 group-data-[separator=active]:border-primary/40 group-data-[separator=active]:text-primary group-data-[separator=active]:opacity-100",
-                "group-data-[separator=focus]:scale-100 group-data-[separator=focus]:opacity-100",
-              )}
-            >
-              <GripVertical className="h-3 w-3" />
-            </div>
-          </Separator>
+          />
 
           <Panel id="content" minSize={320} className="h-full min-w-0">
             <main className="h-full min-w-0 overflow-y-auto pt-14">
@@ -231,10 +217,6 @@ export function SidebarLayout({
               activeTab={activeTab}
               onTabChange={(value) => {
                 onTabChange(value)
-                setIsSidebarOpen(false)
-              }}
-              onNavigate={() => {
-                onTabChange('tasks')
                 setIsSidebarOpen(false)
               }}
             />

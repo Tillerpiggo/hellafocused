@@ -12,7 +12,8 @@ import { PageNavigation } from "@/components/page/page-navigation"
 import { BreadcrumbPath } from "@/components/page/breadcrumb-path"
 
 import { TopBar } from "@/components/top-bar"
-import { useAppStore, getCurrentTasksForView, getCurrentTaskChain, getOrderedTaskNumberMap } from "@/store/app-store"
+import { useAppStore, getCurrentTaskViewData } from "@/store/app-store"
+import { useNavigationStore } from "@/store/navigation-store"
 import { useSyncStore } from "@/store/sync-store"
 import { useUIStore } from "@/store/ui-store"
 import { useFocusStore } from "@/store/focus-store"
@@ -28,8 +29,6 @@ import { useRef, useMemo, useState, useEffect } from "react"
 import { SidebarLayout } from "@/components/sidebar/sidebar-layout"
 import { countSubtasksRecursively, findTaskAtPath, findProjectAtPath, getProjectId, isProject, isProjectList, isTask } from "@/lib/task-utils"
 import { searchAllTasks, groupSearchResults } from "@/lib/search-utils"
-import { useNavigationTransition } from "@/hooks/use-navigation-transition"
-import { NavigationSkeleton } from "@/components/skeleton/navigation-skeleton"
 
 const ACTIVE_TAB_STORAGE_KEY = 'hellafocused-active-tab'
 
@@ -58,11 +57,10 @@ function getInitialActiveTab() {
 
 export default function HomePage() {
   const projects = useAppStore(s => s.projects)
-  const currentPath = useAppStore(s => s.currentPath)
-  const { isTransitioning, justFinished } = useNavigationTransition(currentPath)
-  const navigateBack = useAppStore(s => s.navigateBack)
-  const navigateToPath = useAppStore(s => s.navigateToPath)
-  const selectProject = useAppStore(s => s.selectProject)
+  const currentPath = useNavigationStore(s => s.currentPath)
+  const navigateBack = useNavigationStore(s => s.navigateBack)
+  const navigateToPath = useNavigationStore(s => s.navigateToPath)
+  const selectProject = useNavigationStore(s => s.selectProject)
   const updateProjectName = useAppStore(s => s.updateProjectName)
   const updateTaskName = useAppStore(s => s.updateTaskName)
   const updateTaskDescription = useAppStore(s => s.updateTaskDescription)
@@ -98,6 +96,11 @@ export default function HomePage() {
   const [activeTab, setActiveTab] = useState(getInitialActiveTab)
   const sessions = useFocusStore(state => state.sessions)
   const createSession = useFocusStore(state => state.createSession)
+
+  const createAndOpenFocusSession = (startPath: string[], view: 'focus' | 'browse' = 'focus') => {
+    const sessionId = createSession(projects, startPath, view)
+    setActiveTab(`focus:${sessionId}`)
+  }
   
   // Mobile menu state
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
@@ -146,23 +149,22 @@ export default function HomePage() {
     if (!sessions.some(session => session.id === sessionId)) setActiveTab('tasks')
   }, [activeTab, isInitialized, sessions, syncLoading])
 
-  const tasksToDisplay = useMemo(
-    () => isTransitioning ? [] : getCurrentTasksForView(projects, currentPath, searchQuery, showCompleted),
-    [projects, currentPath, searchQuery, showCompleted, isTransitioning]
+  const {
+    project: currentProject,
+    taskChain,
+    currentTask,
+    tasks: tasksToDisplay,
+    orderedNumberMap,
+  } = useMemo(
+    () => getCurrentTaskViewData(projects, currentPath, searchQuery, showCompleted),
+    [projects, currentPath, searchQuery, showCompleted]
   )
-  const orderedNumberMap = useMemo(
-    () => isTransitioning ? {} : getOrderedTaskNumberMap(projects, currentPath),
-    [projects, currentPath, isTransitioning]
-  )
-  const currentProject = isTransitioning ? null : findProjectAtPath(projects, currentPath)
-  const taskChain = isTransitioning ? [] : getCurrentTaskChain(projects, currentPath)
-  const currentTask = taskChain.length > 0 ? taskChain[taskChain.length - 1] : null
   const isCurrentTaskCompleted = currentTask?.completed || false
 
   // Search results (memoized)
   const searchResults = useMemo(
-    () => isTransitioning ? [] : searchAllTasks(projects, searchQuery, currentPath),
-    [projects, searchQuery, currentPath, isTransitioning]
+    () => searchAllTasks(projects, searchQuery, currentPath),
+    [projects, searchQuery, currentPath]
   )
   const { currentProject: currentProjectResults, otherProjects: otherProjectResults } = useMemo(
     () => groupSearchResults(searchResults),
@@ -287,6 +289,7 @@ export default function HomePage() {
       return (
         <FocusSessionWorkspace
           sessionId={activeTab.slice(6)}
+          onCreateFocusSession={taskPath => createAndOpenFocusSession(taskPath, 'browse')}
         />
       )
     }
@@ -304,15 +307,9 @@ export default function HomePage() {
   }
 
   const pageContent = () => {
-    if (isTransitioning) {
-      return <NavigationSkeleton />
-    }
-
-    const fadeClass = justFinished ? "animate-fade-in" : ""
-
     if (isProjectList(currentPath)) {
       return (
-        <div className={`space-y-6 ${fadeClass}`}>
+        <div className="space-y-6">
           <h1 className="text-3xl font-light tracking-wide text-foreground">Projects</h1>
           <ProjectListView projects={projects} />
 
@@ -324,13 +321,8 @@ export default function HomePage() {
     const currentProjectId = getProjectId(currentPath)
     if (!currentProjectId) return null
 
-    const handleCreateFocusSession = () => {
-      const sessionId = createSession(projects, currentPath)
-      setActiveTab(`focus:${sessionId}`)
-    }
-
     return (
-      <div className={`space-y-6 pb-32 ${fadeClass}`}>
+      <div className="space-y-6 pb-32">
         {/* Navigation and Focus button */}
         <PageNavigation
           backButtonText={getBackButtonText()}
@@ -415,13 +407,19 @@ export default function HomePage() {
         {/* Tasks */}
         {(!showSearch || !hasSearchResults) && (
           <div className="space-y-2">
-            <TaskListView tasks={tasksToDisplay} currentPath={currentPath} parentIsOrdered={currentTask?.isOrdered} orderedNumberMap={orderedNumberMap} />
+            <TaskListView
+              tasks={tasksToDisplay}
+              currentPath={currentPath}
+              parentIsOrdered={currentTask?.isOrdered}
+              orderedNumberMap={orderedNumberMap}
+              onCreateFocusSession={taskPath => createAndOpenFocusSession(taskPath, 'browse')}
+            />
           </div>
         )}
 
         {/* Show AddTaskForm for all levels */}
         {!isProjectList(currentPath) && <AddTaskForm currentPath={currentPath} />}
-        <FocusButton onClick={handleCreateFocusSession} />
+        <FocusButton onClick={() => createAndOpenFocusSession(currentPath)} />
       </div>
     )
   }

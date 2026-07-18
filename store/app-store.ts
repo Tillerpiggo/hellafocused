@@ -14,7 +14,6 @@ import {
   addTaskToParent,
   isProject,
   isProjectList,
-  isTaskDescendantOf,
   fillMissingPositionsForProjects,
   fillMissingPrioritiesForProjects,
   fillMissingProjectPositions,
@@ -24,9 +23,9 @@ import {
   setTaskPriority,
   moveTaskWithPriorityChange,
   moveTaskToNewParent,
-  getValidDropTargets,
   getPathDisplayName,
 } from "@/lib/task-utils"
+import { useNavigationStore } from "./navigation-store"
 import { 
   trackProjectCreated, 
   trackProjectUpdated, 
@@ -38,15 +37,8 @@ import {
 
 interface AppState {
   projects: ProjectData[]
-  currentPath: string[] // [] for project list, [projectId] for project, [projectId, taskId, ...] for tasks
-  navigationContext: string[] // Stores the deepest path visited for breadcrumb context
   showCompleted: boolean
   searchQuery: string
-  // Actions
-  selectProject: (projectId: string | null) => void
-  navigateToTask: (taskId: string) => void
-  navigateToPath: (path: string[]) => void // Navigate directly to a specific path
-  navigateBack: () => void // Navigates one level up in task hierarchy or to project list
 
   toggleTaskCompletion: (taskPath: string[]) => void
   toggleTaskDefer: (taskPath: string[]) => void
@@ -70,7 +62,6 @@ interface AppState {
   reorderTasks: (parentPath: string[], fromIndex: number, toIndex: number) => void
   reorderProjects: (fromIndex: number, toIndex: number) => void
   moveTaskToNewParent: (taskPath: string[], newParentPath: string[], newPosition?: number) => void
-  getValidDropTargets: (taskPath: string[]) => string[][]
   clearLocalState: () => void
 }
 
@@ -80,53 +71,9 @@ export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
       projects: initialProjectsData,
-      currentPath: [], // Start at project list
-      navigationContext: [], // Start with empty context
       showCompleted: false,
       searchQuery: "",
       dueSoonDays: 3,
-
-  selectProject: (projectId) => set({ 
-    currentPath: projectId ? [projectId] : [],
-    navigationContext: projectId ? [projectId] : [] // Reset context when selecting project
-  }),
-
-  navigateToTask: (taskId) => set((state) => {
-    const newPath = [...state.currentPath, taskId]
-    return { 
-      currentPath: newPath,
-      navigationContext: newPath // Going deeper, update context
-    }
-  }),
-
-  navigateToPath: (path) => set((state) => {
-    let newContext = state.navigationContext
-    
-    if (isProjectList(path)) {
-      newContext = [] // Project list - reset
-    } else if (isProject(path)) {
-      newContext = path // Project level - reset to project
-    } else if (state.navigationContext.length > 0 && path[0] !== state.navigationContext[0]) {
-      newContext = path // Different project - reset
-    } else if (isTaskDescendantOf(state.navigationContext, path)) {
-      // Moving up same branch - keep context
-    } else {
-      newContext = path // Branch switch or going deeper
-    }
-    
-    return { 
-      currentPath: path,
-      navigationContext: newContext
-    }
-  }),
-
-  navigateBack: () =>
-    set((state) => {
-      if (isProjectList(state.currentPath)) {
-        return { currentPath: [] }
-      }
-      return { currentPath: state.currentPath.slice(0, -1) }
-    }),
 
   toggleTaskCompletion: (taskPath) => {
     const task = findTaskAtPath(get().projects, taskPath)
@@ -218,13 +165,18 @@ export const useAppStore = create<AppState>()(
     set(
       produce((draft: AppState) => {
         affectedTaskPaths = deleteAtPath(draft.projects, itemPath)
-
-        // If the current path is no longer valid, navigate up appropriately
-        if (!findTaskAtPath(draft.projects, draft.currentPath) && !findProjectAtPath(draft.projects, draft.currentPath)) {
-          draft.currentPath = draft.currentPath.slice(0, -1)
-        }
       }),
     )
+
+    const currentPath = useNavigationStore.getState().currentPath
+    const projects = get().projects
+    if (
+      !isProjectList(currentPath) &&
+      !findTaskAtPath(projects, currentPath) &&
+      !findProjectAtPath(projects, currentPath)
+    ) {
+      useNavigationStore.getState().navigateBack()
+    }
 
     // Track deletion and position updates for sync
     if (isProject(itemPath)) {
@@ -528,25 +480,34 @@ export const useAppStore = create<AppState>()(
     }
   },
 
-  getValidDropTargets: (taskPath) => {
-    return getValidDropTargets(get().projects, taskPath)
+  clearLocalState: () => {
+    set({
+      projects: initialProjectsData,
+      showCompleted: false,
+      searchQuery: "",
+    })
+    useNavigationStore.getState().resetNavigation()
   },
-
-  clearLocalState: () => set({
-    projects: initialProjectsData,
-    currentPath: [],
-    showCompleted: false,
-    searchQuery: "",
-  }),
     }),
     {
       name: 'app-storage',
       partialize: (state) => ({
         projects: state.projects,
-        currentPath: state.currentPath,
         showCompleted: state.showCompleted,
         searchQuery: state.searchQuery,
       }),
+      merge: (persistedState, currentState) => {
+        const persisted = persistedState as Partial<Pick<
+          AppState,
+          "projects" | "showCompleted" | "searchQuery"
+        >>
+        return {
+          ...currentState,
+          projects: persisted.projects ?? currentState.projects,
+          showCompleted: persisted.showCompleted ?? currentState.showCompleted,
+          searchQuery: persisted.searchQuery ?? currentState.searchQuery,
+        }
+      },
       onRehydrateStorage: () => (state) => {
         // Fill missing positions and priorities for any existing tasks when loading from storage
         if (state?.projects) {
@@ -559,131 +520,131 @@ export const useAppStore = create<AppState>()(
   )
 )
 
-// Helper to get current tasks to display based on path
+interface ResolvedCurrentPath {
+  project: ProjectData | null
+  taskChain: TaskData[]
+  currentTask: TaskData | null
+}
+
+export interface CurrentTaskViewData extends ResolvedCurrentPath {
+  tasks: TaskData[]
+  orderedNumberMap: Record<string, number>
+}
+
+const sortByPriorityAndPosition = (tasks: TaskData[]): TaskData[] => (
+  [...tasks].sort((a, b) => {
+    if (a.priority !== b.priority) return b.priority - a.priority
+    if (a.position !== undefined && b.position !== undefined) return a.position - b.position
+    if (a.position !== undefined && b.position === undefined) return -1
+    if (a.position === undefined && b.position !== undefined) return 1
+    return a.lastModificationDate.localeCompare(b.lastModificationDate)
+  })
+)
+
+const resolveCurrentPath = (
+  projects: ProjectData[],
+  currentPath: string[]
+): ResolvedCurrentPath => {
+  if (isProjectList(currentPath)) {
+    return { project: null, taskChain: [], currentTask: null }
+  }
+
+  const project = projects.find((candidate) => candidate.id === currentPath[0]) ?? null
+  if (!project || isProject(currentPath)) {
+    return { project, taskChain: [], currentTask: null }
+  }
+
+  const chain: TaskData[] = []
+  let currentTasks = project.tasks
+  for (const taskId of currentPath.slice(1)) {
+    const task = currentTasks.find((t) => t.id === taskId)
+    if (!task) return { project, taskChain: chain, currentTask: null }
+    chain.push(task)
+    currentTasks = task.subtasks
+  }
+
+  return { project, taskChain: chain, currentTask: chain.at(-1) ?? null }
+}
+
+const getTasksForResolvedPath = (
+  project: ProjectData | null,
+  currentTask: TaskData | null,
+  currentPath: string[],
+  searchQuery: string,
+  showCompleted: boolean
+): TaskData[] => {
+  if (!project) return []
+
+  let tasks = isProject(currentPath) ? project.tasks : currentTask?.subtasks ?? []
+  const normalizedSearch = searchQuery.trim().toLowerCase()
+  if (normalizedSearch) {
+    tasks = tasks.filter((task) => task.name.toLowerCase().includes(normalizedSearch))
+  }
+
+  if (currentTask?.isOrdered) {
+    const sorted = sortByPriorityAndPosition(tasks)
+    return showCompleted ? sorted : sorted.filter((task) => !task.completed)
+  }
+
+  if (!showCompleted) {
+    return sortByPriorityAndPosition(tasks.filter((task) => !task.completed))
+  }
+
+  const completed = tasks
+    .filter((task) => task.completed)
+    .sort((a, b) => (a.completionDate || "").localeCompare(b.completionDate || ""))
+  const incomplete = sortByPriorityAndPosition(tasks.filter((task) => !task.completed))
+  return [...completed, ...incomplete]
+}
+
+const getOrderedNumberMapForTask = (currentTask: TaskData | null): Record<string, number> => {
+  if (!currentTask?.isOrdered) return {}
+
+  return Object.fromEntries(
+    sortByPriorityAndPosition(currentTask.subtasks).map((task, index) => [task.id, index + 1])
+  )
+}
+
+export const getCurrentTaskViewData = (
+  projects: ProjectData[],
+  currentPath: string[],
+  searchQuery: string,
+  showCompleted: boolean
+): CurrentTaskViewData => {
+  const resolved = resolveCurrentPath(projects, currentPath)
+  return {
+    ...resolved,
+    tasks: getTasksForResolvedPath(
+      resolved.project,
+      resolved.currentTask,
+      currentPath,
+      searchQuery,
+      showCompleted
+    ),
+    orderedNumberMap: getOrderedNumberMapForTask(resolved.currentTask),
+  }
+}
+
 export const getCurrentTasksForView = (
   projects: ProjectData[],
   currentPath: string[],
   searchQuery: string,
   showCompleted: boolean
-): TaskData[] => {
-  if (isProjectList(currentPath)) return []
-
-  const project = findProjectAtPath(projects, currentPath)
-  if (!project) return []
-
-  // Get tasks at the current path level
-  let tasksToShow: TaskData[]
-  if (isProject(currentPath)) {
-    tasksToShow = project.tasks
-  } else {
-    const currentTask = findTaskAtPath(projects, currentPath)
-    if (!currentTask) {
-      return []
-    }
-    tasksToShow = currentTask.subtasks
-  }
-
-  // Helper function to sort tasks by priority first, then position, with fallback to creation date
-  const sortByPriorityAndPosition = (tasks: TaskData[]) => {
-    return [...tasks].sort((a, b) => {
-      if (a.priority !== b.priority) {
-        return b.priority - a.priority
-      }
-
-      if (a.position !== undefined && b.position !== undefined) {
-        return a.position - b.position
-      }
-      if (a.position !== undefined && b.position === undefined) return -1
-      if (a.position === undefined && b.position !== undefined) return 1
-      return a.lastModificationDate.localeCompare(b.lastModificationDate)
-    })
-  }
-
-  // Check if the current parent task is ordered
-  const currentTask = isProject(currentPath) ? null : findTaskAtPath(projects, currentPath)
-  const parentIsOrdered = currentTask?.isOrdered
-
-  if (searchQuery.trim()) {
-    const searchLower = searchQuery.toLowerCase().trim()
-    tasksToShow = tasksToShow.filter((task) =>
-      task.name.toLowerCase().includes(searchLower)
-    )
-  }
-
-  if (parentIsOrdered) {
-    const allSorted = sortByPriorityAndPosition([...tasksToShow])
-    if (showCompleted) {
-      return allSorted
-    }
-    return allSorted.filter((task) => !task.completed)
-  }
-
-  if (showCompleted) {
-    const incompleteTasks = sortByPriorityAndPosition(tasksToShow.filter((task) => !task.completed))
-    const completedTasks = tasksToShow
-      .filter((task) => task.completed)
-      .sort((a, b) => {
-        const aTime = a.completionDate || ''
-        const bTime = b.completionDate || ''
-        return aTime.localeCompare(bTime)
-      })
-
-    return [...completedTasks, ...incompleteTasks]
-  } else {
-    return sortByPriorityAndPosition(tasksToShow.filter((task) => !task.completed))
-  }
-}
+): TaskData[] => getCurrentTaskViewData(
+  projects,
+  currentPath,
+  searchQuery,
+  showCompleted
+).tasks
 
 export const getOrderedTaskNumberMap = (
   projects: ProjectData[],
   currentPath: string[]
-): Record<string, number> => {
-  if (isProjectList(currentPath) || isProject(currentPath)) return {}
-
-  const currentTask = findTaskAtPath(projects, currentPath)
-  if (!currentTask?.isOrdered) return {}
-
-  const allTasks = [...currentTask.subtasks]
-
-  const sortByPriorityAndPosition = (tasks: TaskData[]) => {
-    return tasks.sort((a, b) => {
-      if (a.priority !== b.priority) return b.priority - a.priority
-      if (a.position !== undefined && b.position !== undefined) return a.position - b.position
-      if (a.position !== undefined && b.position === undefined) return -1
-      if (a.position === undefined && b.position !== undefined) return 1
-      return a.lastModificationDate.localeCompare(b.lastModificationDate)
-    })
-  }
-
-  const sorted = sortByPriorityAndPosition(allTasks)
-  const map: Record<string, number> = {}
-  sorted.forEach((task, i) => {
-    map[task.id] = i + 1
-  })
-  return map
-}
+): Record<string, number> => getOrderedNumberMapForTask(
+  resolveCurrentPath(projects, currentPath).currentTask
+)
 
 export const getCurrentTaskChain = (
   projects: ProjectData[],
   currentPath: string[]
-): TaskData[] => {
-  if (isProjectList(currentPath) || isProject(currentPath)) return []
-
-  const project = findProjectAtPath(projects, currentPath)
-  if (!project) return []
-
-  const chain: TaskData[] = []
-  let currentTasks = project.tasks
-  const taskPath = currentPath.slice(1)
-  for (const taskId of taskPath) {
-    const task = currentTasks.find((t) => t.id === taskId)
-    if (task) {
-      chain.push(task)
-      currentTasks = task.subtasks
-    } else {
-      break
-    }
-  }
-  return chain
-}
-
+): TaskData[] => resolveCurrentPath(projects, currentPath).taskChain

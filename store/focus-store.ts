@@ -40,11 +40,11 @@ interface FocusState {
   updateFocusLeaves: (projects: ProjectData[]) => void
 
   // Session actions
-  createSession: (projects: ProjectData[], startPath: string[]) => string
+  createSession: (projects: ProjectData[], startPath: string[], initialView?: FocusSession['view']) => string
   createBrowseSession: () => string
   createOrResumeSession: (projects: ProjectData[], startPath: string[]) => void
   switchSession: (sessionId: string, projects: ProjectData[]) => void
-  removeSession: (sessionId: string) => void
+  removeSession: (sessionId: string, projects: ProjectData[]) => string | null
   reorderSessions: (fromIndex: number, toIndex: number) => void
   duplicateSession: (fromIndex: number, toIndex: number) => string | null
   renameSession: (sessionId: string, name: string) => void
@@ -114,7 +114,7 @@ export const useFocusStore = create<FocusState>()(
       sessions: [],
       activeSessionId: null,
 
-      createSession: (projects, startPath) => {
+      createSession: (projects, startPath, initialView = 'focus') => {
         const { sessions } = get()
         const now = Date.now()
         const newSession: FocusSession = {
@@ -122,12 +122,12 @@ export const useFocusStore = create<FocusState>()(
           name: getSessionName(projects, startPath),
           startPath: [...startPath],
           browsePath: [...startPath],
-          view: 'focus',
+          view: initialView,
           currentFocusTaskId: null,
           completedCount: 0,
           createdAt: now,
           updatedAt: new Date(now).toISOString(),
-          position: sessions.length,
+          position: sessions.reduce((max, session) => Math.max(max, session.position), -1) + 1,
           timerEndTime: null,
           timerFired: false,
         }
@@ -153,7 +153,7 @@ export const useFocusStore = create<FocusState>()(
           completedCount: 0,
           createdAt: now,
           updatedAt: new Date(now).toISOString(),
-          position: sessions.length,
+          position: sessions.reduce((max, session) => Math.max(max, session.position), -1) + 1,
           timerEndTime: null,
           timerFired: false,
         }
@@ -222,22 +222,36 @@ export const useFocusStore = create<FocusState>()(
         get().initializeFocus(projects, target.startPath)
       },
 
-      removeSession: (sessionId) => {
+      removeSession: (sessionId, projects) => {
         const { sessions, activeSessionId } = get()
+        const orderedSessions = sessions
+          .slice()
+          .sort((a, b) => a.position - b.position || a.createdAt - b.createdAt)
+        const removedIndex = orderedSessions.findIndex(session => session.id === sessionId)
         const updated = sessions.filter(s => s.id !== sessionId)
 
         if (sessionId === activeSessionId) {
+          const replacement = removedIndex === -1
+            ? null
+            : orderedSessions[removedIndex - 1] ?? orderedSessions[removedIndex + 1] ?? null
+
           set({
             sessions: updated,
-            activeSessionId: null,
+            activeSessionId: replacement?.id ?? null,
             focusModeProjectLeaves: [],
             currentFocusTask: null,
             focusStartPath: [],
+            showAddTasksView: false,
+            showSubtaskCelebration: false,
+            lastFocusedTaskId: replacement?.currentFocusTaskId ?? null,
           })
+
+          if (replacement) get().initializeFocus(projects, replacement.startPath)
         } else {
           set({ sessions: updated })
         }
         trackFocusSessionDeleted(sessionId)
+        return get().activeSessionId
       },
 
       reorderSessions: (fromIndex, toIndex) => {

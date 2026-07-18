@@ -12,22 +12,24 @@ import { BreadcrumbPath } from "@/components/page/breadcrumb-path"
 import { TasksView } from "@/components/tabs/tasks-view"
 import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
-import { NavigationSkeleton } from "@/components/skeleton/navigation-skeleton"
 import { FocusButton } from "./focus-button"
 import { type EditableTitleRef } from "@/components/editable-title"
 import {
-  getCurrentTaskChain,
-  getCurrentTasksForView,
-  getOrderedTaskNumberMap,
+  getCurrentTaskViewData,
   useAppStore,
 } from "@/store/app-store"
 import { useFocusStore } from "@/store/focus-store"
 import { useUIStore } from "@/store/ui-store"
-import { findProjectAtPath, getProjectId, isProject, isProjectList, isTask } from "@/lib/task-utils"
+import { getProjectId, isProject, isProjectList, isTask } from "@/lib/task-utils"
 import { groupSearchResults, searchAllTasks } from "@/lib/search-utils"
-import { useNavigationTransition } from "@/hooks/use-navigation-transition"
 
-export function SessionBrowser({ sessionId }: { sessionId: string }) {
+export function SessionBrowser({
+  sessionId,
+  onCreateFocusSession,
+}: {
+  sessionId: string
+  onCreateFocusSession: (taskPath: string[]) => void
+}) {
   const projects = useAppStore(state => state.projects)
   const showCompleted = useAppStore(state => state.showCompleted)
   const addProject = useAppStore(state => state.addProject)
@@ -50,22 +52,20 @@ export function SessionBrowser({ sessionId }: { sessionId: string }) {
   const [searchQuery, setSearchQuery] = useState("")
 
   const path = session?.browsePath ?? []
-  const { isTransitioning, justFinished } = useNavigationTransition(path)
-  const tasks = useMemo(
-    () => isTransitioning ? [] : getCurrentTasksForView(projects, path, searchQuery, showCompleted),
-    [projects, path, searchQuery, showCompleted, isTransitioning]
+  const {
+    project: currentProject,
+    taskChain,
+    currentTask,
+    tasks,
+    orderedNumberMap,
+  } = useMemo(
+    () => getCurrentTaskViewData(projects, path, searchQuery, showCompleted),
+    [projects, path, searchQuery, showCompleted]
   )
-  const orderedNumberMap = useMemo(
-    () => isTransitioning ? {} : getOrderedTaskNumberMap(projects, path),
-    [projects, path, isTransitioning]
-  )
-  const currentProject = isTransitioning ? null : findProjectAtPath(projects, path)
-  const taskChain = isTransitioning ? [] : getCurrentTaskChain(projects, path)
-  const currentTask = taskChain.at(-1) ?? null
 
   const searchResults = useMemo(
-    () => isTransitioning ? [] : searchAllTasks(projects, searchQuery, path),
-    [projects, searchQuery, path, isTransitioning]
+    () => searchAllTasks(projects, searchQuery, path),
+    [projects, searchQuery, path]
   )
   const { currentProject: currentProjectResults, otherProjects: otherProjectResults } = useMemo(
     () => groupSearchResults(searchResults),
@@ -104,22 +104,17 @@ export function SessionBrowser({ sessionId }: { sessionId: string }) {
 
   const hasIncompleteSubtasks = currentTask?.subtasks.some(task => !task.completed) ?? false
   const showComplete = !!currentTask && !currentTask.completed && !hasIncompleteSubtasks
-  const fadeClass = justFinished ? "animate-fade-in" : ""
-
-  if (isTransitioning) {
-    return <TasksView><NavigationSkeleton /></TasksView>
-  }
 
   return (
     <TasksView>
       {isProjectList(path) ? (
-        <div className={`space-y-6 ${fadeClass}`}>
+        <div className="space-y-6">
           <h1 className="text-3xl font-light tracking-wide text-foreground">Projects</h1>
           <ProjectListView projects={projects} onSelectProject={projectId => navigate([projectId])} />
           <AddProjectForm onAddProject={addProject} />
         </div>
       ) : (
-        <div className={`space-y-6 pb-32 ${fadeClass}`}>
+        <div className="space-y-6 pb-32">
           <PageNavigation backButtonText={backLabel} onBackClick={navigateBack} />
 
           {!isProject(path) && currentProject && (
@@ -209,6 +204,7 @@ export function SessionBrowser({ sessionId }: { sessionId: string }) {
                 parentIsOrdered={currentTask?.isOrdered}
                 orderedNumberMap={orderedNumberMap}
                 onNavigateToTask={taskId => navigate([...path, taskId])}
+                onCreateFocusSession={onCreateFocusSession}
               />
             </div>
           )}

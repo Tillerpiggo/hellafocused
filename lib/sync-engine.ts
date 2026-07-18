@@ -1,5 +1,6 @@
 import { supabase, type DatabaseProject, type DatabaseTask, type DatabaseFocusSession } from './supabase'
 import { useAppStore } from '@/store/app-store'
+import { useNavigationStore } from '@/store/navigation-store'
 import { useFocusStore } from '@/store/focus-store'
 import { useSyncStore } from '@/store/sync-store'
 import { mergeManager } from './merge-manager'
@@ -610,7 +611,8 @@ class SyncEngine {
   }
 
   private validateAndFixCurrentPath() {
-    const { projects, currentPath } = useAppStore.getState()
+    const { projects } = useAppStore.getState()
+    const { currentPath } = useNavigationStore.getState()
     
     // Project list is always valid
     if (isProjectList(currentPath)) {
@@ -643,7 +645,7 @@ class SyncEngine {
     if (validPath.length !== currentPath.length || 
         !validPath.every((id, index) => id === currentPath[index])) {
       console.log('🔄 Fixing invalid path:', currentPath, '→', validPath)
-      useAppStore.setState({ currentPath: validPath })
+      useNavigationStore.setState({ currentPath: validPath })
     }
   }
 

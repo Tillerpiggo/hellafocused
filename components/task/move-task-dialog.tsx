@@ -7,10 +7,10 @@ import { cn } from "@/lib/utils"
 import { useAppStore } from "@/store/app-store"
 import type { TaskData } from "@/lib/types"
 import { 
-  getValidDropTargets, 
   getPathDisplayName, 
   isProject, 
   isProjectList,
+  isValidTaskDropTarget,
   findTaskAtPath,
   findProjectAtPath,
   arePathsEqual,
@@ -33,10 +33,10 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
   const [currentNavigationPath, setCurrentNavigationPath] = useState<string[]>(initialNavigationPath)
   const [isMoving, setIsMoving] = useState(false)
 
-  const validTargets = getValidDropTargets(projects, taskPath)
+  if (!isOpen) return null
 
   const isValidTarget = (targetPath: string[]): boolean => {
-    return validTargets.some(validPath => arePathsEqual(validPath, targetPath))
+    return isValidTaskDropTarget(taskPath, targetPath)
   }
 
   // Get items to display at current navigation level
@@ -255,4 +255,4 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
       </DialogContent>
     </Dialog>
   )
-} 
+}

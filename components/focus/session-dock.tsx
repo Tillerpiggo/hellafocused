@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useAppStore } from "@/store/app-store"
+import { useNavigationStore } from "@/store/navigation-store"
 import { useUIStore } from "@/store/ui-store"
 import { useFocusStore } from "@/store/focus-store"
 import { findTaskAtPath, findProjectAtPath, getProjectId } from "@/lib/task-utils"
@@ -129,7 +130,7 @@ export function SessionDock() {
   const dockRef = useRef<HTMLDivElement>(null)
 
   const projects = useAppStore(s => s.projects)
-  const currentPath = useAppStore(s => s.currentPath)
+  const currentPath = useNavigationStore(s => s.currentPath)
   const isFocusMode = useUIStore(s => s.isFocusMode)
   const setFocusMode = useUIStore(s => s.setFocusMode)
 
@@ -170,17 +171,14 @@ export function SessionDock() {
 
   const handleRemoveSession = useCallback((sessionId: string) => {
     const willRemoveLast = sessions.length === 1
-    const isRemovingActive = sessionId === activeSessionId
 
-    removeSession(sessionId)
+    removeSession(sessionId, projects)
 
     if (willRemoveLast && isFocusMode) {
       setFocusMode(false)
       setIsPopoverOpen(false)
-    } else if (isRemovingActive && !willRemoveLast) {
-      // switchSession is called internally by removeSession
     }
-  }, [sessions.length, activeSessionId, removeSession, isFocusMode, setFocusMode])
+  }, [sessions.length, removeSession, projects, isFocusMode, setFocusMode])
 
   const handleAddClick = useCallback(() => {
     if (isFocusMode) {

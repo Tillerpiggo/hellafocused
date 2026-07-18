@@ -370,6 +370,60 @@ describe('Focus Store - Session Reordering', () => {
     expect(state.activeSessionId).toBe('first')
   })
 
+  test('creates a browse session at the bottom and makes it active', () => {
+    const task = createTask('task1', 'Task 1', 0)
+    const projects = createTestProject([task])
+    const first = createFocusSession('first', 2, 1000)
+    const second = createFocusSession('second', 5, 2000)
+    useFocusStore.setState({ sessions: [second, first], activeSessionId: 'first' })
+
+    const sessionId = useFocusStore.getState().createSession(
+      projects,
+      ['project1', 'task1'],
+      'browse',
+    )
+
+    const state = useFocusStore.getState()
+    const created = state.sessions.find(session => session.id === sessionId)
+    expect(created).toMatchObject({
+      name: 'Task 1',
+      startPath: ['project1', 'task1'],
+      browsePath: ['project1', 'task1'],
+      view: 'browse',
+      position: 6,
+    })
+    expect(state.activeSessionId).toBe(sessionId)
+  })
+
+  test('selects the session immediately above an active session that is removed', () => {
+    const projects = createTestProject([])
+    const first = createFocusSession('first', 0, 1000)
+    const second = createFocusSession('second', 1, 2000)
+    const third = createFocusSession('third', 2, 3000)
+
+    // Keep array order different from visual order to exercise position-based selection.
+    useFocusStore.setState({ sessions: [third, first, second], activeSessionId: 'third' })
+
+    const selectedId = useFocusStore.getState().removeSession('third', projects)
+
+    const state = useFocusStore.getState()
+    expect(selectedId).toBe('second')
+    expect(state.activeSessionId).toBe('second')
+    expect(state.sessions.map(session => session.id)).toEqual(['first', 'second'])
+  })
+
+  test('selects the session below when the removed active session has none above', () => {
+    const projects = createTestProject([])
+    const first = createFocusSession('first', 0, 1000)
+    const second = createFocusSession('second', 1, 2000)
+    useFocusStore.setState({ sessions: [first, second], activeSessionId: 'first' })
+
+    const selectedId = useFocusStore.getState().removeSession('first', projects)
+
+    expect(selectedId).toBe('second')
+    expect(useFocusStore.getState().activeSessionId).toBe('second')
+  })
+
   test('duplicates at the visual drop position without moving the source', () => {
     const first = {
       ...createFocusSession('first', 0, 1000),

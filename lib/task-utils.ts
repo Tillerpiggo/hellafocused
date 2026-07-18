@@ -682,6 +682,11 @@ export const arePathsEqual = (path1: string[], path2: string[]): boolean => {
   return path1.every((segment, index) => segment === path2[index])
 }
 
+export const isValidTaskDropTarget = (taskPath: string[], targetPath: string[]): boolean => {
+  if (isProjectList(targetPath)) return false
+  return !arePathsEqual(targetPath, taskPath) && !isTaskDescendantOf(targetPath, taskPath)
+}
+
 /**
  * Get all valid drop targets for a given task
  * Returns array of paths where the task can be dropped
@@ -700,7 +705,7 @@ export const getValidDropTargets = (projects: ProjectData[], taskPath: string[])
       const taskTargetPath = [...currentPath, task.id]
       
       // Don't allow dropping into the task itself or its descendants
-      if (!arePathsEqual(taskTargetPath, taskPath) && !isTaskDescendantOf(taskTargetPath, taskPath)) {
+      if (isValidTaskDropTarget(taskPath, taskTargetPath)) {
         validTargets.push(taskTargetPath)
         
         // Recursively add subtasks as targets
@@ -851,4 +856,4 @@ export const calculateTodaysTaskFocusPoints = (task: TaskData, pointsFn?: (t: Ta
   })
 
   return points
-} 
+}

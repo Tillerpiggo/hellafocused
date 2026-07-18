@@ -13,9 +13,10 @@ interface SortableTaskItemProps {
   previewPriority?: number | null
   orderNumber?: number
   onNavigate?: (taskId: string) => void
+  onCreateFocusSession?: (taskPath: string[]) => void
 }
 
-export const SortableTaskItem = memo(function SortableTaskItem({ task, index, currentPath, disabled, previewPriority, orderNumber, onNavigate }: SortableTaskItemProps) {
+export const SortableTaskItem = memo(function SortableTaskItem({ task, index, currentPath, disabled, previewPriority, orderNumber, onNavigate, onCreateFocusSession }: SortableTaskItemProps) {
   const [taskIsEditing, setTaskIsEditing] = useState(false)
   return (
     <Draggable 
@@ -64,6 +65,7 @@ export const SortableTaskItem = memo(function SortableTaskItem({ task, index, cu
               onEditingChange={setTaskIsEditing}
               orderNumber={orderNumber}
               onNavigate={onNavigate}
+              onCreateFocusSession={onCreateFocusSession}
             />
           </div>
         );

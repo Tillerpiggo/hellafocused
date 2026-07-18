@@ -15,9 +15,10 @@ interface TaskListViewProps {
   parentIsOrdered?: boolean
   orderedNumberMap?: Record<string, number>
   onNavigateToTask?: (taskId: string) => void
+  onCreateFocusSession?: (taskPath: string[]) => void
 }
 
-export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumberMap, onNavigateToTask }: TaskListViewProps) {
+export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumberMap, onNavigateToTask, onCreateFocusSession }: TaskListViewProps) {
   const reorderTasks = useAppStore((state) => state.reorderTasks)
   const moveTaskWithPriorityChange = useAppStore((state) => state.moveTaskWithPriorityChange)
 
@@ -130,6 +131,7 @@ export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumbe
                   previewPriority={task.id === draggedTaskId ? previewPriority : undefined}
                   orderNumber={parentIsOrdered ? (orderedNumberMap?.[task.id] ?? index + 1) : undefined}
                   onNavigate={onNavigateToTask}
+                  onCreateFocusSession={onCreateFocusSession}
                 />
               ))}
               {expanded && overflowTasks.map((task, i) => (
@@ -142,6 +144,7 @@ export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumbe
                   previewPriority={task.id === draggedTaskId ? previewPriority : undefined}
                   orderNumber={parentIsOrdered ? (orderedNumberMap?.[task.id] ?? effectiveVisible + i + 1) : undefined}
                   onNavigate={onNavigateToTask}
+                  onCreateFocusSession={onCreateFocusSession}
                 />
               ))}
               {provided.placeholder}
