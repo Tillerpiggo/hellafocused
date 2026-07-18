@@ -11,6 +11,21 @@
   }
 }
 
+@keyframes app-spinner-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-app-spinner {
+  animation: app-spinner-rotate 1.3s cubic-bezier(0.4, 0.1, 0.6, 0.9) infinite;
+  transform-origin: center;
+  will-change: transform;
+}
+
 .perspective-1000 {
   perspective: 1000px;
 }
@@ -39,12 +54,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    background-image: url('https://images.unsplash.com/photo-1544551763-46a013bb70d5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2940&q=80');
-    background-size: cover;
-    background-position: center;
-    /* Removed background-attachment: fixed to fix Chrome backdrop-filter issue */
-    /* background-attachment: fixed; */
-    background-blend-mode: soft-light;
     /* Create stacking context for Safari backdrop-filter */
     transform: translateZ(0);
   }
@@ -419,46 +428,6 @@
     }
   }
 
-  /* Multiplier badge glass morphism */
-  .multiplier-badge {
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  }
-
-  @supports (-webkit-backdrop-filter: blur(16px)) {
-    .multiplier-badge {
-      background: rgba(255, 255, 255, 0.8);
-      -webkit-backdrop-filter: blur(16px) saturate(1.2);
-    }
-  }
-
-  @supports (backdrop-filter: blur(16px)) {
-    .multiplier-badge {
-      background: rgba(255, 255, 255, 0.8);
-      backdrop-filter: blur(16px) saturate(1.2);
-    }
-  }
-
-  .dark .multiplier-badge {
-    background: rgba(20, 20, 20, 0.92);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-  }
-
-  @supports (-webkit-backdrop-filter: blur(16px)) {
-    .dark .multiplier-badge {
-      background: rgba(20, 20, 20, 0.8);
-      -webkit-backdrop-filter: blur(16px) saturate(1.1);
-    }
-  }
-
-  @supports (backdrop-filter: blur(16px)) {
-    .dark .multiplier-badge {
-      background: rgba(20, 20, 20, 0.8);
-      backdrop-filter: blur(16px) saturate(1.1);
-    }
-  }
 }
 
 @keyframes slideUpIn {
@@ -679,26 +648,4 @@
     opacity: 0;
     transform: scale(0.98);
   }
-}
-
-/* react-day-picker theme overrides */
-.rdp-theme {
-  --rdp-accent-color: hsl(var(--primary));
-  --rdp-accent-background-color: hsl(var(--primary) / 0.12);
-  --rdp-day-height: 36px;
-  --rdp-day-width: 36px;
-}
-
-.rdp-theme .rdp-day button {
-  border-radius: 8px;
-}
-
-.rdp-theme .rdp-selected .rdp-day_button {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-}
-
-.rdp-theme .rdp-today:not(.rdp-selected) .rdp-day_button {
-  font-weight: 700;
-  color: hsl(var(--primary));
 }

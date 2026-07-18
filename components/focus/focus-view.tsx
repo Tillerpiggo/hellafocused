@@ -1,7 +1,6 @@
 "use client"
 import { useAppStore } from "@/store/app-store"
 import { useFocusStore } from "@/store/focus-store"
-import { findTaskPath, getProjectId } from "@/lib/task-utils"
 import { useEffect, useState, useCallback } from "react"
 import { AddTasksView } from "./add-tasks-view"
 import { AllTasksCompletedView } from "./all-tasks-completed-view"
@@ -16,22 +15,22 @@ export function FocusView({ onExitFocus }: { onExitFocus?: () => void }) {
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
   const toggleTaskPrefer = useAppStore((state) => state.toggleTaskPrefer)
 
-  const {
-    currentFocusTask,
-    showAddTasksView,
-    showSubtaskCelebration,
-    focusModeProjectLeaves,
-    focusStartPath: startPath,
-    lastFocusedTaskId,
-    activeSessionId,
-    sessions,
-    initializeFocus,
-    completeFocusTask,
-    getNextFocusTask,
-    setShowAddTasksView,
-    saveCurrentSessionState,
-  } = useFocusStore((state) => state)
-
+  const currentFocusTask = useFocusStore(state => state.currentFocusTask)
+  const currentFocusTaskPath = useFocusStore(state => state.currentFocusTaskPath)
+  const showAddTasksView = useFocusStore(state => state.showAddTasksView)
+  const showSubtaskCelebration = useFocusStore(state => state.showSubtaskCelebration)
+  const focusModeProjectLeaves = useFocusStore(state => state.focusModeProjectLeaves)
+  const lastFocusedTaskId = useFocusStore(state => state.lastFocusedTaskId)
+  const activeSessionId = useFocusStore(state => state.activeSessionId)
+  const sessions = useFocusStore(state => state.sessions)
+  const initializeFocus = useFocusStore(state => state.initializeFocus)
+  const completeFocusTask = useFocusStore(state => state.completeFocusTask)
+  const getNextFocusTask = useFocusStore(state => state.getNextFocusTask)
+  const setCurrentFocusTask = useFocusStore(state => state.setCurrentFocusTask)
+  const setShowAddTasksView = useFocusStore(state => state.setShowAddTasksView)
+  const setShowSubtaskCelebration = useFocusStore(state => state.setShowSubtaskCelebration)
+  const refreshFocusLeaves = useFocusStore(state => state.refreshFocusLeaves)
+  const saveCurrentSessionState = useFocusStore(state => state.saveCurrentSessionState)
   const setTimer = useFocusStore(s => s.setTimer)
   const clearTimer = useFocusStore(s => s.clearTimer)
   const timerFired = useFocusStore(s => {
@@ -67,80 +66,36 @@ export function FocusView({ onExitFocus }: { onExitFocus?: () => void }) {
   const handleExitFocusMode = useCallback(() => {
     setIsExiting(true)
     setTimeout(() => {
-      useFocusStore.setState({ showSubtaskCelebration: false })
+      setShowSubtaskCelebration(false)
       saveCurrentSessionState()
       onExitFocus?.()
     }, 500)
-  }, [onExitFocus, saveCurrentSessionState])
+  }, [onExitFocus, saveCurrentSessionState, setShowSubtaskCelebration])
 
   const handleToggleDefer = useCallback((autoAdvance = true) => {
-    if (!currentFocusTask) return
-    
-    const currentProjectId = getProjectId(startPath)
-    if (!currentProjectId) return
+    if (!currentFocusTask || !currentFocusTaskPath) return
 
-    const projects = useAppStore.getState().projects
-    const project = projects.find((p) => p.id === currentProjectId)
-    if (project) {
-      const taskPathInProject = findTaskPath(project.tasks, currentFocusTask.id)
-      if (taskPathInProject) {
-        const fullTaskPath = [currentProjectId, ...taskPathInProject]
-        toggleTaskDefer(fullTaskPath)
+    toggleTaskDefer(currentFocusTaskPath)
         
-        if (autoAdvance) {
-          // Automatically pick the next task after deferring
-          getNextFocusTask()
-        } else {
-          // Update priority in-place to avoid animation
-          const updatedProjects = useAppStore.getState().projects
-          useFocusStore.getState().updateFocusLeaves(updatedProjects)
-          
-          const focusLeaves = useFocusStore.getState().focusModeProjectLeaves
-          const currentTaskInLeaves = focusLeaves.find(t => t.id === currentFocusTask.id)
-          if (currentTaskInLeaves) {
-            // Update priority through store to avoid readonly property error
-            useFocusStore.setState({ 
-              currentFocusTask: { ...currentFocusTask, priority: currentTaskInLeaves.priority } 
-            })
-            // Update separate priority state for header buttons
-            setCurrentTaskPriority(currentTaskInLeaves.priority)
-          }
-        }
-      }
+    if (autoAdvance) {
+      // Automatically pick the next task after deferring
+      getNextFocusTask()
+    } else {
+      // Update priority in-place to avoid animation
+      const refreshedTask = refreshFocusLeaves()
+      if (refreshedTask) setCurrentTaskPriority(refreshedTask.priority)
     }
-  }, [currentFocusTask, startPath, toggleTaskDefer, getNextFocusTask])
+  }, [currentFocusTask, currentFocusTaskPath, toggleTaskDefer, getNextFocusTask, refreshFocusLeaves])
 
   const handleTogglePrefer = useCallback(() => {
-    if (!currentFocusTask) return
-    
-    const currentProjectId = getProjectId(startPath)
-    if (!currentProjectId) return
+    if (!currentFocusTask || !currentFocusTaskPath) return
 
-    const projects = useAppStore.getState().projects
-    const project = projects.find((p) => p.id === currentProjectId)
-    if (project) {
-      const taskPathInProject = findTaskPath(project.tasks, currentFocusTask.id)
-      if (taskPathInProject) {
-        const fullTaskPath = [currentProjectId, ...taskPathInProject]
-        toggleTaskPrefer(fullTaskPath)
+    toggleTaskPrefer(currentFocusTaskPath)
         
-        // Update priority in-place to avoid animation
-        const updatedProjects = useAppStore.getState().projects
-        useFocusStore.getState().updateFocusLeaves(updatedProjects)
-        
-        const focusLeaves = useFocusStore.getState().focusModeProjectLeaves
-        const currentTaskInLeaves = focusLeaves.find(t => t.id === currentFocusTask.id)
-        if (currentTaskInLeaves) {
-          // Update priority through store to avoid readonly property error
-          useFocusStore.setState({ 
-            currentFocusTask: { ...currentFocusTask, priority: currentTaskInLeaves.priority } 
-          })
-          // Update separate priority state for header buttons
-          setCurrentTaskPriority(currentTaskInLeaves.priority)
-        }
-      }
-    }
-  }, [currentFocusTask, startPath, toggleTaskPrefer])
+    // Update priority in-place to avoid animation
+    const refreshedTask = refreshFocusLeaves()
+    if (refreshedTask) setCurrentTaskPriority(refreshedTask.priority)
+  }, [currentFocusTask, currentFocusTaskPath, toggleTaskPrefer, refreshFocusLeaves])
 
   const handleSetPriority = useCallback((targetPriority: number) => {
     if (targetPriority === 1) {
@@ -171,8 +126,8 @@ export function FocusView({ onExitFocus }: { onExitFocus?: () => void }) {
     const syncedTaskId = activeSession?.currentFocusTaskId
     if (!syncedTaskId || currentFocusTask?.id === syncedTaskId) return
     const syncedTask = focusModeProjectLeaves.find(task => task.id === syncedTaskId && !task.completed)
-    if (syncedTask) useFocusStore.setState({ currentFocusTask: syncedTask })
-  }, [activeSession?.currentFocusTaskId, currentFocusTask?.id, focusModeProjectLeaves])
+    if (syncedTask) setCurrentFocusTask(syncedTask)
+  }, [activeSession?.currentFocusTaskId, currentFocusTask?.id, focusModeProjectLeaves, setCurrentFocusTask])
 
   // Handle initial load animation
   useEffect(() => {
@@ -209,13 +164,13 @@ export function FocusView({ onExitFocus }: { onExitFocus?: () => void }) {
         
       if (lastTask) {
         // Restore last task
-        useFocusStore.setState({ currentFocusTask: lastTask })
+        setCurrentFocusTask(lastTask)
       } else {
         // Fall back to priority selection
         getNextFocusTask()
       }
     }
-  }, [currentFocusTask, showSubtaskCelebration, lastFocusedTaskId, focusModeProjectLeaves, getNextFocusTask])
+  }, [currentFocusTask, showSubtaskCelebration, lastFocusedTaskId, focusModeProjectLeaves, getNextFocusTask, setCurrentFocusTask])
 
   // Sync priority state when current task changes
   useEffect(() => {
@@ -226,7 +181,7 @@ export function FocusView({ onExitFocus }: { onExitFocus?: () => void }) {
   const renderMainContent = () => {
     // Show subtask celebration if flagged
     if (showSubtaskCelebration) {
-      return <AllTasksCompletedView onKeepGoing={() => useFocusStore.setState({ showSubtaskCelebration: false })} />
+      return <AllTasksCompletedView onKeepGoing={() => setShowSubtaskCelebration(false)} />
     }
 
     if (!currentFocusTask) {
@@ -245,7 +200,6 @@ export function FocusView({ onExitFocus }: { onExitFocus?: () => void }) {
           onTogglePrefer={handleTogglePrefer}
           showInfoOverlay={showInfoOverlay}
           onShowInfoOverlay={setShowInfoOverlay}
-          startPath={startPath}
         />
       )
     }

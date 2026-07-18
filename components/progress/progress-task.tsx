@@ -2,22 +2,20 @@
 
 import { useState } from 'react'
 import { ChevronRight } from 'lucide-react'
-import { TaskData, MultiplierBreakdown } from '@/lib/types'
+import { TaskData } from '@/lib/types'
+import type { TaskPath } from '@/lib/task-path'
 
 interface ProgressTaskProps {
   task: TaskData & {
     projectName: string
-    path: string[]
+    path: TaskPath
     focusPoints: number
-    multiplierBreakdown?: MultiplierBreakdown[]
-    multiplierTotal?: number
   }
   depth: number
 }
 
 export function ProgressTask({ task, depth }: ProgressTaskProps) {
   const [isExpanded, setIsExpanded] = useState(false)
-  const [showMultiplierDetail, setShowMultiplierDetail] = useState(false)
 
   const todaysCompletedSubtasks = task.subtasks.filter(subtask => {
     if (!subtask.completed || !subtask.completionDate) return false
@@ -27,7 +25,6 @@ export function ProgressTask({ task, depth }: ProgressTaskProps) {
   })
 
   const hasCompletedSubtasks = todaysCompletedSubtasks.length > 0
-  const hasMultiplier = (task.multiplierTotal ?? 1) > 1
 
   const formatTime = (dateString: string): string => {
     const date = new Date(dateString)
@@ -45,17 +42,15 @@ export function ProgressTask({ task, depth }: ProgressTaskProps) {
       <div
         className="flex items-center gap-2.5 py-2 px-3 rounded-lg hover:bg-muted/40 transition-colors cursor-pointer group"
         onClick={() => {
-          if (hasMultiplier) {
-            setShowMultiplierDetail(!showMultiplierDetail)
-          } else if (hasCompletedSubtasks) {
+          if (hasCompletedSubtasks) {
             setIsExpanded(!isExpanded)
           }
         }}
       >
-        {hasCompletedSubtasks || hasMultiplier ? (
+        {hasCompletedSubtasks ? (
           <ChevronRight
             className={`h-3.5 w-3.5 text-muted-foreground/60 transition-transform ${
-              (hasMultiplier ? showMultiplierDetail : isExpanded) ? 'rotate-90' : ''
+              isExpanded ? 'rotate-90' : ''
             }`}
           />
         ) : (
@@ -78,22 +73,7 @@ export function ProgressTask({ task, depth }: ProgressTaskProps) {
         </div>
       </div>
 
-      {showMultiplierDetail && hasMultiplier && task.multiplierBreakdown && (
-        <div className="ml-8 py-1 px-3">
-          <span className="text-xs text-muted-foreground">
-            {task.multiplierBreakdown.map((b, i) => (
-              <span key={`${b.source}-${i}`}>
-                {i > 0 && ' · '}
-                {b.source === 'due-date-self' ? '🎯' : '📋'} {b.label} ×{b.multiplier}
-              </span>
-            ))}
-            {' = '}
-            <span className="font-medium text-multiplier">×{task.multiplierTotal}</span>
-          </span>
-        </div>
-      )}
-
-      {isExpanded && hasCompletedSubtasks && !showMultiplierDetail && (
+      {isExpanded && hasCompletedSubtasks && (
         <div className="ml-2">
           {todaysCompletedSubtasks.map((subtask) => (
             <ProgressTask

@@ -6,11 +6,12 @@ import { ArrowLeft, ChevronRight, Folder, Circle, Star, Clock } from "lucide-rea
 import { cn } from "@/lib/utils"
 import { useAppStore } from "@/store/app-store"
 import type { TaskData } from "@/lib/types"
+import type { TaskPath } from "@/lib/task-path"
 import { 
-  getValidDropTargets, 
   getPathDisplayName, 
   isProject, 
   isProjectList,
+  isValidTaskDropTarget,
   findTaskAtPath,
   findProjectAtPath,
   arePathsEqual,
@@ -20,7 +21,7 @@ import {
 interface MoveTaskDialogProps {
   isOpen: boolean
   onClose: () => void
-  taskPath: string[]
+  taskPath: TaskPath
   taskName: string
 }
 
@@ -30,13 +31,13 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
   
   // Start navigation at the parent of the task being moved
   const initialNavigationPath = taskPath.slice(0, -1)
-  const [currentNavigationPath, setCurrentNavigationPath] = useState<string[]>(initialNavigationPath)
+  const [currentNavigationPath, setCurrentNavigationPath] = useState<TaskPath>(initialNavigationPath)
   const [isMoving, setIsMoving] = useState(false)
 
-  const validTargets = getValidDropTargets(projects, taskPath)
+  if (!isOpen) return null
 
-  const isValidTarget = (targetPath: string[]): boolean => {
-    return validTargets.some(validPath => arePathsEqual(validPath, targetPath))
+  const isValidTarget = (targetPath: TaskPath): boolean => {
+    return isValidTaskDropTarget(taskPath, targetPath)
   }
 
   // Get items to display at current navigation level
@@ -91,7 +92,7 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
       }))
   }
 
-  const handleNavigateInto = (path: string[]) => {
+  const handleNavigateInto = (path: TaskPath) => {
     setCurrentNavigationPath(path)
   }
 
@@ -255,4 +256,4 @@ export function MoveTaskDialog({ isOpen, onClose, taskPath, taskName }: MoveTask
       </DialogContent>
     </Dialog>
   )
-} 
+}

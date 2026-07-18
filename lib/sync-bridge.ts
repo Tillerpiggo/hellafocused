@@ -3,6 +3,7 @@ import { syncEngine } from './sync-engine'
 import { useAppStore } from '@/store/app-store'
 import { findTaskAtPath } from '@/lib/task-utils'
 import type { FocusSession } from './types'
+import type { TaskPath } from './task-path'
 import type { SyncActionType, SyncData, SyncAction } from './sync-types'
 
 // Bridge function that intercepts mutations
@@ -64,7 +65,7 @@ export const trackProjectDeleted = (projectId: string) => {
   trackChange('delete', 'project', projectId, null)
 }
 
-export const trackTaskCreated = (parentPath: string[]) => {
+export const trackTaskCreated = (parentPath: TaskPath) => {
   const { projects } = useAppStore.getState()
   const projectId = parentPath[0]
 
@@ -92,7 +93,7 @@ export const trackTaskCreated = (parentPath: string[]) => {
   }
 }
 
-export const trackTaskUpdated = (taskPath: string[]) => {
+export const trackTaskUpdated = (taskPath: TaskPath) => {
   const { projects } = useAppStore.getState()
   const task = findTaskAtPath(projects, taskPath)
   const projectId = taskPath[0]
@@ -106,7 +107,7 @@ export const trackTaskUpdated = (taskPath: string[]) => {
   }
 }
 
-export const trackTaskDeleted = (taskPath: string[]) => {
+export const trackTaskDeleted = (taskPath: TaskPath) => {
   const taskId = taskPath[taskPath.length - 1]
   const projectId = taskPath[0]
   const parentId = taskPath.length > 2 ? taskPath[taskPath.length - 2] : undefined

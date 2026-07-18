@@ -1,23 +1,24 @@
 "use client"
 import { DragDropContext, Droppable, type DropResult, type DragUpdate, type DragStart } from '@hello-pangea/dnd'
 import type { TaskData } from "@/lib/types"
+import type { TaskPath } from "@/lib/task-path"
 import { SortableTaskItem } from "./sortable-task-item"
 import { useAppStore } from "@/store/app-store"
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect } from "react"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import { isImminentTask } from "@/lib/due-date-utils"
 
 const DEFAULT_VISIBLE = 3
 
 interface TaskListViewProps {
   tasks: TaskData[]
-  currentPath: string[] // Unified path including project and task hierarchy
+  currentPath: TaskPath // Unified path including project and task hierarchy
   parentIsOrdered?: boolean
   orderedNumberMap?: Record<string, number>
   onNavigateToTask?: (taskId: string) => void
+  onCreateFocusSession?: (taskPath: TaskPath) => void
 }
 
-export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumberMap, onNavigateToTask }: TaskListViewProps) {
+export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumberMap, onNavigateToTask, onCreateFocusSession }: TaskListViewProps) {
   const reorderTasks = useAppStore((state) => state.reorderTasks)
   const moveTaskWithPriorityChange = useAppStore((state) => state.moveTaskWithPriorityChange)
 
@@ -30,20 +31,21 @@ export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumbe
 
   // Track cross-section drag state for styling preview
   const [draggedTaskId, setDraggedTaskId] = useState<string | null>(null)
+  const [draggedTaskPriority, setDraggedTaskPriority] = useState<number | null>(null)
   const [previewPriority, setPreviewPriority] = useState<number | null>(null)
 
   function handleDragStart(start: DragStart) {
     setDraggedTaskId(start.draggableId)
+    setDraggedTaskPriority(tasks[start.source.index]?.priority ?? null)
     setPreviewPriority(null)
   }
 
   function handleDragUpdate(update: DragUpdate) {
-    if (!update.destination || !draggedTaskId) return
+    if (!update.destination || draggedTaskPriority === null) return
 
-    const draggedTask = tasks.find(task => task.id === draggedTaskId)
     const targetTask = tasks[update.destination.index]
     
-    if (draggedTask && targetTask && draggedTask.priority !== targetTask.priority) {
+    if (targetTask && draggedTaskPriority !== targetTask.priority) {
       // Cross-section drag detected - set preview priority
       setPreviewPriority(targetTask.priority)
     } else {
@@ -55,6 +57,7 @@ export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumbe
   function handleDragEnd(result: DropResult) {
     // Clear drag state
     setDraggedTaskId(null)
+    setDraggedTaskPriority(null)
     setPreviewPriority(null)
     
     if (!result.destination) {
@@ -96,12 +99,7 @@ export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumbe
     }
   }
 
-  const imminentOverflowCount = useMemo(() => {
-    if (tasks.length <= DEFAULT_VISIBLE) return 0
-    return tasks.slice(DEFAULT_VISIBLE).filter(isImminentTask).length
-  }, [tasks])
-
-  const effectiveVisible = DEFAULT_VISIBLE + imminentOverflowCount
+  const effectiveVisible = DEFAULT_VISIBLE
   const canExpand = tasks.length > effectiveVisible
   const hiddenCount = tasks.length - effectiveVisible
   const baseTasks = tasks.slice(0, effectiveVisible)
@@ -130,6 +128,7 @@ export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumbe
                   previewPriority={task.id === draggedTaskId ? previewPriority : undefined}
                   orderNumber={parentIsOrdered ? (orderedNumberMap?.[task.id] ?? index + 1) : undefined}
                   onNavigate={onNavigateToTask}
+                  onCreateFocusSession={onCreateFocusSession}
                 />
               ))}
               {expanded && overflowTasks.map((task, i) => (
@@ -142,6 +141,7 @@ export function TaskListView({ tasks, currentPath, parentIsOrdered, orderedNumbe
                   previewPriority={task.id === draggedTaskId ? previewPriority : undefined}
                   orderNumber={parentIsOrdered ? (orderedNumberMap?.[task.id] ?? effectiveVisible + i + 1) : undefined}
                   onNavigate={onNavigateToTask}
+                  onCreateFocusSession={onCreateFocusSession}
                 />
               ))}
               {provided.placeholder}

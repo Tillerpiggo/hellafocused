@@ -65,7 +65,6 @@ export interface DatabaseTask {
   parent_id?: string
   completed: boolean
   completion_date?: string
-  due_date?: string
   position: number
   priority: number
   is_ordered?: boolean

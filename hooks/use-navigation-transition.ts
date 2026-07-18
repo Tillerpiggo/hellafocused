@@ -1,8 +1,9 @@
 import { useRef, useState, useEffect } from "react"
 import { arePathsEqual } from "@/lib/task-utils"
+import type { TaskPath } from "@/lib/task-path"
 
-export function useNavigationTransition(currentPath: string[]) {
-  const committedPathRef = useRef<string[]>(currentPath)
+export function useNavigationTransition(currentPath: TaskPath) {
+  const committedPathRef = useRef<TaskPath>(currentPath)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [justFinished, setJustFinished] = useState(false)
 

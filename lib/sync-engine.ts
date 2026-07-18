@@ -1,5 +1,6 @@
 import { supabase, type DatabaseProject, type DatabaseTask, type DatabaseFocusSession } from './supabase'
 import { useAppStore } from '@/store/app-store'
+import { useNavigationStore } from '@/store/navigation-store'
 import { useFocusStore } from '@/store/focus-store'
 import { useSyncStore } from '@/store/sync-store'
 import { mergeManager } from './merge-manager'
@@ -37,6 +38,7 @@ class SyncEngine {
   private batchTimeout: NodeJS.Timeout | null = null
   private readonly batchDelay = 10
   private realtimeMergeTimeout: NodeJS.Timeout | null = null
+  private activeSync: Promise<void> | null = null
 
   async init() {
     // Check if already initialized to prevent double initialization
@@ -59,10 +61,7 @@ class SyncEngine {
       useSyncStore.getState().setInitialized(true)
       console.log("sync engine authenticated - UI ready")
       
-      await Promise.all([
-        this.syncPendingChanges(),
-        this.mergeWithCloud()
-      ])
+      await this.syncNow()
 
       this.startPeriodicSync()
       this.setupRealtimeSync()
@@ -310,6 +309,41 @@ class SyncEngine {
     useSyncStore.getState().updateLastSyncedAt()
   }
 
+  /**
+   * Runs a complete sync and exposes its progress to the UI. Concurrent sync
+   * requests share the same promise so periodic, reconnect, and manual syncs
+   * cannot race each other.
+   */
+  async syncNow(): Promise<void> {
+    if (this.activeSync) {
+      return this.activeSync
+    }
+
+    const { currentUserId } = useSyncStore.getState()
+    if (!currentUserId || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+      return
+    }
+
+    const runSync = async () => {
+      useSyncStore.getState().setSyncLoading(true)
+
+      try {
+        await this.syncPendingChanges()
+        await this.mergeWithCloud()
+      } finally {
+        useSyncStore.getState().setSyncLoading(false)
+      }
+    }
+
+    this.activeSync = runSync()
+
+    try {
+      await this.activeSync
+    } finally {
+      this.activeSync = null
+    }
+  }
+
   private groupChangesForBatching(pending: [string, SyncAction][]) {
     const batches: Array<{
       type: string
@@ -381,7 +415,6 @@ class SyncEngine {
         name: taskData.name,
         completed: taskData.completed,
         completion_date: taskData.completionDate || null,
-        due_date: taskData.dueDate || null,
         position: taskData.position ?? 0,
         priority: taskData.priority,
         is_ordered: taskData.isOrdered || false,
@@ -611,7 +644,8 @@ class SyncEngine {
   }
 
   private validateAndFixCurrentPath() {
-    const { projects, currentPath } = useAppStore.getState()
+    const { projects } = useAppStore.getState()
+    const { currentPath } = useNavigationStore.getState()
     
     // Project list is always valid
     if (isProjectList(currentPath)) {
@@ -644,7 +678,7 @@ class SyncEngine {
     if (validPath.length !== currentPath.length || 
         !validPath.every((id, index) => id === currentPath[index])) {
       console.log('🔄 Fixing invalid path:', currentPath, '→', validPath)
-      useAppStore.setState({ currentPath: validPath })
+      useNavigationStore.setState({ currentPath: validPath })
     }
   }
 
@@ -653,8 +687,7 @@ class SyncEngine {
     this.syncInterval = setInterval(async () => {
       console.log('🔄 Periodic sync timer')
       if (navigator.onLine) {
-        await this.syncPendingChanges()
-        await this.mergeWithCloud()
+        await this.syncNow()
       }
     }, 30000)
   }
@@ -821,7 +854,6 @@ class SyncEngine {
       parent_id: parentId || null,
       completed: task.completed,
       completion_date: task.completionDate || null,
-      due_date: task.dueDate || null,
       position: position,
       priority: task.priority,
       is_ordered: task.isOrdered || false,
@@ -845,7 +877,6 @@ class SyncEngine {
       description: task.description || null,
       completed: task.completed,
       completion_date: task.completionDate || null,
-      due_date: task.dueDate || null,
       position: task.position ?? 0,
       priority: task.priority,
       is_ordered: task.isOrdered || false,

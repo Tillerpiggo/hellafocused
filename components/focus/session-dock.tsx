@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useAppStore } from "@/store/app-store"
+import { useNavigationStore } from "@/store/navigation-store"
 import { useUIStore } from "@/store/ui-store"
 import { useFocusStore } from "@/store/focus-store"
 import { findTaskAtPath, findProjectAtPath, getProjectId } from "@/lib/task-utils"
@@ -8,8 +9,9 @@ import { Target, Layers, Plus, X, Timer } from "lucide-react"
 import { useGlobalTimerCheck } from "@/hooks/use-global-timer-check"
 import { useTimerTick } from "@/hooks/use-timer-tick"
 import { formatRemainingFull } from "./timer-picker"
+import type { TaskPath } from "@/lib/task-path"
 
-function useSessionName(startPath: string[]) {
+function useSessionName(startPath: TaskPath) {
   const projects = useAppStore(s => s.projects)
   const projectId = getProjectId(startPath)
   if (!projectId) return null
@@ -29,7 +31,7 @@ function SessionCard({
   onClick,
   onRemove,
 }: {
-  session: { id: string; startPath: string[]; currentFocusTaskId: string | null; completedCount: number; createdAt: number; timerEndTime?: number | null; timerFired?: boolean }
+  session: { id: string; startPath: TaskPath; currentFocusTaskId: string | null; completedCount: number; createdAt: number; timerEndTime?: number | null; timerFired?: boolean }
   isActive: boolean
   onClick: () => void
   onRemove: () => void
@@ -129,7 +131,7 @@ export function SessionDock() {
   const dockRef = useRef<HTMLDivElement>(null)
 
   const projects = useAppStore(s => s.projects)
-  const currentPath = useAppStore(s => s.currentPath)
+  const currentPath = useNavigationStore(s => s.currentPath)
   const isFocusMode = useUIStore(s => s.isFocusMode)
   const setFocusMode = useUIStore(s => s.setFocusMode)
 
@@ -170,17 +172,14 @@ export function SessionDock() {
 
   const handleRemoveSession = useCallback((sessionId: string) => {
     const willRemoveLast = sessions.length === 1
-    const isRemovingActive = sessionId === activeSessionId
 
-    removeSession(sessionId)
+    removeSession(sessionId, projects)
 
     if (willRemoveLast && isFocusMode) {
       setFocusMode(false)
       setIsPopoverOpen(false)
-    } else if (isRemovingActive && !willRemoveLast) {
-      // switchSession is called internally by removeSession
     }
-  }, [sessions.length, activeSessionId, removeSession, isFocusMode, setFocusMode])
+  }, [sessions.length, removeSession, projects, isFocusMode, setFocusMode])
 
   const handleAddClick = useCallback(() => {
     if (isFocusMode) {

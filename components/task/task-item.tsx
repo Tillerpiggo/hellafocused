@@ -1,42 +1,40 @@
 "use client"
 import type { TaskData } from "@/lib/types"
+import type { TaskPath } from "@/lib/task-path"
 import type React from "react"
 
 import { useAppStore } from "@/store/app-store"
+import { useNavigationStore } from "@/store/navigation-store"
 import { useUIStore } from "@/store/ui-store"
 import { Button } from "@/components/ui/button"
 import { CheckCircle, Circle, ChevronRight, Star, Clock, Edit3 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { TaskContextMenu } from "./task-context-menu"
 import { MoveTaskDialog } from "./move-task-dialog"
-import { DueDateBadge } from "./due-date-badge"
-import { DueDatePicker } from "./due-date-picker"
 import { EditableTitle, type EditableTitleRef } from "@/components/editable-title"
 import { useState, useRef, memo } from "react"
 
 interface TaskItemProps {
   task: TaskData
-  currentPath: string[] // Unified path to the parent of this task
+  currentPath: TaskPath // Unified path to the parent of this task
   isDragging?: boolean
   previewPriority?: number // For cross-section drag styling preview
   onEditingChange?: (isEditing: boolean) => void
   orderNumber?: number // When set, shows a numbered circle instead of a checkbox (parent is ordered)
   onNavigate?: (taskId: string) => void
+  onCreateFocusSession?: (taskPath: TaskPath) => void
 }
 
-export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false, previewPriority, onEditingChange, orderNumber, onNavigate }: TaskItemProps) {
-  const navigateToTask = useAppStore((state) => state.navigateToTask)
+export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false, previewPriority, onEditingChange, orderNumber, onNavigate, onCreateFocusSession }: TaskItemProps) {
+  const navigateToTask = useNavigationStore((state) => state.navigateToTask)
   const updateTaskName = useAppStore((state) => state.updateTaskName)
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
   const toggleTaskPrefer = useAppStore((state) => state.toggleTaskPrefer)
-  const setTaskDueDate = useAppStore((state) => state.setTaskDueDate)
-  const dueSoonDays = useAppStore((state) => state.dueSoonDays)
   const attemptTaskCompletion = useUIStore((state) => state.attemptTaskCompletion)
   const attemptDeletion = useUIStore((state) => state.attemptDeletion)
 
   const [isEditing, setIsEditing] = useState(false)
   const [isMoveDialogOpen, setIsMoveDialogOpen] = useState(false)
-  const [showDueDatePicker, setShowDueDatePicker] = useState(false)
   const editableTitleRef = useRef<EditableTitleRef>(null)
 
   const taskPath = [...currentPath, task.id]
@@ -145,9 +143,6 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         </div>
       </div>
       <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2">
-        {!task.completed && task.dueDate && (
-          <DueDateBadge dueDate={task.dueDate} dueSoonDays={dueSoonDays} />
-        )}
         {effectivePriority === 1 && !task.completed && (
           <Star className="h-4 w-4 text-priority-icon/60 fill-priority-fill/60" />
         )}
@@ -184,8 +179,7 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         onTogglePrefer={() => toggleTaskPrefer(taskPath)}
         onDelete={() => attemptDeletion(taskPath)}
         onMove={() => setIsMoveDialogOpen(true)}
-        onSetDueDate={() => setShowDueDatePicker(true)}
-        hasDueDate={!!task.dueDate}
+        onCreateFocusSession={() => onCreateFocusSession?.(taskPath)}
         isCompleted={task.completed}
         isDeferred={effectivePriority === -1}
         isPreferred={effectivePriority === 1}
@@ -200,16 +194,6 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         taskName={task.name}
       />
 
-      <DueDatePicker
-        dueDate={task.dueDate}
-        onDateChange={(date) => {
-          setTaskDueDate(taskPath, date)
-          setShowDueDatePicker(false)
-        }}
-        open={showDueDatePicker}
-        onOpenChange={(open) => { if (!open) setShowDueDatePicker(false) }}
-        hideTrigger
-      />
     </>
   )
 })

@@ -1,6 +1,6 @@
 "use client"
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu"
-import { Edit, Check, X, Trash2, Move, Clock, ArrowUp, Star, StarOff, Calendar } from "lucide-react"
+import { Edit, Check, X, Trash2, Move, Clock, ArrowUp, Star, StarOff } from "lucide-react"
 import type React from "react"
 
 interface TaskContextMenuProps {
@@ -11,14 +11,13 @@ interface TaskContextMenuProps {
   onTogglePrefer: () => void
   onDelete: () => void
   onMove: () => void
-  onSetDueDate: () => void
-  hasDueDate: boolean
+  onCreateFocusSession: () => void
   isCompleted: boolean
   isDeferred: boolean
   isPreferred: boolean
 }
 
-export function TaskContextMenu({ children, onEdit, onToggleComplete, onToggleDefer, onTogglePrefer, onDelete, onMove, onSetDueDate, hasDueDate, isCompleted, isDeferred, isPreferred }: TaskContextMenuProps) {
+export function TaskContextMenu({ children, onEdit, onToggleComplete, onToggleDefer, onTogglePrefer, onDelete, onMove, onCreateFocusSession, isCompleted, isDeferred, isPreferred }: TaskContextMenuProps) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
@@ -44,9 +43,14 @@ export function TaskContextMenu({ children, onEdit, onToggleComplete, onToggleDe
           <Move className="menu-icon" />
           Move Task
         </ContextMenuItem>
-        <ContextMenuItem onClick={onSetDueDate} className="gap-2 transition-colors">
-          <Calendar className="menu-icon" />
-          {hasDueDate ? 'Change Due Date' : 'Set Due Date'}
+        <ContextMenuItem onClick={onCreateFocusSession} className="gap-2 transition-colors">
+          <span className="menu-icon flex items-center justify-center">
+            <span className="relative flex h-2 w-2">
+              <span className="focus-dot-ripple absolute inset-0 rounded-full bg-primary" />
+              <span className="relative h-2 w-2 rounded-full bg-primary/90" />
+            </span>
+          </span>
+          Focus
         </ContextMenuItem>
         <ContextMenuItem onClick={onTogglePrefer} className="gap-2 transition-colors">
           {isPreferred ? (

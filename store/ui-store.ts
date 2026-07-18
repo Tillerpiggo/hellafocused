@@ -2,26 +2,27 @@ import { create } from "zustand"
 import { useAppStore } from "./app-store"
 import { useFocusStore } from "./focus-store"
 import { findTaskAtPath, findProjectAtPath, isProject } from "@/lib/task-utils"
+import type { TaskPath } from "@/lib/task-path"
 
 interface UIDialogState {
   showTaskCompletionDialog: boolean
-  pendingTaskCompletion: string[] | null
+  pendingTaskCompletion: TaskPath | null
   showDeleteConfirmationDialog: boolean
-  pendingDeletion: string[] | null
+  pendingDeletion: TaskPath | null
   isFocusMode: boolean
-  focusStartPath: string[] | null
+  focusStartPath: TaskPath | null
 }
 
 interface UIActions {
-  attemptTaskCompletion: (taskPath: string[]) => void
+  attemptTaskCompletion: (taskPath: TaskPath) => void
   confirmTaskCompletion: () => void
   cancelTaskCompletion: () => void
   
-  attemptDeletion: (itemPath: string[]) => void
+  attemptDeletion: (itemPath: TaskPath) => void
   confirmDeletion: () => void
   cancelDeletion: () => void
 
-  setFocusMode: (isFocusMode: boolean, startPath?: string[]) => void
+  setFocusMode: (isFocusMode: boolean, startPath?: TaskPath) => void
 }
 
 export type UIState = UIDialogState & UIActions
@@ -133,4 +134,4 @@ export const useUIStore = create<UIState>((set, get) => ({
       focusStartPath: isFocusMode ? startPath : null
     })
   },
-})) 
+}))

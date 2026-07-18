@@ -13,7 +13,7 @@ interface LandingNavigationProps {
 export function LandingNavigation({ hasSession, user }: LandingNavigationProps) {
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/40 bg-background">
-      <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-6 sm:px-8">
+      <div className="flex h-16 w-full items-center justify-between px-6">
         {/* Left side - Logo */}
         <Link href="/" className="text-lg font-medium text-primary tracking-wide">
           hellafocused
@@ -29,7 +29,7 @@ export function LandingNavigation({ hasSession, user }: LandingNavigationProps) 
                 Discord
               </Link>
               <ThemeToggle />
-              <ProfileDropdown user={user} showBackToApp={true} />
+              <ProfileDropdown user={user} showBackToApp={true} stayOnPageAfterSignOut />
             </div>
           ) : (
             // Not authenticated - show Feedback, Discord, Theme toggle and Try Now buttons immediately

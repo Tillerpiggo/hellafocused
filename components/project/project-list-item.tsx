@@ -1,6 +1,6 @@
 "use client"
 import type { ProjectData } from "@/lib/types"
-import { useAppStore } from "@/store/app-store"
+import { useNavigationStore } from "@/store/navigation-store"
 import { Card, CardHeader, CardTitle } from "@/components/ui/card"
 import { ChevronRight } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -12,7 +12,7 @@ interface ProjectListItemProps {
 }
 
 export function ProjectListItem({ project, isDragging, onSelect }: ProjectListItemProps) {
-  const selectProject = useAppStore((state) => state.selectProject)
+  const selectProject = useNavigationStore((state) => state.selectProject)
 
   return (
     <Card

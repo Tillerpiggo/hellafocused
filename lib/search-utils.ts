@@ -1,9 +1,10 @@
 import { getProjectId, isPathPrefix } from "./task-utils"
 import type { ProjectData, TaskData } from "./types"
+import type { TaskPath } from "./task-path"
 
 export interface SearchResult {
   task: TaskData
-  path: string[] // Full path including project ID
+  path: TaskPath // Full path including project ID
   breadcrumb: string[] // Human-readable breadcrumb path
   projectName: string
   isInCurrentProject: boolean
@@ -16,7 +17,7 @@ export interface SearchResult {
 export function searchAllTasks(
   projects: ProjectData[],
   query: string,
-  currentPath: string[] = []
+  currentPath: TaskPath = []
 ): SearchResult[] {
   if (!query.trim()) return []
 
@@ -71,11 +72,11 @@ export function searchAllTasks(
 function searchTasksRecursively(
   tasks: TaskData[],
   searchLower: string,
-  currentPath: string[],
+  currentPath: TaskPath,
   currentBreadcrumb: string[],
   projectName: string,
   isCurrentProject: boolean,
-  userCurrentPath: string[]
+  userCurrentPath: TaskPath
 ): SearchResult[] {
   const results: SearchResult[] = []
 
@@ -183,4 +184,4 @@ export function highlightText(text: string, query: string): (string | { type: 'h
   }
   
   return parts
-} 
+}

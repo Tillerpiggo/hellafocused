@@ -1,10 +1,11 @@
+import type { TaskPath } from "./task-path"
+
 export interface TaskData {
   id: string
   name: string
   description?: string
   completed: boolean
   completionDate?: string // Store as ISO string instead of Date object
-  dueDate?: string // Store as ISO string for due date
   lastModificationDate: string // Store as ISO string, tracks last modification
   position?: number // Position for drag-and-drop ordering
   priority: number // Priority: 1 = preferred, 0 = normal, -1 = deferred
@@ -16,8 +17,8 @@ export interface TaskData {
 export interface FocusSession {
   id: string
   name: string
-  startPath: string[]
-  browsePath: string[]
+  startPath: TaskPath
+  browsePath: TaskPath
   view: 'focus' | 'browse'
   currentFocusTaskId: string | null
   completedCount: number
@@ -27,17 +28,6 @@ export interface FocusSession {
   position: number
   timerEndTime?: number | null
   timerFired?: boolean
-}
-
-export interface MultiplierBreakdown {
-  source: 'due-date-self' | 'due-date-ancestor' | 'habit'
-  label: string
-  multiplier: number
-}
-
-export interface MultiplierResult {
-  total: number
-  breakdown: MultiplierBreakdown[]
 }
 
 export interface ProjectData {

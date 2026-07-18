@@ -8,21 +8,23 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAppStore } from "@/store/app-store"
+import { useNavigationStore } from "@/store/navigation-store"
 import { getProjectId } from "@/lib/task-utils"
+import type { TaskPath } from "@/lib/task-path"
 
 interface BreadcrumbPathProps {
   projectName: string
   taskChain: TaskData[]
-  path?: string[]
-  contextPath?: string[]
-  onNavigate?: (path: string[]) => void
+  path?: TaskPath
+  contextPath?: TaskPath
+  onNavigate?: (path: TaskPath) => void
 }
 
 export function BreadcrumbPath({ projectName, taskChain, path, contextPath, onNavigate }: BreadcrumbPathProps) {
   const [isOpen, setIsOpen] = useState(false)
-  const navigateToPath = useAppStore(s => s.navigateToPath)
-  const storeCurrentPath = useAppStore(s => s.currentPath)
-  const storeNavigationContext = useAppStore(s => s.navigationContext)
+  const navigateToPath = useNavigationStore(s => s.navigateToPath)
+  const storeCurrentPath = useNavigationStore(s => s.currentPath)
+  const storeNavigationContext = useNavigationStore(s => s.navigationContext)
   const projects = useAppStore(s => s.projects)
   const currentPath = path ?? storeCurrentPath
   const navigationContext = contextPath ?? (path ? currentPath : storeNavigationContext)

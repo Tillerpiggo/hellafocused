@@ -1,22 +1,17 @@
 import { Button } from "@/components/ui/button"
 import { Check, Shuffle, X } from "lucide-react"
-import { useEffect, useState, useRef, useMemo, useCallback } from "react"
+import { useEffect, useState, useRef, useMemo } from "react"
 import { triggerConfetti } from "@/lib/confetti"
 import { FocusContextMenu } from "./focus-context-menu"
 import { TaskBreadcrumb } from "./task-breadcrumb"
 import { cn } from "@/lib/utils"
 import { useAppStore, getOrderedTaskNumberMap } from "@/store/app-store"
 import { useFocusStore, canShuffleCurrentTask } from "@/store/focus-store"
-import { getTaskParentChain, findTaskPath, findTaskAtPath, getProjectId } from "@/lib/task-utils"
+import { getTaskParentChain, findTaskAtPath } from "@/lib/task-utils"
 import { LinkifiedText } from "@/components/ui/linkified-text"
 import { EditableTitle } from "@/components/editable-title"
 import { TaskDescriptionEditor, type TaskDescriptionEditorRef } from "@/components/task/task-description-editor"
-import { DueDatePicker } from "@/components/task/due-date-picker"
-import { DueDateBadge } from "@/components/task/due-date-badge"
-import { MultiplierBadge } from "./multiplier-badge"
-import { MultiplierPreview } from "./multiplier-preview"
-import { calculateDueDateMultiplier } from "@/lib/multiplier-utils"
-import type { TaskData, MultiplierResult } from "@/lib/types"
+import type { TaskData } from "@/lib/types"
 
 interface FocusTaskViewProps {
   currentTask: TaskData | null
@@ -26,7 +21,6 @@ interface FocusTaskViewProps {
   onTogglePrefer: () => void
   showInfoOverlay?: boolean
   onShowInfoOverlay?: (show: boolean) => void
-  startPath: string[]
 }
 
 export function FocusTaskView({
@@ -37,7 +31,6 @@ export function FocusTaskView({
   onTogglePrefer,
   showInfoOverlay: externalShowInfoOverlay,
   onShowInfoOverlay,
-  startPath
 }: FocusTaskViewProps) {
   const priority = currentTask?.priority ?? 0
   const [isCompleting, setIsCompleting] = useState(false)
@@ -49,8 +42,6 @@ export function FocusTaskView({
   const [internalShowInfoOverlay, setInternalShowInfoOverlay] = useState(false)
   const [isOverlayClosing, setIsOverlayClosing] = useState(false)
   const [showDescriptionEditor, setShowDescriptionEditor] = useState(false)
-  const [showMultiplierBadge, setShowMultiplierBadge] = useState(false)
-  const [completionMultiplier, setCompletionMultiplier] = useState<MultiplierResult | null>(null)
   const descriptionEditorRef = useRef<TaskDescriptionEditorRef>(null)
   
   // Use external control if provided, otherwise use internal state
@@ -59,39 +50,23 @@ export function FocusTaskView({
   
   // Get parent chain for breadcrumb and store functions
   const canShuffle = useFocusStore(canShuffleCurrentTask)
+  const currentTaskPath = useFocusStore(state => state.currentFocusTaskPath)
+  const setCurrentFocusTask = useFocusStore(state => state.setCurrentFocusTask)
   const projects = useAppStore((state) => state.projects)
   const updateTaskName = useAppStore((state) => state.updateTaskName)
   const updateTaskDescription = useAppStore((state) => state.updateTaskDescription)
-  const setTaskDueDate = useAppStore((state) => state.setTaskDueDate)
-  const dueSoonDays = useAppStore((state) => state.dueSoonDays)
   const parentChain = currentTask ? getTaskParentChain(projects, currentTask.id) : []
 
-  const multiplierResult = useMemo(() => {
-    if (!currentTask) return { total: 1, breakdown: [] }
-    return calculateDueDateMultiplier(currentTask, projects)
-  }, [currentTask, projects])
-
   const orderedStepInfo = useMemo(() => {
-    if (!currentTask) return null
-    const projectId = getProjectId(startPath)
-    if (!projectId) return null
-    const project = projects.find(p => p.id === projectId)
-    if (!project) return null
-    const taskPathInProject = findTaskPath(project.tasks, currentTask.id)
-    if (!taskPathInProject || taskPathInProject.length < 2) return null
-    const parentPath = [projectId, ...taskPathInProject.slice(0, -1)]
+    if (!currentTask || !currentTaskPath || currentTaskPath.length < 3) return null
+    const parentPath = currentTaskPath.slice(0, -1)
     const parent = findTaskAtPath(projects, parentPath)
     if (!parent?.isOrdered) return null
     const orderMap = getOrderedTaskNumberMap(projects, parentPath)
     const orderNumber = orderMap[currentTask.id]
     if (orderNumber === undefined) return null
     return { current: orderNumber, total: parent.subtasks.length }
-  }, [currentTask, projects, startPath])
-
-  const handleDismissMultiplierBadge = useCallback(() => {
-    setShowMultiplierBadge(false)
-    setCompletionMultiplier(null)
-  }, [])
+  }, [currentTask, currentTaskPath, projects])
 
   // Update displayed task name when current task changes (but not during completion or transition)
   useEffect(() => {
@@ -117,12 +92,6 @@ export function FocusTaskView({
 
     // Trigger confetti
     triggerConfetti()
-
-    // Show multiplier badge if > x1
-    if (multiplierResult.total > 1) {
-      setCompletionMultiplier(multiplierResult)
-      setShowMultiplierBadge(true)
-    }
 
     // Complete task in backend immediately
     completeFocusTask()
@@ -170,66 +139,21 @@ export function FocusTaskView({
   }, [showInfoOverlay])
 
   const handleTitleChange = (newTitle: string) => {
-    if (!currentTask || !newTitle.trim()) return
-    
-    const projectId = getProjectId(startPath)
-    if (!projectId) return
-    
-    const project = projects.find((p) => p.id === projectId)
-    if (project) {
-      const taskPathInProject = findTaskPath(project.tasks, currentTask.id)
-      if (taskPathInProject) {
-        const fullTaskPath = [projectId, ...taskPathInProject]
-        updateTaskName(fullTaskPath, newTitle)
-        
-        // Update the local currentFocusTask to reflect the change immediately
-        useFocusStore.setState({ 
-          currentFocusTask: { ...currentTask, name: newTitle } 
-        })
-      }
-    }
+    if (!currentTask || !currentTaskPath || !newTitle.trim()) return
+
+    updateTaskName(currentTaskPath, newTitle)
+    setCurrentFocusTask({ ...currentTask, name: newTitle }, currentTaskPath)
   }
 
   const handleDescriptionSave = (newDescription: string) => {
-    if (!currentTask) return
-    
-    const projectId = getProjectId(startPath)
-    if (!projectId) return
-    
-    const project = projects.find((p) => p.id === projectId)
-    if (project) {
-      const taskPathInProject = findTaskPath(project.tasks, currentTask.id)
-      if (taskPathInProject) {
-        const fullTaskPath = [projectId, ...taskPathInProject]
-        updateTaskDescription(fullTaskPath, newDescription)
-        
-        // Update the local currentFocusTask to reflect the change immediately
-        useFocusStore.setState({ 
-          currentFocusTask: { ...currentTask, description: newDescription || undefined } 
-        })
-      }
-    }
+    if (!currentTask || !currentTaskPath) return
+
+    updateTaskDescription(currentTaskPath, newDescription)
+    setCurrentFocusTask(
+      { ...currentTask, description: newDescription || undefined },
+      currentTaskPath,
+    )
     setShowDescriptionEditor(false)
-  }
-
-  const handleDueDateChange = (date: string | undefined) => {
-    if (!currentTask) return
-
-    const projectId = getProjectId(startPath)
-    if (!projectId) return
-
-    const project = projects.find((p) => p.id === projectId)
-    if (project) {
-      const taskPathInProject = findTaskPath(project.tasks, currentTask.id)
-      if (taskPathInProject) {
-        const fullTaskPath = [projectId, ...taskPathInProject]
-        setTaskDueDate(fullTaskPath, date)
-
-        useFocusStore.setState({
-          currentFocusTask: { ...currentTask, dueDate: date || undefined }
-        })
-      }
-    }
   }
 
   const handleDescriptionCancel = () => {
@@ -244,8 +168,6 @@ export function FocusTaskView({
         onNext={handleGetNextTask}
         onToggleDefer={onToggleDefer}
         onTogglePrefer={onTogglePrefer}
-        onSetDueDate={() => setShowInfoOverlay(true)}
-        hasDueDate={!!currentTask?.dueDate}
         isDeferred={currentTask?.priority === -1}
         isPreferred={currentTask?.priority === 1}
         canShuffle={canShuffle}
@@ -291,7 +213,7 @@ export function FocusTaskView({
           
           <div className="relative max-w-4xl w-full z-10 flex flex-col items-center">
             {orderedStepInfo ? (
-              <div className={`flex flex-col items-center gap-5 ${multiplierResult.total > 1 ? 'mb-4' : 'mb-12'} ${
+              <div className={`flex flex-col items-center gap-5 mb-12 ${
                 isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"
               }`}>
                 <span className="inline-flex items-center justify-center h-14 w-14 rounded-full bg-primary/15 text-primary text-2xl font-semibold">
@@ -316,7 +238,7 @@ export function FocusTaskView({
                 key={taskKey}
                 value={displayedTaskName || currentTask?.name || ""}
                 onChange={handleTitleChange}
-                className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-center leading-relaxed break-words transition-colors duration-500 ease-out ${multiplierResult.total > 1 ? 'mb-4' : 'mb-12'} ${
+                className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-light text-center leading-relaxed break-words transition-colors duration-500 ease-out mb-12 ${
                   isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"
                 } ${
                   priority === 1
@@ -327,12 +249,6 @@ export function FocusTaskView({
                 }`}
                 placeholder="Task name"
               />
-            )}
-
-            {multiplierResult.total > 1 && (
-              <div className={`mb-8 ${isTransitioning ? "animate-slide-up-out" : "animate-slide-up-in"}`}>
-                <MultiplierPreview result={multiplierResult} />
-              </div>
             )}
 
             {/* Action buttons centered under the text */}
@@ -461,54 +377,9 @@ export function FocusTaskView({
                 )}
               </div>
               
-              {/* Due date section */}
-              <div className="mt-8 pt-6 border-t border-border/30 space-y-2">
-                <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wider">
-                  Due Date
-                </h3>
-                <div className="flex items-center gap-3">
-                  <DueDatePicker
-                    dueDate={currentTask.dueDate}
-                    onDateChange={handleDueDateChange}
-                  />
-                  {currentTask.dueDate && (
-                    <DueDateBadge dueDate={currentTask.dueDate} dueSoonDays={dueSoonDays} />
-                  )}
-                  {!currentTask.dueDate && (
-                    <span className="text-sm text-muted-foreground">No due date set</span>
-                  )}
-                </div>
-
-                {multiplierResult.total > 1 && (
-                  <div className="mt-4 pt-4 border-t border-border/20">
-                    <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
-                      Multiplier Preview
-                    </h4>
-                    <div className="space-y-1">
-                      {multiplierResult.breakdown.map((item, i) => (
-                        <div key={`${item.source}-${i}`} className="flex items-center justify-between text-sm">
-                          <span className="text-muted-foreground flex items-center gap-1.5">
-                            <span>{item.source === 'due-date-self' ? '🎯' : '📋'}</span>
-                            <span>{item.label}</span>
-                          </span>
-                          <span className="font-medium text-foreground/80">×{item.multiplier}</span>
-                        </div>
-                      ))}
-                      <div className="flex items-center justify-between text-sm pt-1 border-t border-border/20">
-                        <span className="text-muted-foreground">Potential</span>
-                        <span className="font-semibold text-multiplier">×{multiplierResult.total}</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
           </div>
         </div>
       )}
-
-      {showMultiplierBadge && completionMultiplier && (
-        <MultiplierBadge result={completionMultiplier} onDismiss={handleDismissMultiplierBadge} />
-      )}
     </>
   )
-} 
+}

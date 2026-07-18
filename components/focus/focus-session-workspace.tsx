@@ -5,11 +5,14 @@ import { FocusView } from "./focus-view"
 import { SessionBrowser } from "./session-browser"
 import { useAppStore } from "@/store/app-store"
 import { useFocusStore } from "@/store/focus-store"
+import type { TaskPath } from "@/lib/task-path"
 
 export function FocusSessionWorkspace({
   sessionId,
+  onCreateFocusSession,
 }: {
   sessionId: string
+  onCreateFocusSession: (taskPath: TaskPath) => void
 }) {
   const projects = useAppStore(state => state.projects)
   const session = useFocusStore(state => state.sessions.find(item => item.id === sessionId))
@@ -31,7 +34,7 @@ export function FocusSessionWorkspace({
 
   return (
     <div className="relative min-h-[calc(100vh-3.5rem)]">
-      <SessionBrowser sessionId={sessionId} />
+      <SessionBrowser sessionId={sessionId} onCreateFocusSession={onCreateFocusSession} />
       {session.view === 'focus' && (
         <div className="fixed inset-0 z-[100] bg-background text-foreground">
           <FocusView onExitFocus={() => setSessionView(sessionId, 'browse')} />

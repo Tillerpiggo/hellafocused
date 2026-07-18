@@ -6,6 +6,7 @@ module.exports = {
   testEnvironment: 'node',
   roots: ['<rootDir>'],
   testMatch: ['**/__tests__/**/*.ts', '**/?(*.)+(spec|test).ts'],
+  testPathIgnorePatterns: ['/node_modules/', '/\\.claude/worktrees/'],
   transform: {
     '^.+\\.ts$': 'ts-jest',
   },

@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { X, MessageSquare, Settings } from 'lucide-react'
+import { Group, Panel, Separator, useDefaultLayout } from 'react-resizable-panels'
 import { Button } from '@/components/ui/button'
 import { FeedbackPopup } from '@/components/ui/feedback-popup'
 import { SidebarTabs, type TabOption } from './sidebar-tabs'
@@ -19,6 +20,25 @@ interface SidebarLayoutProps {
   setIsSidebarOpen?: (open: boolean) => void
 }
 
+const sidebarLayoutStorage = {
+  getItem(key: string) {
+    if (typeof window === 'undefined') return null
+    try {
+      return window.localStorage.getItem(key)
+    } catch {
+      return null
+    }
+  },
+  setItem(key: string, value: string) {
+    if (typeof window === 'undefined') return
+    try {
+      window.localStorage.setItem(key, value)
+    } catch {
+      // Keep resizing functional when storage is unavailable.
+    }
+  },
+}
+
 export function SidebarLayout({ 
   tabs, 
   activeTab, 
@@ -32,6 +52,12 @@ export function SidebarLayout({
   const [isMobile, setIsMobile] = useState(false)
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false)
   const feedbackButtonRef = useRef<HTMLButtonElement>(null)
+  const { defaultLayout, onLayoutChanged } = useDefaultLayout({
+    id: 'hellafocused-app-shell',
+    panelIds: ['sidebar', 'content'],
+    storage: sidebarLayoutStorage,
+    onlySaveAfterUserInteractions: true,
+  })
 
   // Use props if provided, otherwise use local state
   const isSidebarOpen = propIsSidebarOpen ?? localIsSidebarOpen
@@ -78,47 +104,77 @@ export function SidebarLayout({
         />
       )}
 
-      {/* Desktop Sidebar */}
+      {/* Desktop resizable app shell */}
       {!isMobile && (
-        <aside
-          id="desktop-sidebar"
-          className={cn(
-            "glass-morphism w-64 border-r border-white/20 overflow-hidden",
-            "fixed top-14 left-0 bottom-0 z-40",
-            "flex flex-col"
-          )}
+        <Group
+          id="hellafocused-app-shell"
+          orientation="horizontal"
+          defaultLayout={defaultLayout}
+          onLayoutChanged={onLayoutChanged}
+          resizeTargetMinimumSize={{ fine: 12, coarse: 24 }}
+          className="h-screen w-full"
         >
-          <div className="min-h-0 flex-1 overflow-y-auto pt-2 px-2">
-            <SidebarTabs
-              tabs={tabs}
-              activeTab={activeTab}
-              onTabChange={onTabChange}
-            />
-            <FocusSessionTabs
-              activeTab={activeTab}
-              onTabChange={onTabChange}
-              onNavigate={() => onTabChange('tasks')}
-            />
-          </div>
-          <div className="mt-auto pb-4 px-2">
-            <button
-              onClick={() => onTabChange('settings')}
+          <Panel
+            id="sidebar"
+            defaultSize={256}
+            minSize={208}
+            maxSize={400}
+            groupResizeBehavior="preserve-pixel-size"
+            className="h-full min-w-0"
+          >
+            <aside
+              id="desktop-sidebar"
               className={cn(
-                "h-12 text-left text-sm font-medium rounded-lg transition-all duration-200 ease-out overflow-hidden",
-                "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
-                "flex w-full items-center pl-4 pr-4",
-                activeTab === 'settings'
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                "glass-morphism mt-14 h-[calc(100%-3.5rem)] overflow-hidden border-r border-white/20",
+                "flex flex-col"
               )}
             >
-              <Settings className="h-4 w-4 shrink-0 mr-3" />
-              <span className="whitespace-nowrap">
-                Settings
-              </span>
-            </button>
-          </div>
-        </aside>
+              <div className="min-h-0 flex-1 overflow-y-auto px-2 pt-2">
+                <SidebarTabs
+                  tabs={tabs}
+                  activeTab={activeTab}
+                  onTabChange={onTabChange}
+                />
+                <FocusSessionTabs
+                  activeTab={activeTab}
+                  onTabChange={onTabChange}
+                />
+              </div>
+              <div className="mt-auto px-2 pb-4">
+                <button
+                  onClick={() => onTabChange('settings')}
+                  className={cn(
+                    "h-12 overflow-hidden rounded-lg text-left text-sm font-medium transition-all duration-200 ease-out",
+                    "focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring",
+                    "flex w-full items-center px-4",
+                    activeTab === 'settings'
+                      ? "bg-primary text-primary-foreground shadow-sm"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                  )}
+                >
+                  <Settings className="mr-3 h-4 w-4 shrink-0" />
+                  <span className="whitespace-nowrap">Settings</span>
+                </button>
+              </div>
+            </aside>
+          </Panel>
+
+          <Separator
+            id="sidebar-resize-handle"
+            aria-label="Resize sidebar"
+            className={cn(
+              "relative z-40 mt-14 h-[calc(100%-3.5rem)] w-px outline-none",
+              "bg-border/50 transition-colors duration-200",
+              "data-[separator=hover]:bg-primary/30 data-[separator=active]:bg-primary/60 data-[separator=focus]:bg-primary/40",
+            )}
+          />
+
+          <Panel id="content" minSize={320} className="h-full min-w-0">
+            <main className="h-full min-w-0 overflow-y-auto pt-14">
+              {children}
+            </main>
+          </Panel>
+        </Group>
       )}
 
       {/* Mobile Sidebar */}
@@ -161,10 +217,6 @@ export function SidebarLayout({
               activeTab={activeTab}
               onTabChange={(value) => {
                 onTabChange(value)
-                setIsSidebarOpen(false)
-              }}
-              onNavigate={() => {
-                onTabChange('tasks')
                 setIsSidebarOpen(false)
               }}
             />
@@ -224,17 +276,12 @@ export function SidebarLayout({
         buttonRef={feedbackButtonRef}
       />
 
-      {/* Main content */}
-      <main className={cn(
-        "flex-1 min-w-0 transition-all duration-200 ease-out overflow-y-auto",
-        // Desktop: account for fixed top bar and sidebar
-        !isMobile && "pt-14",
-        !isMobile && "ml-64",
-        // Mobile: account for fixed single-tier top bar (h-14)
-        isMobile && "pt-14"
-      )}>
-        {children}
-      </main>
+      {/* Mobile content remains independent from the drawer. */}
+      {isMobile && (
+        <main className="min-w-0 flex-1 overflow-y-auto pt-14">
+          {children}
+        </main>
+      )}
     </div>
   )
 }

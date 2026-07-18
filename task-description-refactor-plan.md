@@ -163,7 +163,7 @@ import { PageHeader } from "@/components/page/page-header"
 import { TaskOptionsMenu } from "./task-options-menu"
 import { TaskDescriptionField } from "./task-description-field"  // NEW IMPORT
 import { Button } from "@/components/ui/button"
-import { Check, X, Search, Calendar } from "lucide-react"  // REMOVED Edit2
+import { Check, X, Search } from "lucide-react"  // REMOVED Edit2
 import { forwardRef } from "react"  // REMOVED useState, useRef
 // ... rest of imports
 
@@ -174,10 +174,6 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
   
   const handleSearchClick = () => {
     console.log("Search subtasks - coming soon")
-  }
-
-  const handleDueDateClick = () => {
-    console.log("Set due date - coming soon")
   }
 
   // REMOVED: handleDetailsClick, handleDescriptionSave, handleDescriptionCancel
@@ -194,15 +190,6 @@ export const TaskPageHeader = forwardRef<EditableTitleRef, TaskPageHeaderProps>(
         <Search className="h-4 w-4" />
       </Button>
       {/* REMOVED: Edit2 button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleDueDateClick}
-        className="h-8 w-8 rounded-full opacity-60 hover:opacity-100 transition-opacity"
-        title="Set due date"
-      >
-        <Calendar className="h-4 w-4" />
-      </Button>
     </div>
   )
 

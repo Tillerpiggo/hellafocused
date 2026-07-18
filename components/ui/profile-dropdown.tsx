@@ -12,9 +12,15 @@ interface ProfileDropdownProps {
   user: SupabaseUser
   showBackToApp?: boolean
   showFocusButton?: boolean
+  stayOnPageAfterSignOut?: boolean
 }
 
-export function ProfileDropdown({ user, showBackToApp = false, showFocusButton = false }: ProfileDropdownProps) {
+export function ProfileDropdown({
+  user,
+  showBackToApp = false,
+  showFocusButton = false,
+  stayOnPageAfterSignOut = false,
+}: ProfileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false)
   const { isFocusMode, setFocusMode } = useUIStore()
   const router = useRouter()
@@ -25,9 +31,10 @@ export function ProfileDropdown({ user, showBackToApp = false, showFocusButton =
       syncEngine.clearAllLocalState()
       
       await supabase.auth.signOut()
-      
-      // Redirect to /app to keep users in the app after logout
-      window.location.href = `${getBaseUrl()}/app`
+
+      if (!stayOnPageAfterSignOut) {
+        window.location.href = `${getBaseUrl()}/app`
+      }
     } catch (error) {
       console.error('Error signing out:', error)
     }
@@ -104,4 +111,4 @@ export function ProfileDropdown({ user, showBackToApp = false, showFocusButton =
       </DropdownMenuContent>
     </DropdownMenu>
   )
-} 
+}
