@@ -51,7 +51,7 @@ export default function HomePage() {
   const searchQuery = useAppStore(s => s.searchQuery)
   const setSearchQuery = useAppStore(s => s.setSearchQuery)
 
-  const { isInitialized } = useSyncStore()
+  const { isInitialized, syncLoading } = useSyncStore()
 
   const uiStore = useUIStore()
   const {
@@ -71,7 +71,6 @@ export default function HomePage() {
   
   // Tab state for sidebar navigation
   const [activeTab, setActiveTab] = useState('tasks')
-  const [focusStoreHydrated, setFocusStoreHydrated] = useState(false)
   const [activeTabRestored, setActiveTabRestored] = useState(false)
   const sessions = useFocusStore(state => state.sessions)
   const createSession = useFocusStore(state => state.createSession)
@@ -87,8 +86,8 @@ export default function HomePage() {
     { value: 'progress', label: 'Progress', icon: TrendingUp },
   ]
 
-  // Avoid flashing the Tasks tab before authentication and tab restoration complete.
-  const shouldShowLoading = !isInitialized || !activeTabRestored
+  // Show loading until authentication is complete.
+  const shouldShowLoading = !isInitialized
 
   // Clear search query when navigating
   useEffect(() => {
@@ -103,22 +102,14 @@ export default function HomePage() {
   }, [showSearch])
 
   useEffect(() => {
-    const unsubscribe = useFocusStore.persist.onFinishHydration(() => {
-      setFocusStoreHydrated(true)
-    })
-    setFocusStoreHydrated(useFocusStore.persist.hasHydrated())
-    return unsubscribe
-  }, [])
-
-  useEffect(() => {
-    if (!focusStoreHydrated || activeTabRestored) return
+    if (!isInitialized || syncLoading || activeTabRestored) return
 
     const focusId = new URLSearchParams(window.location.search).get('focus')
     if (focusId && sessions.some(session => session.id === focusId)) {
       setActiveTab(`focus:${focusId}`)
     }
     setActiveTabRestored(true)
-  }, [activeTabRestored, focusStoreHydrated, sessions])
+  }, [activeTabRestored, isInitialized, sessions, syncLoading])
 
   useEffect(() => {
     if (!activeTabRestored) return
