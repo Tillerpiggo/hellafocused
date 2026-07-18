@@ -4,10 +4,11 @@ export function FocusButton({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="fixed bottom-6 right-6 z-40 flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-medium text-foreground glass-dropdown shadow-lg transition-colors hover:bg-foreground/5"
+      className="group fixed bottom-6 right-6 z-40 flex items-center gap-2 overflow-hidden rounded-full px-4 py-2.5 text-sm font-medium text-foreground glass-dropdown shadow-lg transition-colors hover:text-primary"
     >
-      <Target className="h-4 w-4" />
-      Focus
+      <span className="pointer-events-none absolute inset-0 bg-primary/0 transition-colors duration-200 group-hover:bg-primary/10" />
+      <Target className="relative h-4 w-4" />
+      <span className="relative">Focus</span>
     </button>
   )
 }
