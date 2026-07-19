@@ -539,6 +539,21 @@ describe('Focus Store - Session Reordering', () => {
     expect(state.activeSessionId).toBe('first')
   })
 
+  test('opens a newly created focus session in the docked view by default', () => {
+    const task = createTask('task1', 'Task 1', 0)
+    const projects = createTestProject([task])
+
+    const sessionId = useFocusStore.getState().createSession(
+      projects,
+      ['project1', 'task1'],
+    )
+
+    expect(useFocusStore.getState().sessions.find(session => session.id === sessionId)).toMatchObject({
+      startPath: ['project1', 'task1'],
+      view: 'docked',
+    })
+  })
+
   test('creates a browse session at the bottom and makes it active', () => {
     const task = createTask('task1', 'Task 1', 0)
     const projects = createTestProject([task])
@@ -675,6 +690,28 @@ describe('Focus Store - Session Zoom', () => {
     useFocusStore.getState().zoomSessionOut('session1')
     expect(useFocusStore.getState().sessions[0]).toBe(browseSession)
     expect(trackFocusSessionUpdated).toHaveBeenCalledTimes(3)
+  })
+
+  test('opens a scope selected while browsing in the docked view', () => {
+    const task = createTask('task1', 'Task 1', 0)
+    const projects = createTestProject([task])
+    useFocusStore.setState({
+      sessions: [{
+        ...createFocusSession('session1', 0, 1),
+        startPath: [],
+        browsePath: [],
+        view: 'browse',
+      }],
+      activeSessionId: 'session1',
+    })
+
+    useFocusStore.getState().setSessionScope('session1', projects, ['project1', 'task1'])
+
+    expect(useFocusStore.getState().sessions[0]).toMatchObject({
+      startPath: ['project1', 'task1'],
+      browsePath: ['project1', 'task1'],
+      view: 'docked',
+    })
   })
 })
 

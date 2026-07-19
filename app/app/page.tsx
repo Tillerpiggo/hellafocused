@@ -100,7 +100,7 @@ export default function HomePage() {
   const sessions = useFocusStore(state => state.sessions)
   const createSession = useFocusStore(state => state.createSession)
 
-  const createAndOpenFocusSession = (startPath: TaskPath, view: 'focus' | 'browse' = 'focus') => {
+  const createAndOpenFocusSession = (startPath: TaskPath, view: 'focus' | 'docked' | 'browse' = 'docked') => {
     const sessionId = createSession(projects, startPath, view)
     setActiveTab(`focus:${sessionId}`)
   }
@@ -289,7 +289,7 @@ export default function HomePage() {
       return (
         <FocusSessionWorkspace
           sessionId={activeTab.slice(6)}
-          onCreateFocusSession={taskPath => createAndOpenFocusSession(taskPath, 'browse')}
+          onCreateFocusSession={taskPath => createAndOpenFocusSession(taskPath)}
         />
       )
     }
@@ -410,7 +410,7 @@ export default function HomePage() {
               currentPath={currentPath}
               parentIsOrdered={currentTask?.isOrdered}
               orderedNumberMap={orderedNumberMap}
-              onCreateFocusSession={taskPath => createAndOpenFocusSession(taskPath, 'browse')}
+              onCreateFocusSession={taskPath => createAndOpenFocusSession(taskPath)}
             />
           </div>
         )}

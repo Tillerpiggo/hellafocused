@@ -9,7 +9,7 @@ export function DockedSessionView({ sessionId }: { sessionId: string }) {
   const setSessionView = useFocusStore(state => state.setSessionView)
   const zoomSessionOut = useFocusStore(state => state.zoomSessionOut)
 
-  const continueFocus = () => setSessionView(sessionId, "focus")
+  const enterSuperfocus = () => setSessionView(sessionId, "focus")
 
   return (
     <div
@@ -22,9 +22,9 @@ export function DockedSessionView({ sessionId }: { sessionId: string }) {
       />
       {currentFocusTask && (
         <FocusButton
-          onClick={continueFocus}
-          label="Continue"
-          title={`Continue ${currentFocusTask.name}`}
+          onClick={enterSuperfocus}
+          label="Superfocus"
+          title={`Superfocus on ${currentFocusTask.name}`}
         />
       )}
     </div>

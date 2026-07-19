@@ -16,6 +16,7 @@ interface FocusHeaderButtonsProps {
   isPending?: boolean
   onMarkPending?: (remindInMs: number | null) => void
   onResolvePending?: () => void
+  exitLabel?: string
 }
 
 export function FocusHeaderButtons({
@@ -29,6 +30,7 @@ export function FocusHeaderButtons({
   isPending,
   onMarkPending,
   onResolvePending,
+  exitLabel = "Exit full screen",
 }: FocusHeaderButtonsProps) {
   const [justBecamePreferred, setJustBecamePreferred] = useState(false)
   const [justBecameUnpreferred, setJustBecameUnpreferred] = useState(false)
@@ -73,9 +75,10 @@ export function FocusHeaderButtons({
         size="icon"
         className="absolute top-6 left-6 h-10 w-10 rounded-full opacity-50 hover:opacity-100 transition-opacity z-10"
         onClick={onExitFocus}
+        title={exitLabel}
       >
         <Minimize2 className="h-5 w-5" />
-        <span className="sr-only">Exit full screen</span>
+        <span className="sr-only">{exitLabel}</span>
       </Button>
 
       {/* Buttons in top right */}

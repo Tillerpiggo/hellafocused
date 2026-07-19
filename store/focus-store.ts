@@ -136,7 +136,7 @@ export const useFocusStore = create<FocusState>()(
       activeSessionId: null,
       notepadOpen: false,
 
-      createSession: (projects, startPath, initialView = 'focus') => {
+      createSession: (projects, startPath, initialView = 'docked') => {
         const { sessions } = get()
         const now = Date.now()
         const newSession: FocusSession = {
@@ -408,7 +408,7 @@ export const useFocusStore = create<FocusState>()(
           name: session.name === "Focus session" ? getSessionName(projects, path) : session.name,
           startPath: [...path],
           browsePath: [...path],
-          view: 'focus',
+          view: 'docked',
           currentFocusTaskId: null,
         }))
         if (get().activeSessionId === sessionId) {

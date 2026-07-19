@@ -225,6 +225,7 @@ export function FocusView({
           isPending={isPending}
           onMarkPending={handleMarkPending}
           onResolvePending={handleResolvePending}
+          exitLabel={presentation === "docked" ? "Browse session" : "Exit full screen"}
         />
 
         {activeSessionId && <PendingBanner sessionId={activeSessionId} />}
