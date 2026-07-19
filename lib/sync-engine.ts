@@ -1,10 +1,11 @@
-import { supabase, type DatabaseProject, type DatabaseTask, type DatabaseFocusSession } from './supabase'
+import { supabase, type DatabaseProject, type DatabaseTask, type DatabaseFocusSession, type DatabaseScrap } from './supabase'
 import { useAppStore } from '@/store/app-store'
 import { useNavigationStore } from '@/store/navigation-store'
 import { useFocusStore } from '@/store/focus-store'
+import { useScrapsStore } from '@/store/scraps-store'
 import { useSyncStore } from '@/store/sync-store'
 import { mergeManager } from './merge-manager'
-import type { ProjectData, TaskData, FocusSession } from './types'
+import type { ProjectData, TaskData, FocusSession, ScrapData } from './types'
 import type { RealtimePostgresChangesPayload, User } from '@supabase/supabase-js'
 import { findTaskAtPath, findProjectAtPath, isProjectList, isProject } from './task-utils'
 import type { SyncAction } from './sync-types'
@@ -194,6 +195,8 @@ class SyncEngine {
             await this.createTask(change.data as TaskData, change.projectId!, change.parentId)
           } else if (change.entityType === 'focus_session') {
             await this.upsertFocusSession(change.data as FocusSession)
+          } else if (change.entityType === 'scrap') {
+            await this.upsertScrap(change.data as ScrapData)
           }
           break
         case 'update':
@@ -203,6 +206,8 @@ class SyncEngine {
             await this.updateTask(change.entityId, change.data as TaskData, change.projectId, change.parentId)
           } else if (change.entityType === 'focus_session') {
             await this.updateFocusSession(change.data as FocusSession, change.focusSessionFields)
+          } else if (change.entityType === 'scrap') {
+            await this.upsertScrap(change.data as ScrapData)
           }
           break
         case 'delete':
@@ -212,6 +217,8 @@ class SyncEngine {
             await this.deleteTask(change.entityId)
           } else if (change.entityType === 'focus_session') {
             await this.deleteFocusSession(change.entityId)
+          } else if (change.entityType === 'scrap') {
+            await this.deleteScrap(change.entityId)
           }
           break
       }
@@ -626,15 +633,80 @@ class SyncEngine {
     useFocusStore.setState({ sessions: merged })
   }
 
+  private async fetchAllScraps(userId: string): Promise<DatabaseScrap[]> {
+    const { data, error } = await supabase
+      .from('scraps')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at')
+
+    if (error) throw new Error(`Failed to fetch scraps: ${formatSupabaseError(error)}`)
+    return (data || []) as DatabaseScrap[]
+  }
+
+  private async mergeScraps(cloudScraps: DatabaseScrap[]) {
+    const localScraps = useScrapsStore.getState().scraps
+    const pending = new Set(
+      Object.values(useSyncStore.getState().pendingChanges)
+        .filter(change => !change.synced && change.entityType === 'scrap')
+        .map(change => change.entityId)
+    )
+    const cloudById = new Map(cloudScraps.map(scrap => [scrap.id, scrap]))
+    const localById = new Map(localScraps.map(scrap => [scrap.id, scrap]))
+
+    // Preserve the local queue order (skip rotates it); cloud only contributes
+    // content updates, deletions, and scraps captured on other devices.
+    const merged: ScrapData[] = []
+    for (const local of localScraps) {
+      const cloud = cloudById.get(local.id)
+      if (!cloud) {
+        merged.push(local)
+        await this.upsertScrap(local)
+      } else if (cloud.is_deleted) {
+        if (pending.has(local.id)) {
+          merged.push(local)
+        } else if (local.updatedAt > cloud.updated_at) {
+          merged.push(local)
+          await this.upsertScrap(local)
+        }
+      } else if (pending.has(local.id) || local.updatedAt >= cloud.updated_at) {
+        merged.push(local)
+      } else {
+        merged.push({
+          id: cloud.id,
+          name: cloud.name,
+          createdAt: cloud.created_at,
+          updatedAt: cloud.updated_at,
+        })
+      }
+    }
+
+    for (const cloud of cloudScraps) {
+      if (cloud.is_deleted || localById.has(cloud.id)) continue
+      merged.push({
+        id: cloud.id,
+        name: cloud.name,
+        createdAt: cloud.created_at,
+        updatedAt: cloud.updated_at,
+      })
+    }
+
+    useScrapsStore.setState({ scraps: merged })
+  }
+
   async mergeWithCloud() {
     try {
       const userId = await this.getCurrentUserId()
 
-      const [cloudProjects, cloudTasks, cloudFocusSessions] = await Promise.all([
+      const [cloudProjects, cloudTasks, cloudFocusSessions, cloudScraps] = await Promise.all([
         this.fetchAllProjects(userId),
         this.fetchAllTasks(userId),
         this.fetchAllFocusSessions(userId).catch(error => {
           console.warn('Focus-session sync unavailable until its database migration is applied:', error)
+          return null
+        }),
+        this.fetchAllScraps(userId).catch(error => {
+          console.warn('Scrap sync unavailable until its database migration is applied:', error)
           return null
         }),
       ])
@@ -642,6 +714,7 @@ class SyncEngine {
       if (cloudProjects && cloudTasks) {
         await mergeManager.mergeCloudWithLocal(cloudProjects, cloudTasks)
         if (cloudFocusSessions) await this.mergeFocusSessions(cloudFocusSessions)
+        if (cloudScraps) await this.mergeScraps(cloudScraps)
         this.validateAndFixCurrentPath()
         useSyncStore.getState().updateLastSyncedAt()
       }
@@ -768,8 +841,27 @@ class SyncEngine {
         )
         .subscribe()
 
+      const scrapsSubscription = supabase
+        .channel('scraps-changes')
+        .on('postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'scraps',
+            filter: `user_id=eq.${userId}`
+          },
+          (payload: RealtimePostgresChangesPayload<DatabaseScrap>) => {
+            const newInstanceId = payload.new && 'device_id' in payload.new ? payload.new.device_id : null
+            const oldInstanceId = payload.old && 'device_id' in payload.old ? payload.old.device_id : null
+            if (newInstanceId !== this.instanceId && oldInstanceId !== this.instanceId) {
+              this.debouncedMergeWithCloud()
+            }
+          }
+        )
+        .subscribe()
+
       // Store subscriptions for cleanup
-      this.realtimeSubscriptions = [projectsSubscription, tasksSubscription, focusSessionsSubscription]
+      this.realtimeSubscriptions = [projectsSubscription, tasksSubscription, focusSessionsSubscription, scrapsSubscription]
       
       console.log('🔄 Real-time sync subscriptions established for instance:', this.instanceId)
     }).catch(error => {
@@ -996,6 +1088,36 @@ class SyncEngine {
     if (error) throw new Error(`Failed to delete focus session: ${formatSupabaseError(error)}`)
   }
 
+  private async upsertScrap(scrap: ScrapData) {
+    const userId = await this.getCurrentUserId()
+    const { error } = await supabase.from('scraps').upsert({
+      id: scrap.id,
+      user_id: userId,
+      name: scrap.name,
+      created_at: scrap.createdAt,
+      updated_at: scrap.updatedAt,
+      device_id: this.instanceId,
+      is_deleted: false,
+    }, { onConflict: 'id' })
+
+    if (error) throw new Error(`Failed to sync scrap: ${formatSupabaseError(error)}`)
+  }
+
+  private async deleteScrap(scrapId: string) {
+    const userId = await this.getCurrentUserId()
+    const { error } = await supabase
+      .from('scraps')
+      .update({
+        is_deleted: true,
+        updated_at: new Date().toISOString(),
+        device_id: this.instanceId,
+      })
+      .eq('id', scrapId)
+      .eq('user_id', userId)
+
+    if (error) throw new Error(`Failed to delete scrap: ${formatSupabaseError(error)}`)
+  }
+
 
 
   cleanup() {
@@ -1108,6 +1230,7 @@ class SyncEngine {
       // Clear app store data
       useAppStore.getState().clearLocalState()
       useFocusStore.setState({ sessions: [], activeSessionId: null })
+      useScrapsStore.setState({ scraps: [] })
       
       // Clear sync store data but preserve pending changes
       useSyncStore.getState().clearSyncState()

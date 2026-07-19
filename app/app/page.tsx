@@ -18,13 +18,15 @@ import { useNavigationStore } from "@/store/navigation-store"
 import { useSyncStore } from "@/store/sync-store"
 import { useUIStore } from "@/store/ui-store"
 import { useFocusStore } from "@/store/focus-store"
-import { CheckSquare, TrendingUp } from "lucide-react"
+import { CheckSquare, TrendingUp, FolderInput } from "lucide-react"
 import { AddTaskForm } from "@/components/task/add-task-form"
 import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
 import { TasksView } from "@/components/tabs/tasks-view"
 import { ProgressView } from "@/components/tabs/progress-view"
 import { SettingsView } from "@/components/tabs/settings-view"
+import { SortView } from "@/components/tabs/sort-view"
+import { useScrapsStore } from "@/store/scraps-store"
 import { type EditableTitleRef } from "@/components/editable-title"
 import { useRef, useMemo, useState, useEffect } from "react"
 import { SidebarLayout } from "@/components/sidebar/sidebar-layout"
@@ -44,6 +46,7 @@ function getInitialActiveTab() {
     const cachedTab = window.localStorage.getItem(ACTIVE_TAB_STORAGE_KEY)
     if (
       cachedTab === 'tasks' ||
+      cachedTab === 'sort' ||
       cachedTab === 'progress' ||
       cachedTab === 'settings' ||
       (cachedTab?.startsWith('focus:') && cachedTab.length > 6)
@@ -110,9 +113,16 @@ export default function HomePage() {
   
   // Search state
   const [showSearch, setShowSearch] = useState(false)
-  
+
+  const scrapCount = useScrapsStore(s => s.scraps.length)
+
+  // The Sort tab appears only while there's sorting to do; it stays visible
+  // while active so emptying the queue doesn't yank the view out from under you.
   const tabs = [
     { value: 'tasks', label: 'Tasks', icon: CheckSquare },
+    ...(scrapCount > 0 || activeTab === 'sort'
+      ? [{ value: 'sort', label: 'Sort', icon: FolderInput, badge: scrapCount }]
+      : []),
     { value: 'progress', label: 'Progress', icon: TrendingUp },
   ]
 
@@ -294,6 +304,10 @@ export default function HomePage() {
       )
     }
 
+    if (activeTab === 'sort') {
+      return <SortView onDone={() => setActiveTab('tasks')} />
+    }
+
     if (activeTab === 'progress') {
       return <ProgressView projects={projects} />
     }
@@ -425,9 +439,10 @@ export default function HomePage() {
   return (
     <div className="h-screen bg-background overflow-hidden">
       {/* Top Bar */}
-      <TopBar 
+      <TopBar
         onMenuToggle={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
         isMenuOpen={isMobileMenuOpen}
+        onOpenSort={() => setActiveTab('sort')}
       />
       
       <SidebarLayout
