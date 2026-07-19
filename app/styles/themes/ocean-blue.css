@@ -8,19 +8,19 @@
   --card-foreground: 222 84% 5%;
   --popover: 210 40% 96%;
   --popover-foreground: 222 84% 5%;
-  --primary: 217 91% 60%;
+  --primary: 219 88% 55%;
   --primary-foreground: 210 40% 98%;
   --secondary: 210 40% 93%;
   --secondary-foreground: 222 47% 11%;
   --muted: 210 40% 91%;
-  --muted-foreground: 215 16% 47%;
+  --muted-foreground: 215 18% 44%;
   --accent: 210 40% 89%;
   --accent-foreground: 222 47% 11%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 210 40% 98%;
   --border: 214 32% 87%;
   --input: 214 32% 87%;
-  --ring: 217 91% 60%;
+  --ring: 219 88% 55%;
   
   /* Semantic colors */
   --color-prefer: 38 92% 50%;        /* amber - kept consistent */
@@ -41,10 +41,10 @@
   --glass-card: rgba(255, 255, 255, 0.92);
   
   /* Focus mode gradients */
-  --focus-gradient-from: 217 91% 60%;  /* blue */
+  --focus-gradient-from: 219 88% 55%;  /* blue */
   --focus-gradient-to: 199 89% 48%;    /* cyan */
   --focus-prefer-from: 38 92% 50%;     /* amber */
-  --focus-prefer-to: 217 91% 60%;      /* blue */
+  --focus-prefer-to: 219 88% 55%;      /* blue */
   
   /* Chart colors - ocean palette */
   --chart-1: 221 83% 53%;  /* indigo */
@@ -85,20 +85,20 @@
   --color-priority-hover-bg: 48 96% 89%;  /* amber-100 */
 
   /* Focus mode actions - ocean-blue specific */
-  --color-focus-action: 217 91% 60%;      /* blue-500 */
+  --color-focus-action: 219 88% 55%;      /* blue-500 */
   --color-focus-action-hover: 217 91% 50%;
   
   /* Progress chart colors (diverse colors for ocean theme) */
-  --progress-chart-1: 217 91% 60%;        /* blue */
+  --progress-chart-1: 219 88% 55%;        /* blue */
   --progress-chart-2: 199 89% 48%;        /* cyan */
   --progress-chart-3: 174 72% 56%;        /* teal */
   --progress-chart-4: 142 71% 45%;        /* green */
   --progress-chart-5: 38 92% 50%;         /* amber */
   --progress-gradient-from: 199 89% 48%;  /* cyan-500 */
-  --progress-gradient-to: 217 91% 60%;    /* blue-500 */
+  --progress-gradient-to: 219 88% 55%;    /* blue-500 */
   --progress-stroke: 214 14% 34%;         /* gray-700 */
   --progress-grid: 210 16% 93%;           /* gray-100 */
-  --progress-badge-from: 217 91% 60%;     /* blue-500 */
+  --progress-badge-from: 219 88% 55%;     /* blue-500 */
   --progress-badge-to: 221 83% 53%;       /* blue-600 */
   --progress-badge-text: 0 0% 100%;
   --progress-badge-soft-from: 214 100% 97%;  /* blue-50 */
@@ -111,7 +111,7 @@
   --landing-success-bg: 138 76% 97%;      /* green-50 */
   --landing-error: 0 84% 60%;             /* red-500 */
   --landing-error-bg: 0 86% 97%;          /* red-50 */
-  --landing-info: 217 91% 60%;            /* blue-500 */
+  --landing-info: 219 88% 55%;            /* blue-500 */
   --landing-info-bg: 214 100% 97%;        /* blue-50 */
   --landing-warning: 38 92% 50%;          /* amber-500 */
   --landing-warning-bg: 48 100% 96%;      /* amber-50 */
@@ -139,21 +139,21 @@
   --task-priority-hover-to: 213 97% 91%;  /* blue-200 */
   
   /* Current task highlight (breadcrumb) - ocean blue */
-  --current-task-from: 217 91% 60%;       /* blue-500 */
+  --current-task-from: 219 88% 55%;       /* blue-500 */
   --current-task-to: 199 89% 48%;         /* cyan-500 */
   --current-task-border: 213 97% 91%;     /* blue-200 */
   --current-task-text: 215 25% 27%;       /* blue-900 */
-  --current-task-shadow: 217 91% 60%;     /* blue-500 */
+  --current-task-shadow: 219 88% 55%;     /* blue-500 */
   
   /* Link colors - ocean blue */
-  --link-color: 217 91% 60%;              /* blue-500 */
+  --link-color: 221 83% 48%;              /* blue-500 */
   --link-hover: 221 83% 53%;              /* blue-600 */
   --link-decoration: 214 95% 77%;         /* blue-300 */
 
   /* Text selection & caret */
   --selection: 213 94% 87%;
   --selection-foreground: 222 47% 13%;
-  --caret: 217 91% 60%;                   /* matches primary */
+  --caret: 219 88% 55%;                   /* matches primary */
 }
 
 /* Ocean Blue - Dark mode */
@@ -164,7 +164,7 @@
   --card-foreground: 210 40% 98%;
   --popover: 222 70% 8%;
   --popover-foreground: 210 40% 98%;
-  --primary: 217 91% 60%;
+  --primary: 217 88% 63%;
   --primary-foreground: 222 47% 11%;
   --secondary: 217 33% 18%;
   --secondary-foreground: 210 40% 98%;
@@ -176,7 +176,7 @@
   --destructive-foreground: 210 40% 98%;
   --border: 217 33% 18%;
   --input: 217 33% 18%;
-  --ring: 217 91% 60%;
+  --ring: 217 88% 63%;
   
   /* Semantic colors - dark mode */
   --color-prefer: 38 92% 50%;
@@ -197,10 +197,10 @@
   --glass-card: rgba(20, 30, 45, 0.75);
   
   /* Focus mode gradients - dark */
-  --focus-gradient-from: 217 91% 60%;
+  --focus-gradient-from: 217 88% 63%;
   --focus-gradient-to: 199 89% 58%;
   --focus-prefer-from: 38 92% 45%;
-  --focus-prefer-to: 217 91% 60%;
+  --focus-prefer-to: 217 88% 63%;
   
   /* Chart colors - dark mode ocean */
   --chart-1: 220 70% 50%;
@@ -287,11 +287,11 @@
   --task-priority-hover-to: 220 65% 25%;  /* brighter blue */
   
   /* Current task highlight (breadcrumb) - ocean blue dark */
-  --current-task-from: 217 91% 60%;       /* blue-500 (keep bright) */
+  --current-task-from: 217 88% 63%;       /* blue-500 (keep bright) */
   --current-task-to: 199 89% 48%;         /* cyan-500 (keep bright) */
   --current-task-border: 221 83% 14%;     /* blue-800 */
   --current-task-text: 214 95% 77%;       /* blue-300 */
-  --current-task-shadow: 217 91% 60%;     /* blue-500 */
+  --current-task-shadow: 217 88% 63%;     /* blue-500 */
   
   /* Link colors - ocean blue dark */
   --link-color: 214 95% 77%;              /* blue-300 */
@@ -301,5 +301,5 @@
   /* Text selection & caret - dark */
   --selection: 217 60% 34%;
   --selection-foreground: 210 40% 98%;
-  --caret: 217 91% 60%;                   /* matches primary */
+  --caret: 217 88% 63%;                   /* matches primary */
 }

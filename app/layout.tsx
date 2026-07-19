@@ -5,13 +5,9 @@ import "./globals.css"
 import "./styles/themes/base.css"
 import "./styles/themes/pink-zen.css"
 import "./styles/themes/ocean-blue.css"
-import "./styles/themes/rose-quartz.css"
 import "./styles/themes/sunset-ember.css"
 import "./styles/themes/electric-violet.css"
 import "./styles/themes/emerald-forest.css"
-import "./styles/themes/golden-hour.css"
-import "./styles/themes/cyber-teal.css"
-import "./styles/themes/coral-reef.css"
 import { cn } from "@/lib/utils"
 import { ThemeProvider } from "next-themes"
 
@@ -38,7 +34,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('color-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}})()`,
+            __html: `(function(){try{var t=localStorage.getItem('color-theme');var v=['pink-zen','ocean-blue','sunset-ember','electric-violet','emerald-forest'];if(t&&v.indexOf(t)>-1)document.documentElement.setAttribute('data-theme',t)}catch(e){}})()`,
           }}
         />
       </head>
