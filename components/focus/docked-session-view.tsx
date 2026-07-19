@@ -3,6 +3,7 @@
 import { useFocusStore } from "@/store/focus-store"
 import { FocusButton } from "./focus-button"
 import { FocusView } from "./focus-view"
+import { SessionNotepad } from "./session-notepad"
 
 export function DockedSessionView({
   sessionId,
@@ -27,12 +28,18 @@ export function DockedSessionView({
         onExitFocus={() => zoomSessionOut(sessionId)}
         animateEntrance={animateEntrance}
       />
-      {currentFocusTask && (
-        <FocusButton
-          onClick={enterSuperfocus}
-          label="Superfocus"
-          title={`Superfocus on ${currentFocusTask.name}`}
-        />
+      {currentFocusTask ? (
+        <div className="fixed bottom-6 right-6 z-[60] flex items-center gap-2.5">
+          <SessionNotepad sessionId={sessionId} placement="inline" />
+          <FocusButton
+            onClick={enterSuperfocus}
+            label="Superfocus"
+            title={`Superfocus on ${currentFocusTask.name}`}
+            positioning="inline"
+          />
+        </div>
+      ) : (
+        <SessionNotepad sessionId={sessionId} placement="corner" />
       )}
     </div>
   )

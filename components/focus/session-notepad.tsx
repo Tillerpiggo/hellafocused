@@ -10,9 +10,9 @@ export function SessionNotepad({
   placement = "beside-focus",
 }: {
   sessionId: string
-  // "beside-focus" sits left of the Focus pill in the session browser;
-  // "corner" takes the bottom-right corner in fullscreen focus mode.
-  placement?: "beside-focus" | "corner"
+  // "beside-focus" sits left of the fixed Focus pill in the session browser;
+  // "inline" participates in a shared control row; "corner" stands alone.
+  placement?: "beside-focus" | "inline" | "corner"
 }) {
   const notes = useFocusStore(state =>
     state.sessions.find(session => session.id === sessionId)?.notes ?? ""
@@ -67,7 +67,7 @@ export function SessionNotepad({
       {isOpen && (
         <div
           id={`session-notepad-${sessionId}`}
-          className="fixed bottom-[4.75rem] right-6 z-40 w-[22rem] max-w-[calc(100vw-3rem)] overflow-hidden rounded-2xl glass-dropdown shadow-[0_16px_48px_-12px_rgba(0,0,0,0.25)] animate-in fade-in slide-in-from-bottom-2 duration-200"
+          className="fixed bottom-[4.75rem] right-6 z-[70] w-[22rem] max-w-[calc(100vw-3rem)] overflow-hidden rounded-2xl glass-dropdown shadow-[0_16px_48px_-12px_rgba(0,0,0,0.25)] animate-in fade-in slide-in-from-bottom-2 duration-200"
         >
           <textarea
             ref={textareaRef}
@@ -87,10 +87,11 @@ export function SessionNotepad({
         aria-controls={`session-notepad-${sessionId}`}
         onClick={toggle}
         className={cn(
-          "group fixed bottom-6 z-40 grid h-[2.65rem] w-[2.65rem] place-items-center rounded-full glass-dropdown outline-none transition-all duration-300 ease-out",
+          "group z-[60] grid h-[2.65rem] w-[2.65rem] place-items-center rounded-full glass-dropdown outline-none transition-all duration-300 ease-out",
           "hover:-translate-y-0.5 hover:shadow-[0_12px_32px_-6px_hsl(var(--primary)/0.35),0_4px_12px_rgba(0,0,0,0.08)]",
           "focus-visible:ring-2 focus-visible:ring-primary/40 active:translate-y-0 active:scale-[0.97] active:duration-150",
-          placement === "beside-focus" ? "right-[8.5rem]" : "right-6",
+          placement === "inline" ? "relative" : "fixed bottom-6",
+          placement === "beside-focus" ? "right-[8.5rem]" : placement === "corner" ? "right-6" : "",
           isOpen ? "text-primary" : "text-foreground/75 hover:text-primary"
         )}
       >

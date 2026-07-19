@@ -239,10 +239,10 @@ export function FocusView({
 
         {/* Conditional main content */}
         {renderMainContent()}
-        {activeSessionId && (
+        {activeSessionId && presentation === "fullscreen" && (
           <SessionNotepad
             sessionId={activeSessionId}
-            placement={presentation === "docked" && currentFocusTask ? "beside-focus" : "corner"}
+            placement="corner"
           />
         )}
       </div>
