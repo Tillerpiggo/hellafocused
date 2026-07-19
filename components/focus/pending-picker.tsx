@@ -8,7 +8,15 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { Check, CheckCircle2, Hourglass } from "lucide-react"
-import { defaultReminderDateTime, msUntilDateTime, formatDateTimeTarget } from "@/lib/pending-time"
+import { cn } from "@/lib/utils"
+import {
+  EVENING_TIME,
+  MORNING_TIME,
+  nextDayOptions,
+  defaultDayTime,
+  msUntilDayTime,
+  formatDayTimeTarget,
+} from "@/lib/pending-time"
 import type React from "react"
 
 interface PendingPickerProps {
@@ -19,17 +27,35 @@ interface PendingPickerProps {
   onResolve: () => void
 }
 
+// Structural props so the sidebar's DropdownMenu and ContextMenu families can
+// share the menu-item fragments below.
+type MenuSubComponent = React.ComponentType<{
+  children?: React.ReactNode
+  onOpenChange?: (open: boolean) => void
+}>
+
+type MenuItemComponent = React.ComponentType<{
+  children?: React.ReactNode
+  className?: string
+  onClick?: () => void
+  onSelect?: (event: Event) => void
+}>
+
 const MS_SECOND = 1000
 const MS_MINUTE = 60 * MS_SECOND
 const MS_HOUR = 60 * MS_MINUTE
 const MS_DAY = 24 * MS_HOUR
 
+// Short deferrals, then day-anchored one-taps, then long horizons.
 export const PENDING_PRESETS = [
   { label: "1 min", ms: MS_MINUTE },
   { label: "5 min", ms: 5 * MS_MINUTE },
   { label: "15 min", ms: 15 * MS_MINUTE },
   { label: "1 hour", ms: MS_HOUR },
   { label: "4 hours", ms: 4 * MS_HOUR },
+]
+
+const PENDING_LONG_PRESETS = [
   { label: "1 day", ms: MS_DAY },
   { label: "1 week", ms: 7 * MS_DAY },
 ]
@@ -62,51 +88,101 @@ export function formatRemainingFull(ms: number): string {
   return parts.join(" ")
 }
 
-// Inline date+time row shared by the picker and the sidebar submenus. Lives
-// inside menu content, so it stops click/key propagation to keep the menu open
-// and its typeahead from stealing keystrokes. The check is always armed — the
-// input opens prefilled with a valid default, and onSubmit guards stragglers.
-function ClockTimeInput({
-  value,
-  onChange,
-  onSubmit,
+// One-tap day anchors — the most common "ping me then" intents. "This
+// evening" disappears once that time has passed.
+function AnchoredReminderItems({
+  Item,
+  onMarkPending,
 }: {
-  value: string
-  onChange: (value: string) => void
-  onSubmit: () => void
+  Item: MenuItemComponent
+  onMarkPending: (remindInMs: number) => void
 }) {
-  const targetLabel = formatDateTimeTarget(value)
+  const eveningMs = msUntilDayTime(0, EVENING_TIME)
+  const morningMs = msUntilDayTime(1, MORNING_TIME)
   return (
-    <div className="w-52 px-2 py-1.5" onClick={(e) => e.stopPropagation()}>
-      <div className="flex items-center gap-1.5">
+    <>
+      {eveningMs != null && (
+        <Item className="cursor-pointer" onClick={() => onMarkPending(eveningMs)}>
+          This evening · 6 PM
+        </Item>
+      )}
+      {morningMs != null && (
+        <Item className="cursor-pointer" onClick={() => onMarkPending(morningMs)}>
+          Tomorrow morning · 9 AM
+        </Item>
+      )}
+    </>
+  )
+}
+
+// The custom row: a day chip strip plus a clean clock field — no calendar
+// widget. Self-contained (owns day+time state, prefilled to now+1h) so it can
+// live inside any menu; it stops click/key propagation to keep that menu open
+// and its typeahead from stealing keystrokes. The primary check is always
+// armed and only submits when the target is genuinely in the future.
+function CustomReminderInput({ onSubmit }: { onSubmit: (ms: number) => void }) {
+  const [defaults] = useState(() => defaultDayTime())
+  const [dayOffset, setDayOffset] = useState(defaults.dayOffset)
+  const [time, setTime] = useState(defaults.time)
+
+  const ms = msUntilDayTime(dayOffset, time)
+  const hint = ms != null ? formatDayTimeTarget(dayOffset, time) : null
+  const submit = () => {
+    if (ms != null) onSubmit(ms)
+  }
+
+  return (
+    <div className="w-56 px-2 py-2" onClick={(e) => e.stopPropagation()}>
+      <div className="flex gap-1">
+        {nextDayOptions(4).map(day => (
+          <button
+            key={day.offset}
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation()
+              setDayOffset(day.offset)
+            }}
+            aria-pressed={day.offset === dayOffset}
+            className={cn(
+              "h-6 flex-1 rounded-md text-xs font-medium transition-colors",
+              day.offset === dayOffset
+                ? "bg-primary text-primary-foreground"
+                : "bg-foreground/5 text-muted-foreground hover:bg-foreground/10 hover:text-foreground"
+            )}
+          >
+            {day.label}
+          </button>
+        ))}
+      </div>
+      <div className="mt-1.5 flex items-center gap-1.5">
         <input
-          type="datetime-local"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
+          type="time"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") onSubmit()
+            if (e.key === "Enter") submit()
             e.stopPropagation()
           }}
           autoFocus
-          aria-label="Reminder date and time"
-          className="min-w-0 flex-1 rounded border border-foreground/20 bg-transparent px-2 py-1 text-sm outline-none focus:border-primary"
+          aria-label="Reminder time"
+          className="min-w-0 flex-1 rounded-md border border-foreground/20 bg-transparent px-2 py-1.5 text-sm outline-none focus:border-primary"
         />
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation()
-            onSubmit()
+            submit()
           }}
           aria-label="Set reminder"
           title="Set reminder"
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
+          className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-primary text-primary-foreground transition-opacity hover:opacity-90"
         >
           <Check className="h-4 w-4" />
         </button>
       </div>
-      {targetLabel && (
-        <div className="mt-1 text-xs text-muted-foreground">{targetLabel}</div>
-      )}
+      <div className={cn("mt-1.5 text-xs", hint ? "text-muted-foreground" : "text-destructive/80")}>
+        {hint ?? "That time has passed — pick a later one"}
+      </div>
     </div>
   )
 }
@@ -115,7 +191,6 @@ export function PendingPicker({ children, isPending, remindAt, onMarkPending, on
   const [customMode, setCustomMode] = useState<"duration" | "time" | null>(null)
   const [customValue, setCustomValue] = useState("")
   const [customUnit, setCustomUnit] = useState<CustomUnit>("min")
-  const [timeValue, setTimeValue] = useState("")
   const [isOpen, setIsOpen] = useState(false)
   const [remainingLabel, setRemainingLabel] = useState<string | null>(null)
 
@@ -146,14 +221,6 @@ export function PendingPicker({ children, isPending, remindAt, onMarkPending, on
     }
   }
 
-  const handleTimeSubmit = () => {
-    const ms = msUntilDateTime(timeValue)
-    if (ms == null) return
-    onMarkPending(ms)
-    setCustomMode(null)
-    setTimeValue("")
-  }
-
   return (
     <DropdownMenu onOpenChange={(open) => {
       setIsOpen(open)
@@ -161,7 +228,6 @@ export function PendingPicker({ children, isPending, remindAt, onMarkPending, on
         setCustomMode(null)
         setCustomValue("")
         setCustomUnit("min")
-        setTimeValue("")
       }
     }}>
       <DropdownMenuTrigger asChild>
@@ -183,9 +249,19 @@ export function PendingPicker({ children, isPending, remindAt, onMarkPending, on
           </>
         )}
         <div className="px-2 py-1.5 text-xs text-muted-foreground">
-          {isPending ? "Remind again in" : "Pending — remind in"}
+          {isPending ? "Remind again" : "Pending — remind me"}
         </div>
         {PENDING_PRESETS.map(preset => (
+          <DropdownMenuItem
+            key={preset.ms}
+            onClick={() => onMarkPending(preset.ms)}
+            className="cursor-pointer"
+          >
+            {preset.label}
+          </DropdownMenuItem>
+        ))}
+        <AnchoredReminderItems Item={DropdownMenuItem} onMarkPending={onMarkPending} />
+        {PENDING_LONG_PRESETS.map(preset => (
           <DropdownMenuItem
             key={preset.ms}
             onClick={() => onMarkPending(preset.ms)}
@@ -216,7 +292,6 @@ export function PendingPicker({ children, isPending, remindAt, onMarkPending, on
               className="cursor-pointer"
               onSelect={(e) => {
                 e.preventDefault()
-                setTimeValue(defaultReminderDateTime())
                 setCustomMode("time")
               }}
             >
@@ -255,26 +330,17 @@ export function PendingPicker({ children, isPending, remindAt, onMarkPending, on
           </div>
         )}
         {customMode === "time" && (
-          <ClockTimeInput value={timeValue} onChange={setTimeValue} onSubmit={handleTimeSubmit} />
+          <CustomReminderInput
+            onSubmit={(ms) => {
+              onMarkPending(ms)
+              setCustomMode(null)
+            }}
+          />
         )}
       </DropdownMenuContent>
     </DropdownMenu>
   )
 }
-
-// Structural props so the sidebar's DropdownMenu and ContextMenu families can
-// share one implementation of the pending submenu.
-type MenuSubComponent = React.ComponentType<{
-  children?: React.ReactNode
-  onOpenChange?: (open: boolean) => void
-}>
-
-type MenuItemComponent = React.ComponentType<{
-  children?: React.ReactNode
-  className?: string
-  onClick?: () => void
-  onSelect?: (event: Event) => void
-}>
 
 interface PendingReminderSubmenuProps {
   Sub: MenuSubComponent
@@ -296,19 +362,8 @@ export function PendingReminderSubmenu({
   onMarkPending,
 }: PendingReminderSubmenuProps) {
   const [showTime, setShowTime] = useState(false)
-  const [timeValue, setTimeValue] = useState("")
 
-  const reset = () => {
-    setShowTime(false)
-    setTimeValue("")
-  }
-
-  const handleTimeSubmit = () => {
-    const ms = msUntilDateTime(timeValue)
-    if (ms == null) return
-    onMarkPending(ms)
-    reset()
-  }
+  const reset = () => setShowTime(false)
 
   return (
     <Sub onOpenChange={(open) => { if (!open) reset() }}>
@@ -322,6 +377,12 @@ export function PendingReminderSubmenu({
             {preset.label}
           </Item>
         ))}
+        <AnchoredReminderItems Item={Item} onMarkPending={onMarkPending} />
+        {PENDING_LONG_PRESETS.map(preset => (
+          <Item key={preset.ms} onClick={() => onMarkPending(preset.ms)} className="cursor-pointer">
+            {preset.label}
+          </Item>
+        ))}
         <Item onClick={() => onMarkPending(null)} className="cursor-pointer text-muted-foreground">
           No reminder
         </Item>
@@ -331,14 +392,18 @@ export function PendingReminderSubmenu({
             className="cursor-pointer"
             onSelect={(e) => {
               e.preventDefault()
-              setTimeValue(defaultReminderDateTime())
               setShowTime(true)
             }}
           >
             At a time...
           </Item>
         ) : (
-          <ClockTimeInput value={timeValue} onChange={setTimeValue} onSubmit={handleTimeSubmit} />
+          <CustomReminderInput
+            onSubmit={(ms) => {
+              onMarkPending(ms)
+              reset()
+            }}
+          />
         )}
       </SubContent>
     </Sub>
