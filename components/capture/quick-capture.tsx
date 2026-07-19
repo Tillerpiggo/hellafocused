@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import { createPortal } from "react-dom"
 import { Plus, X, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useScrapsStore } from "@/store/scraps-store"
@@ -20,6 +21,7 @@ export function QuickCapture({ onOpenSort }: QuickCaptureProps) {
 
   const [value, setValue] = useState("")
   const containerRef = useRef<HTMLDivElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
 
@@ -32,9 +34,9 @@ export function QuickCapture({ onOpenSort }: QuickCaptureProps) {
   useEffect(() => {
     if (!isOpen) return
     const handleMouseDown = (event: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        setOpen(false)
-      }
+      const target = event.target as Node
+      if (containerRef.current?.contains(target) || panelRef.current?.contains(target)) return
+      setOpen(false)
     }
     document.addEventListener("mousedown", handleMouseDown)
     return () => document.removeEventListener("mousedown", handleMouseDown)
@@ -75,8 +77,11 @@ export function QuickCapture({ onOpenSort }: QuickCaptureProps) {
         <Plus className={cn("h-4 w-4 transition-transform duration-200", isOpen && "rotate-45")} />
       </Button>
 
-      {isOpen && (
-        <div className="fixed right-4 top-[3.75rem] z-[80] w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl glass-dropdown shadow-[0_16px_48px_-12px_rgba(0,0,0,0.25)] animate-in fade-in slide-in-from-top-2 duration-200">
+      {/* Portaled to <body> with a high z-index so it escapes the top bar's
+          stacking context and stays above fullscreen overlays (e.g. the focus
+          task-details overlay at z-50). */}
+      {isOpen && createPortal(
+        <div ref={panelRef} className="fixed right-4 top-[3.75rem] z-[110] w-[22rem] max-w-[calc(100vw-2rem)] overflow-hidden rounded-2xl glass-dropdown shadow-[0_16px_48px_-12px_rgba(0,0,0,0.25)] animate-in fade-in slide-in-from-top-2 duration-200">
           <form onSubmit={handleSubmit}>
             <input
               ref={inputRef}
@@ -125,7 +130,8 @@ export function QuickCapture({ onOpenSort }: QuickCaptureProps) {
               <ArrowRight className="h-4 w-4" />
             </button>
           )}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
