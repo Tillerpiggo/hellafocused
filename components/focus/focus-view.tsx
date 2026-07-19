@@ -41,6 +41,7 @@ export function FocusView({
   const saveCurrentSessionState = useFocusStore(state => state.saveCurrentSessionState)
   const markPending = useFocusStore(s => s.markPending)
   const resolvePending = useFocusStore(s => s.resolvePending)
+  const setPendingReason = useFocusStore(s => s.setPendingReason)
   const isPending = useFocusStore(s => {
     const session = s.sessions.find(ss => ss.id === s.activeSessionId)
     return session?.pending ?? false
@@ -49,6 +50,17 @@ export function FocusView({
   const handleMarkPending = useCallback((remindInMs: number | null) => {
     if (activeSessionId) markPending(activeSessionId, remindInMs)
   }, [activeSessionId, markPending])
+
+  // Marking pending from a task pre-fills the reason with the task's name —
+  // unless the user already wrote one.
+  const handleMarkPendingForTask = useCallback((taskName: string, remindInMs: number | null) => {
+    if (!activeSessionId) return
+    markPending(activeSessionId, remindInMs)
+    const session = useFocusStore.getState().sessions.find(ss => ss.id === activeSessionId)
+    if (session && !session.pendingReason?.trim()) {
+      setPendingReason(activeSessionId, taskName)
+    }
+  }, [activeSessionId, markPending, setPendingReason])
 
   const handleResolvePending = useCallback(() => {
     if (activeSessionId) resolvePending(activeSessionId)
@@ -214,6 +226,9 @@ export function FocusView({
           showInfoOverlay={showInfoOverlay}
           onShowInfoOverlay={setShowInfoOverlay}
           animateInitialTask={presentation === "fullscreen" && animateEntrance}
+          isPending={isPending}
+          onMarkPending={handleMarkPendingForTask}
+          onResolvePending={handleResolvePending}
         />
       )
     }

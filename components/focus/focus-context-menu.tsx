@@ -1,6 +1,16 @@
 "use client"
-import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from "@/components/ui/context-menu"
-import { Check, ArrowRight, Clock, ArrowUp, Star, StarOff } from "lucide-react"
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuSub,
+  ContextMenuSubContent,
+  ContextMenuSubTrigger,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu"
+import { Check, CheckCircle2, ArrowRight, Clock, ArrowUp, Star, StarOff } from "lucide-react"
+import { PendingReminderSubmenu } from "./pending-picker"
 import type React from "react"
 
 interface FocusContextMenuProps {
@@ -12,9 +22,12 @@ interface FocusContextMenuProps {
   isDeferred: boolean
   isPreferred: boolean
   canShuffle?: boolean
+  isPending: boolean
+  onMarkPending: (remindInMs: number | null) => void
+  onResolvePending: () => void
 }
 
-export function FocusContextMenu({ children, onComplete, onNext, onToggleDefer, onTogglePrefer, isDeferred, isPreferred, canShuffle = true }: FocusContextMenuProps) {
+export function FocusContextMenu({ children, onComplete, onNext, onToggleDefer, onTogglePrefer, isDeferred, isPreferred, canShuffle = true, isPending, onMarkPending, onResolvePending }: FocusContextMenuProps) {
   return (
     <ContextMenu>
       <ContextMenuTrigger asChild>{children}</ContextMenuTrigger>
@@ -55,6 +68,22 @@ export function FocusContextMenu({ children, onComplete, onNext, onToggleDefer, 
             </>
           )}
         </ContextMenuItem>
+        <ContextMenuSeparator />
+        {isPending && (
+          <ContextMenuItem onClick={onResolvePending} className="gap-2 transition-colors">
+            <CheckCircle2 className="menu-icon" />
+            Resolve pending
+          </ContextMenuItem>
+        )}
+        <PendingReminderSubmenu
+          Sub={ContextMenuSub}
+          SubTrigger={ContextMenuSubTrigger}
+          SubContent={ContextMenuSubContent}
+          Item={ContextMenuItem}
+          Separator={ContextMenuSeparator}
+          isPending={isPending}
+          onMarkPending={onMarkPending}
+        />
       </ContextMenuContent>
     </ContextMenu>
   )
