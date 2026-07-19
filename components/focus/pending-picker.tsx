@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { Check, CheckCircle2, Hourglass } from "lucide-react"
-import { msUntilClockTime, formatClockTimeTarget } from "@/lib/pending-time"
+import { defaultReminderDateTime, msUntilDateTime, formatDateTimeTarget } from "@/lib/pending-time"
 import type React from "react"
 
 interface PendingPickerProps {
@@ -62,9 +62,10 @@ export function formatRemainingFull(ms: number): string {
   return parts.join(" ")
 }
 
-// Inline clock-time row shared by the picker and the sidebar submenus. Lives
+// Inline date+time row shared by the picker and the sidebar submenus. Lives
 // inside menu content, so it stops click/key propagation to keep the menu open
-// and its typeahead from stealing keystrokes.
+// and its typeahead from stealing keystrokes. The check is always armed — the
+// input opens prefilled with a valid default, and onSubmit guards stragglers.
 function ClockTimeInput({
   value,
   onChange,
@@ -74,13 +75,12 @@ function ClockTimeInput({
   onChange: (value: string) => void
   onSubmit: () => void
 }) {
-  const targetLabel = formatClockTimeTarget(value)
-  const isValid = msUntilClockTime(value) != null
+  const targetLabel = formatDateTimeTarget(value)
   return (
-    <div className="px-2 py-1.5" onClick={(e) => e.stopPropagation()}>
+    <div className="w-52 px-2 py-1.5" onClick={(e) => e.stopPropagation()}>
       <div className="flex items-center gap-1.5">
         <input
-          type="time"
+          type="datetime-local"
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={(e) => {
@@ -88,27 +88,24 @@ function ClockTimeInput({
             e.stopPropagation()
           }}
           autoFocus
-          aria-label="Reminder time"
+          aria-label="Reminder date and time"
           className="min-w-0 flex-1 rounded border border-foreground/20 bg-transparent px-2 py-1 text-sm outline-none focus:border-primary"
         />
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation()
-            if (isValid) onSubmit()
+            onSubmit()
           }}
-          disabled={!isValid}
           aria-label="Set reminder"
           title="Set reminder"
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-40"
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-foreground transition-colors hover:bg-accent hover:text-accent-foreground"
         >
           <Check className="h-4 w-4" />
         </button>
       </div>
       {targetLabel && (
-        <div className="mt-1 text-xs text-muted-foreground">
-          {targetLabel} — Enter or ✓ to set
-        </div>
+        <div className="mt-1 text-xs text-muted-foreground">{targetLabel}</div>
       )}
     </div>
   )
@@ -150,7 +147,7 @@ export function PendingPicker({ children, isPending, remindAt, onMarkPending, on
   }
 
   const handleTimeSubmit = () => {
-    const ms = msUntilClockTime(timeValue)
+    const ms = msUntilDateTime(timeValue)
     if (ms == null) return
     onMarkPending(ms)
     setCustomMode(null)
@@ -170,7 +167,7 @@ export function PendingPicker({ children, isPending, remindAt, onMarkPending, on
       <DropdownMenuTrigger asChild>
         {children}
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-44">
+      <DropdownMenuContent align="end" className="w-56">
         {isPending && (
           <>
             {remainingLabel && (
@@ -219,6 +216,7 @@ export function PendingPicker({ children, isPending, remindAt, onMarkPending, on
               className="cursor-pointer"
               onSelect={(e) => {
                 e.preventDefault()
+                setTimeValue(defaultReminderDateTime())
                 setCustomMode("time")
               }}
             >
@@ -306,7 +304,7 @@ export function PendingReminderSubmenu({
   }
 
   const handleTimeSubmit = () => {
-    const ms = msUntilClockTime(timeValue)
+    const ms = msUntilDateTime(timeValue)
     if (ms == null) return
     onMarkPending(ms)
     reset()
@@ -333,6 +331,7 @@ export function PendingReminderSubmenu({
             className="cursor-pointer"
             onSelect={(e) => {
               e.preventDefault()
+              setTimeValue(defaultReminderDateTime())
               setShowTime(true)
             }}
           >
