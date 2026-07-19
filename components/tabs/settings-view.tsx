@@ -14,19 +14,12 @@ function useColorTheme() {
 
   useEffect(() => {
     setMounted(true)
-    const isValid = (id: string | null): id is string =>
-      !!id && builtInThemes.some((theme) => theme.id === id)
     const stored = localStorage.getItem(COLOR_THEME_KEY)
-    if (isValid(stored)) {
+    if (stored) {
       setColorTheme(stored)
     } else {
-      if (stored) {
-        // Stored theme no longer exists — reset to the default
-        localStorage.setItem(COLOR_THEME_KEY, 'pink-zen')
-        document.documentElement.setAttribute('data-theme', 'pink-zen')
-      }
       const current = document.documentElement.getAttribute('data-theme')
-      if (isValid(current)) setColorTheme(current)
+      if (current) setColorTheme(current)
     }
   }, [])
 

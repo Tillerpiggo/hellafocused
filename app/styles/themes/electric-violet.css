@@ -8,7 +8,7 @@
   --card-foreground: 275 15% 15%;
   --popover: 272 28% 95%;
   --popover-foreground: 275 15% 15%;
-  --primary: 274 77% 55%;
+  --primary: 275 80% 58%;
   --primary-foreground: 270 40% 98%;
   --secondary: 272 20% 91%;
   --secondary-foreground: 275 15% 22%;
@@ -20,7 +20,7 @@
   --destructive-foreground: 210 40% 98%;
   --border: 272 16% 85%;
   --input: 272 16% 85%;
-  --ring: 274 77% 55%;
+  --ring: 275 80% 58%;
 
   /* Semantic colors */
   --color-prefer: 315 78% 52%;              /* bright magenta-pink */
@@ -41,10 +41,10 @@
   --glass-card: rgba(248, 245, 255, 0.92);
 
   /* Focus mode gradients */
-  --focus-gradient-from: 274 77% 55%;
+  --focus-gradient-from: 275 80% 58%;
   --focus-gradient-to: 290 70% 62%;
   --focus-prefer-from: 315 78% 52%;
-  --focus-prefer-to: 274 77% 55%;
+  --focus-prefer-to: 275 80% 58%;
 
   /* Chart colors */
   --chart-1: 275 75% 58%;
@@ -69,8 +69,8 @@
   --google-logo: 275 40% 45%;
 
   /* Complete button colors */
-  --complete-button-bg: 274 77% 55%;
-  --complete-button-bg-hover: 274 77% 47%;
+  --complete-button-bg: 275 80% 58%;
+  --complete-button-bg-hover: 275 80% 50%;
   --complete-button-text: 270 40% 98%;
 
   /* Priority indicators */
@@ -98,7 +98,7 @@
   --progress-gradient-to: 275 75% 55%;
   --progress-stroke: 275 12% 38%;
   --progress-grid: 272 14% 91%;
-  --progress-badge-from: 274 77% 55%;
+  --progress-badge-from: 275 80% 58%;
   --progress-badge-to: 290 70% 52%;
   --progress-badge-text: 0 0% 100%;
   --progress-badge-soft-from: 275 40% 94%;
@@ -143,7 +143,7 @@
   --current-task-to: 290 65% 60%;
   --current-task-border: 275 30% 88%;
   --current-task-text: 275 35% 30%;
-  --current-task-shadow: 274 77% 55%;
+  --current-task-shadow: 275 80% 58%;
 
   /* Link colors */
   --link-color: 275 45% 42%;
@@ -153,7 +153,7 @@
   /* Text selection & caret */
   --selection: 275 80% 88%;
   --selection-foreground: 270 25% 15%;
-  --caret: 274 77% 55%;                   /* matches primary */
+  --caret: 275 80% 58%;                   /* matches primary */
 }
 
 /* Electric Violet - Dark mode */
@@ -169,7 +169,7 @@
   --secondary: 270 8% 15%;
   --secondary-foreground: 272 10% 84%;
   --muted: 270 6% 14%;
-  --muted-foreground: 275 9% 58%;
+  --muted-foreground: 275 8% 52%;
   --accent: 270 10% 18%;
   --accent-foreground: 272 10% 86%;
   --destructive: 0 62.8% 50%;

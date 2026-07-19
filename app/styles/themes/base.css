@@ -9,19 +9,19 @@
   --card-foreground: 345 15% 22%;
   --popover: 345 35% 96%;
   --popover-foreground: 345 15% 22%;
-  --primary: 345 50% 49%;
+  --primary: 345 45% 52%;
   --primary-foreground: 345 100% 98%;
   --secondary: 345 18% 93%;
   --secondary-foreground: 345 15% 27%;
   --muted: 345 12% 91%;
-  --muted-foreground: 345 9% 44%;
+  --muted-foreground: 345 8% 48%;
   --accent: 345 22% 89%;
   --accent-foreground: 345 18% 32%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 210 40% 98%;
   --border: 345 15% 87%;
   --input: 345 15% 87%;
-  --ring: 345 50% 49%;
+  --ring: 345 45% 52%;
   
   /* Semantic colors */
   --color-prefer: 38 92% 50%;        /* amber-500 */
@@ -34,7 +34,7 @@
   --color-warning: 25 95% 53%;       /* orange-500 */
   --color-error: 0 84% 60%;          /* red-500 */
   --color-info: 217 91% 60%;         /* blue-500 */
-  --color-highlight: 48 94% 65%;     /* yellow-300 */
+  --color-highlight: 50 98% 64%;     /* yellow-300 */
   
   /* Glass morphism */
   --glass-bg: rgba(255, 245, 248, 0.22);
@@ -42,10 +42,10 @@
   --glass-card: rgba(255, 255, 255, 0.92);
   
   /* Focus mode gradients */
-  --focus-gradient-from: 345 50% 49%;  /* matches primary */
+  --focus-gradient-from: 345 45% 52%;  /* matches primary */
   --focus-gradient-to: 340 60% 65%;    /* slightly different pink */
   --focus-prefer-from: 38 92% 50%;     /* amber */
-  --focus-prefer-to: 345 50% 49%;      /* pink */
+  --focus-prefer-to: 345 45% 52%;      /* pink */
   
   /* Chart colors */
   --chart-1: 340 76% 61%;
@@ -99,7 +99,7 @@
   --progress-gradient-to: 281 55% 60%;    /* purple-400 */
   --progress-stroke: 214 14% 34%;         /* gray-700 */
   --progress-grid: 210 16% 93%;           /* gray-100 */
-  --progress-badge-from: 345 50% 49%;     /* primary */
+  --progress-badge-from: 345 45% 52%;     /* primary */
   --progress-badge-to: 340 60% 45%;       /* primary darker */
   --progress-badge-text: 0 0% 100%;       /* white */
   --progress-badge-soft-from: 345 60% 96%; /* soft primary bg */
@@ -154,7 +154,7 @@
   /* Text selection & caret */
   --selection: 345 60% 86%;               /* soft pink highlight */
   --selection-foreground: 345 30% 15%;    /* deep readable pink-gray */
-  --caret: 345 50% 49%;                   /* matches primary */
+  --caret: 345 45% 52%;                   /* matches primary */
 }
 
 .dark {
@@ -191,9 +191,9 @@
   --color-highlight: 50 90% 30%;
   
   /* Glass morphism - dark mode */
-  --glass-bg: rgba(40, 20, 30, 0.18);
-  --glass-border: rgba(200, 120, 160, 0.12);
-  --glass-card: rgba(30, 20, 25, 0.7);
+  --glass-bg: rgba(139, 69, 19, 0.12);
+  --glass-border: rgba(180, 83, 9, 0.25);
+  --glass-card: rgba(30, 30, 30, 0.75);
 
   /* Focus mode gradients - dark */
   --focus-gradient-from: 345 55% 68%;
