@@ -81,7 +81,7 @@ export const useSyncStore = create<SyncStore>()(
             }
             
             // For same action types, merge if new action is more recent
-            return action.timestamp > existingAction.timestamp
+            return action.timestamp >= existingAction.timestamp
           })()
           
           if (shouldMerge) {
@@ -99,11 +99,23 @@ export const useSyncStore = create<SyncStore>()(
                     lastError: existingAction.lastError
                   }
                 } else {
+                  const focusSessionFields =
+                    existingAction.entityType === 'focus_session' &&
+                    action.entityType === 'focus_session' &&
+                    existingAction.focusSessionFields &&
+                    action.focusSessionFields
+                      ? Array.from(new Set([
+                          ...existingAction.focusSessionFields,
+                          ...action.focusSessionFields,
+                        ]))
+                      : undefined
+
                   // For creates/updates, merge data and update timestamp
                   draft.pendingChanges[existingId] = {
                     ...existingAction,
                     ...action,
                     userId: currentUserId,
+                    focusSessionFields,
                     // Preserve original retry state
                     retryCount: existingAction.retryCount,
                     lastError: existingAction.lastError
@@ -230,4 +242,4 @@ export const useSyncStore = create<SyncStore>()(
       }),
     }
   )
-) 
+)

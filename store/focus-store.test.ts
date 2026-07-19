@@ -497,7 +497,8 @@ describe('Focus Store - Session Notes', () => {
 
     expect(trackFocusSessionUpdated).toHaveBeenCalledTimes(1)
     expect(trackFocusSessionUpdated).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'session1', notes: 'Final' })
+      expect.objectContaining({ id: 'session1', notes: 'Final' }),
+      ['notes'],
     )
   })
 
@@ -509,7 +510,8 @@ describe('Focus Store - Session Notes', () => {
 
     expect(trackFocusSessionUpdated).toHaveBeenCalledTimes(1)
     expect(trackFocusSessionUpdated).toHaveBeenCalledWith(
-      expect.objectContaining({ id: 'session1', notes: 'Flush me' })
+      expect.objectContaining({ id: 'session1', notes: 'Flush me' }),
+      ['notes'],
     )
 
     jest.advanceTimersByTime(800)
@@ -677,11 +679,11 @@ describe('Focus Store - Session Zoom', () => {
     expect(trackFocusSessionUpdated).toHaveBeenNthCalledWith(1, expect.objectContaining({
       view: 'focus',
       currentFocusTaskId: 'current-task',
-    }))
+    }), ['currentFocusTaskId'])
     expect(trackFocusSessionUpdated).toHaveBeenNthCalledWith(2, expect.objectContaining({
       view: 'docked',
       currentFocusTaskId: 'current-task',
-    }))
+    }), ['view'])
 
     useFocusStore.getState().zoomSessionOut('session1')
     expect(useFocusStore.getState().sessions[0].view).toBe('browse')

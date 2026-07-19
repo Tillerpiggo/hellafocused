@@ -12,7 +12,7 @@ import { BreadcrumbPath } from "@/components/page/breadcrumb-path"
 import { TasksView } from "@/components/tabs/tasks-view"
 import { SearchInput } from "@/components/search-input"
 import { SearchResults } from "@/components/search-results"
-import { FocusButton } from "./focus-button"
+import { FocusSessionControls } from "./focus-session-controls"
 import { SessionNotepad } from "./session-notepad"
 import { type EditableTitleRef } from "@/components/editable-title"
 import {
@@ -120,14 +120,16 @@ export function SessionBrowser({
           <h1 className="text-3xl font-light tracking-wide text-foreground">Projects</h1>
           <ProjectListView projects={projects} onSelectProject={projectId => navigate([projectId])} />
           <AddProjectForm onAddProject={addProject} />
-          {anchor && (
-            <FocusButton
+          {anchor ? (
+            <FocusSessionControls
+              sessionId={sessionId}
               onClick={continueFocus}
               label="Continue"
               title={`Continue ${anchor.task.name}`}
             />
+          ) : (
+            <SessionNotepad sessionId={sessionId} placement="corner" />
           )}
-          <SessionNotepad sessionId={sessionId} placement={anchor ? "beside-focus" : "corner"} />
         </div>
       ) : (
         <div className="space-y-6 pb-32">
@@ -225,12 +227,12 @@ export function SessionBrowser({
             </div>
           )}
           <AddTaskForm currentPath={path} />
-          <FocusButton
+          <FocusSessionControls
+            sessionId={sessionId}
             onClick={anchor ? continueFocus : focusHere}
             label={anchor ? "Continue" : "Focus"}
             title={anchor ? `Continue ${anchor.task.name}` : undefined}
           />
-          <SessionNotepad sessionId={sessionId} />
         </div>
       )}
     </TasksView>

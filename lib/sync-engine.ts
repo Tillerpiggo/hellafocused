@@ -9,6 +9,7 @@ import type { ProjectData, TaskData, FocusSession, ScrapData } from './types'
 import type { RealtimePostgresChangesPayload, User } from '@supabase/supabase-js'
 import { findTaskAtPath, findProjectAtPath, isProjectList, isProject } from './task-utils'
 import type { SyncAction } from './sync-types'
+import { buildFocusSessionUpdate, shouldKeepLocalFocusSession } from './focus-session-sync'
 
 function formatSupabaseError(error: unknown): string {
   if (error instanceof Error) return error.message
@@ -204,7 +205,7 @@ class SyncEngine {
           } else if (change.entityType === 'task') {
             await this.updateTask(change.entityId, change.data as TaskData, change.projectId, change.parentId)
           } else if (change.entityType === 'focus_session') {
-            await this.upsertFocusSession(change.data as FocusSession)
+            await this.updateFocusSession(change.data as FocusSession, change.focusSessionFields)
           } else if (change.entityType === 'scrap') {
             await this.upsertScrap(change.data as ScrapData)
           }
@@ -591,7 +592,11 @@ class SyncEngine {
 
     const merged = cloudSessions.filter(cloud => !cloud.is_deleted).map(cloud => {
       const local = localById.get(cloud.id)
-      if (local && (pending.has(cloud.id) || local.updatedAt >= cloud.updated_at)) return local
+      if (local && shouldKeepLocalFocusSession(
+        local.updatedAt,
+        cloud.updated_at,
+        pending.has(cloud.id),
+      )) return local
       return {
         id: cloud.id,
         name: cloud.name,
@@ -1039,6 +1044,33 @@ class SyncEngine {
     }, { onConflict: 'id' })
 
     if (error) throw new Error(`Failed to sync focus session: ${formatSupabaseError(error)}`)
+  }
+
+  private async updateFocusSession(
+    session: FocusSession,
+    fields: SyncAction['focusSessionFields'],
+  ) {
+    // Persisted actions created before field-level session sync do not include
+    // a field list, so retain the legacy whole-row behavior for that queue only.
+    if (!fields) {
+      await this.upsertFocusSession(session)
+      return
+    }
+
+    if (fields.length === 0) return
+
+    const userId = await this.getCurrentUserId()
+    const update = buildFocusSessionUpdate(session, fields, this.instanceId)
+    const { data, error } = await supabase
+      .from('focus_sessions')
+      .update(update)
+      .eq('id', session.id)
+      .eq('user_id', userId)
+      .select('id')
+      .maybeSingle()
+
+    if (error) throw new Error(`Failed to update focus session: ${formatSupabaseError(error)}`)
+    if (!data) await this.upsertFocusSession(session)
   }
 
   private async deleteFocusSession(sessionId: string) {

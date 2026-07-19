@@ -32,6 +32,11 @@ export interface FocusSession {
   reminderFired?: boolean
 }
 
+export type FocusSessionSyncField = Exclude<
+  keyof FocusSession,
+  'id' | 'createdAt' | 'updatedAt'
+>
+
 // A quickly-captured thought with no parent yet; lives in the capture queue
 // until it's sorted into the project hierarchy (becoming a real task) or deleted.
 export interface ScrapData {

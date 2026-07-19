@@ -1,35 +1,45 @@
-// Clock-time reminder helpers shared by the pending picker and sidebar menus.
-// Kept React-free so the rollover logic stays trivially unit-testable.
+// Reminder date/time helpers shared by the pending picker and sidebar menus.
+// Kept React-free so the parsing logic stays trivially unit-testable.
 
-/**
- * Milliseconds from `now` until the next occurrence of a wall-clock "HH:MM"
- * time — later today, or tomorrow if that time has already passed.
- * Returns null for unparsable or out-of-range input.
- */
-export function msUntilClockTime(time: string, now: Date = new Date()): number | null {
-  const match = /^(\d{1,2}):(\d{2})$/.exec(time.trim())
-  if (!match) return null
-  const hours = Number(match[1])
-  const minutes = Number(match[2])
-  if (hours > 23 || minutes > 59) return null
+const MS_HOUR = 60 * 60 * 1000
+const MS_DAY = 24 * MS_HOUR
 
-  const target = new Date(now)
-  target.setHours(hours, minutes, 0, 0)
-  if (target.getTime() <= now.getTime()) {
-    target.setDate(target.getDate() + 1)
-  }
-  return target.getTime() - now.getTime()
+/** datetime-local input value for one hour from now — the default target. */
+export function defaultReminderDateTime(now: Date = new Date()): string {
+  return toDateTimeLocalValue(new Date(now.getTime() + MS_HOUR))
+}
+
+function toDateTimeLocalValue(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0")
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
 /**
- * Human label for when a clock-time reminder will actually fire,
- * e.g. "today 3:30 PM" or "tomorrow 9:00 AM". Null for invalid input.
+ * Milliseconds from `now` until a datetime-local value ("YYYY-MM-DDTHH:MM",
+ * interpreted as local time). Null when unparsable or not in the future.
  */
-export function formatClockTimeTarget(time: string, now: Date = new Date()): string | null {
-  const ms = msUntilClockTime(time, now)
+export function msUntilDateTime(value: string, now: Date = new Date()): number | null {
+  if (!value) return null
+  const target = new Date(value)
+  if (Number.isNaN(target.getTime())) return null
+  const ms = target.getTime() - now.getTime()
+  return ms > 0 ? ms : null
+}
+
+/**
+ * Human label for when the reminder will fire: "today 3:30 PM",
+ * "tomorrow 9:00 AM", or "Mon, Jul 20, 9:00 AM" beyond that.
+ * Null for invalid or past input.
+ */
+export function formatDateTimeTarget(value: string, now: Date = new Date()): string | null {
+  const ms = msUntilDateTime(value, now)
   if (ms == null) return null
   const target = new Date(now.getTime() + ms)
-  const day = target.getDate() === now.getDate() ? "today" : "tomorrow"
   const timeLabel = target.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
-  return `${day} ${timeLabel}`
+  const dayStart = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  const dayDiff = Math.round((dayStart(target) - dayStart(now)) / MS_DAY)
+  if (dayDiff === 0) return `today ${timeLabel}`
+  if (dayDiff === 1) return `tomorrow ${timeLabel}`
+  const dateLabel = target.toLocaleDateString([], { weekday: "short", month: "short", day: "numeric" })
+  return `${dateLabel}, ${timeLabel}`
 }

@@ -18,6 +18,10 @@ import {
   trackFocusSessionDeleted,
   trackFocusSessionUpdated,
 } from "@/lib/sync-bridge"
+import {
+  getChangedFocusSessionFields,
+  nextFocusSessionUpdatedAt,
+} from "@/lib/focus-session-sync"
 
 interface FocusState {
   // Transient focus state (not persisted)
@@ -114,9 +118,11 @@ function updateAndTrackSession(
 ) {
   const current = get().sessions.find(session => session.id === sessionId)
   if (!current) return
-  const next = { ...update(current), updatedAt: new Date().toISOString() }
+  const next = { ...update(current), updatedAt: nextFocusSessionUpdatedAt(current.updatedAt) }
+  const changedFields = getChangedFocusSessionFields(current, next)
+  if (changedFields.length === 0) return
   set({ sessions: get().sessions.map(session => session.id === sessionId ? next : session) })
-  trackFocusSessionUpdated(next)
+  trackFocusSessionUpdated(next, changedFields)
 }
 
 export const useFocusStore = create<FocusState>()(
@@ -312,18 +318,22 @@ export const useFocusStore = create<FocusState>()(
         const [movedSession] = orderedSessions.splice(fromIndex, 1)
         orderedSessions.splice(toIndex, 0, movedSession)
 
-        const updatedAt = new Date().toISOString()
+        const now = Date.now()
         const changedSessions: FocusSession[] = []
         const reorderedSessions = orderedSessions.map((session, position) => {
           if (session.position === position) return session
 
-          const updatedSession = { ...session, position, updatedAt }
+          const updatedSession = {
+            ...session,
+            position,
+            updatedAt: nextFocusSessionUpdatedAt(session.updatedAt, now),
+          }
           changedSessions.push(updatedSession)
           return updatedSession
         })
 
         set({ sessions: reorderedSessions })
-        changedSessions.forEach(trackFocusSessionUpdated)
+        changedSessions.forEach(session => trackFocusSessionUpdated(session, ['position']))
       },
 
       duplicateSession: (fromIndex, insertionIndex) => {
@@ -364,14 +374,18 @@ export const useFocusStore = create<FocusState>()(
           }
           if (session.position === position) return session
 
-          const updatedSession = { ...session, position, updatedAt }
+          const updatedSession = {
+            ...session,
+            position,
+            updatedAt: nextFocusSessionUpdatedAt(session.updatedAt, now),
+          }
           changedSessions.push(updatedSession)
           return updatedSession
         })
 
         set({ sessions: nextSessions })
         trackFocusSessionCreated(nextSessions[insertionIndex])
-        changedSessions.forEach(trackFocusSessionUpdated)
+        changedSessions.forEach(session => trackFocusSessionUpdated(session, ['position']))
         return duplicatedSession.id
       },
 
@@ -421,7 +435,7 @@ export const useFocusStore = create<FocusState>()(
         const current = get().sessions.find(session => session.id === sessionId)
         if (!current) return
 
-        const next = { ...current, notes, updatedAt: new Date().toISOString() }
+        const next = { ...current, notes, updatedAt: nextFocusSessionUpdatedAt(current.updatedAt) }
         set({ sessions: get().sessions.map(session => session.id === sessionId ? next : session) })
 
         const pendingTimer = sessionNotesSyncTimers.get(sessionId)
@@ -429,7 +443,7 @@ export const useFocusStore = create<FocusState>()(
 
         const timer = setTimeout(() => {
           const latest = get().sessions.find(session => session.id === sessionId)
-          if (latest) trackFocusSessionUpdated(latest)
+          if (latest) trackFocusSessionUpdated(latest, ['notes'])
           sessionNotesSyncTimers.delete(sessionId)
         }, 800)
         sessionNotesSyncTimers.set(sessionId, timer)
@@ -442,7 +456,7 @@ export const useFocusStore = create<FocusState>()(
         clearTimeout(pendingTimer)
         sessionNotesSyncTimers.delete(sessionId)
         const latest = get().sessions.find(session => session.id === sessionId)
-        if (latest) trackFocusSessionUpdated(latest)
+        if (latest) trackFocusSessionUpdated(latest, ['notes'])
       },
 
       setNotepadOpen: (open) => set({ notepadOpen: open }),
