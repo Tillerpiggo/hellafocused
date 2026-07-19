@@ -32,6 +32,15 @@ export interface FocusSession {
   reminderFired?: boolean
 }
 
+// A quickly-captured thought with no parent yet; lives in the capture queue
+// until it's sorted into the project hierarchy (becoming a real task) or deleted.
+export interface ScrapData {
+  id: string
+  name: string
+  createdAt: string // ISO string
+  updatedAt: string // ISO string
+}
+
 export interface ProjectData {
   id: string
   name: string

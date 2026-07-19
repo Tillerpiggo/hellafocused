@@ -7,6 +7,7 @@ export type TabOption = {
   value: string
   label: string
   icon: LucideIcon
+  badge?: number
 }
 
 interface SidebarTabsProps {
@@ -45,6 +46,16 @@ export function SidebarTabs({ tabs, activeTab, onTabChange, isCollapsed = false,
             )}>
               {tab.label}
             </span>
+            {!isCollapsed && typeof tab.badge === 'number' && tab.badge > 0 && (
+              <span className={cn(
+                "ml-auto min-w-[1.25rem] rounded-full px-1.5 py-0.5 text-center text-xs font-medium tabular-nums",
+                isActive
+                  ? "bg-primary-foreground/20 text-primary-foreground"
+                  : "bg-primary/10 text-primary"
+              )}>
+                {tab.badge}
+              </span>
+            )}
           </button>
         )
       })}

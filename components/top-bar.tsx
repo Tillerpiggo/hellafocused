@@ -8,6 +8,7 @@ import { SyncStatus } from '@/components/sync-status'
 import { Button } from '@/components/ui/button'
 import { ProfileDropdown } from '@/components/ui/profile-dropdown'
 import { FeedbackButton } from '@/components/ui/feedback-button'
+import { QuickCapture } from '@/components/capture/quick-capture'
 import { supabase } from '@/lib/supabase'
 import { syncEngine } from '@/lib/sync-engine'
 import type { User } from '@supabase/supabase-js'
@@ -15,9 +16,10 @@ import type { User } from '@supabase/supabase-js'
 interface TopBarProps {
   onMenuToggle?: () => void
   isMenuOpen?: boolean
+  onOpenSort?: () => void
 }
 
-export function TopBar({ onMenuToggle, isMenuOpen }: TopBarProps) {
+export function TopBar({ onMenuToggle, isMenuOpen, onOpenSort }: TopBarProps) {
   const [user, setUser] = useState<User | null>(null)
   const [isAuthLoading, setIsAuthLoading] = useState(true)
   const [shouldAnimate, setShouldAnimate] = useState(false)
@@ -139,7 +141,10 @@ export function TopBar({ onMenuToggle, isMenuOpen }: TopBarProps) {
               {isMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </Button>
           )}
-          {renderAuthContent()}
+          <div className="flex items-center space-x-3">
+            <QuickCapture onOpenSort={onOpenSort} />
+            {renderAuthContent()}
+          </div>
         </div>
       </div>
     )
@@ -157,8 +162,9 @@ export function TopBar({ onMenuToggle, isMenuOpen }: TopBarProps) {
           <SyncStatus />
         </div>
 
-        {/* Right side - Authentication */}
+        {/* Right side - Quick capture and Authentication */}
         <div className="flex items-center space-x-3">
+          <QuickCapture onOpenSort={onOpenSort} />
           {renderAuthContent()}
         </div>
       </div>

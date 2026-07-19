@@ -1,14 +1,14 @@
-import type { TaskData, ProjectData, FocusSession } from './types'
+import type { TaskData, ProjectData, FocusSession, ScrapData } from './types'
 
 // Clear type definitions
 export type SyncActionType = 'create' | 'update' | 'delete'
 
 // Simple sync data - can be project, task, or null for deletions
-export type SyncData = ProjectData | TaskData | FocusSession | null
+export type SyncData = ProjectData | TaskData | FocusSession | ScrapData | null
 
 export interface SyncAction {
   type: SyncActionType
-  entityType: 'project' | 'task' | 'focus_session'
+  entityType: 'project' | 'task' | 'focus_session' | 'scrap'
   entityId: string // The ID of the entity being synced (project ID or task ID)
   userId: string // The user ID who created this change
   projectId?: string // For tasks, which project they belong to
