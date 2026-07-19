@@ -11,7 +11,6 @@ import { Check, CheckCircle2, Hourglass } from "lucide-react"
 import { cn } from "@/lib/utils"
 import {
   EVENING_TIME,
-  MORNING_TIME,
   nextDayOptions,
   defaultDayTime,
   msUntilDayTime,
@@ -49,6 +48,7 @@ const MS_DAY = 24 * MS_HOUR
 // Short deferrals, then day-anchored one-taps, then long horizons.
 export const PENDING_PRESETS = [
   { label: "1 min", ms: MS_MINUTE },
+  { label: "3 min", ms: 3 * MS_MINUTE },
   { label: "5 min", ms: 5 * MS_MINUTE },
   { label: "15 min", ms: 15 * MS_MINUTE },
   { label: "1 hour", ms: MS_HOUR },
@@ -88,8 +88,8 @@ export function formatRemainingFull(ms: number): string {
   return parts.join(" ")
 }
 
-// One-tap day anchors — the most common "ping me then" intents. "This
-// evening" disappears once that time has passed.
+// One-tap day anchor for the most common "ping me then" intent. Disappears
+// once that time has passed.
 function AnchoredReminderItems({
   Item,
   onMarkPending,
@@ -98,20 +98,11 @@ function AnchoredReminderItems({
   onMarkPending: (remindInMs: number) => void
 }) {
   const eveningMs = msUntilDayTime(0, EVENING_TIME)
-  const morningMs = msUntilDayTime(1, MORNING_TIME)
+  if (eveningMs == null) return null
   return (
-    <>
-      {eveningMs != null && (
-        <Item className="cursor-pointer" onClick={() => onMarkPending(eveningMs)}>
-          This evening · 6 PM
-        </Item>
-      )}
-      {morningMs != null && (
-        <Item className="cursor-pointer" onClick={() => onMarkPending(morningMs)}>
-          Tomorrow morning · 9 AM
-        </Item>
-      )}
-    </>
+    <Item className="cursor-pointer" onClick={() => onMarkPending(eveningMs)}>
+      This evening · 6 PM
+    </Item>
   )
 }
 
