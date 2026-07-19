@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { CheckCircle2, Hourglass } from "lucide-react"
+import { Check, CheckCircle2, Hourglass } from "lucide-react"
 import { msUntilClockTime, formatClockTimeTarget } from "@/lib/pending-time"
 import type React from "react"
 
@@ -75,22 +75,40 @@ function ClockTimeInput({
   onSubmit: () => void
 }) {
   const targetLabel = formatClockTimeTarget(value)
+  const isValid = msUntilClockTime(value) != null
   return (
     <div className="px-2 py-1.5" onClick={(e) => e.stopPropagation()}>
-      <input
-        type="time"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") onSubmit()
-          e.stopPropagation()
-        }}
-        autoFocus
-        aria-label="Reminder time"
-        className="w-full rounded border border-foreground/20 bg-transparent px-2 py-1 text-sm outline-none focus:border-primary"
-      />
+      <div className="flex items-center gap-1.5">
+        <input
+          type="time"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") onSubmit()
+            e.stopPropagation()
+          }}
+          autoFocus
+          aria-label="Reminder time"
+          className="min-w-0 flex-1 rounded border border-foreground/20 bg-transparent px-2 py-1 text-sm outline-none focus:border-primary"
+        />
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            if (isValid) onSubmit()
+          }}
+          disabled={!isValid}
+          aria-label="Set reminder"
+          title="Set reminder"
+          className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground disabled:pointer-events-none disabled:opacity-40"
+        >
+          <Check className="h-4 w-4" />
+        </button>
+      </div>
       {targetLabel && (
-        <div className="mt-1 text-xs text-muted-foreground">{targetLabel}</div>
+        <div className="mt-1 text-xs text-muted-foreground">
+          {targetLabel} — Enter or ✓ to set
+        </div>
       )}
     </div>
   )
