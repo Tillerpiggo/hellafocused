@@ -1,4 +1,4 @@
-import type { TaskData, ProjectData, FocusSession } from './types'
+import type { TaskData, ProjectData, FocusSession, FocusSessionSyncField } from './types'
 
 // Clear type definitions
 export type SyncActionType = 'create' | 'update' | 'delete'
@@ -13,6 +13,7 @@ export interface SyncAction {
   userId: string // The user ID who created this change
   projectId?: string // For tasks, which project they belong to
   parentId?: string // For tasks, which parent task (if any)
+  focusSessionFields?: FocusSessionSyncField[] // Omitted means a legacy whole-session update
   timestamp: number
   data: SyncData
   synced: boolean

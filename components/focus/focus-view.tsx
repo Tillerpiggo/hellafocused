@@ -111,6 +111,8 @@ export function FocusView({
 
   const activeSession = sessions.find(session => session.id === activeSessionId)
   const activeScopeKey = activeSession?.startPath.join('/') ?? ''
+  const activeSessionTaskId = activeSession?.currentFocusTaskId
+  const hasActiveSession = activeSession !== undefined
 
   // Rebuild the task pool when this session or its synced scope changes.
   useEffect(() => {
@@ -156,23 +158,31 @@ export function FocusView({
 
   // Auto-select initial task if none is set
   useEffect(() => {
-    if (!currentFocusTask && !showSubtaskCelebration) {
-      // Try to restore last focused task if it's still valid
-      const lastTask = lastFocusedTaskId 
-        ? focusModeProjectLeaves.find(task => 
-            task.id === lastFocusedTaskId && !task.completed
-          )
-        : null
-        
-      if (lastTask) {
-        // Restore last task
-        setCurrentFocusTask(lastTask)
-      } else {
-        // Fall back to priority selection
-        getNextFocusTask()
-      }
-    }
-  }, [currentFocusTask, showSubtaskCelebration, lastFocusedTaskId, focusModeProjectLeaves, getNextFocusTask, setCurrentFocusTask])
+    if (currentFocusTask || showSubtaskCelebration) return
+
+    // On hydration the persisted session is ready one render before its
+    // transient task pool. Do not save a null/random task during that gap.
+    if (focusModeProjectLeaves.length === 0) return
+
+    const restorableTaskId = hasActiveSession
+      ? activeSessionTaskId ?? null
+      : lastFocusedTaskId
+    const restorableTask = restorableTaskId
+      ? focusModeProjectLeaves.find(task => task.id === restorableTaskId && !task.completed)
+      : null
+
+    if (restorableTask) setCurrentFocusTask(restorableTask)
+    else getNextFocusTask()
+  }, [
+    activeSessionTaskId,
+    currentFocusTask,
+    focusModeProjectLeaves,
+    getNextFocusTask,
+    hasActiveSession,
+    lastFocusedTaskId,
+    setCurrentFocusTask,
+    showSubtaskCelebration,
+  ])
 
   // Sync priority state when current task changes
   useEffect(() => {

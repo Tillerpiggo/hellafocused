@@ -2,7 +2,7 @@ import { useSyncStore } from '@/store/sync-store'
 import { syncEngine } from './sync-engine'
 import { useAppStore } from '@/store/app-store'
 import { findTaskAtPath } from '@/lib/task-utils'
-import type { FocusSession } from './types'
+import type { FocusSession, FocusSessionSyncField } from './types'
 import type { TaskPath } from './task-path'
 import type { SyncActionType, SyncData, SyncAction } from './sync-types'
 
@@ -13,7 +13,8 @@ export const trackChange = (
   entityId: string,
   data: SyncData,
   projectId?: string,
-  parentId?: string
+  parentId?: string,
+  focusSessionFields?: FocusSessionSyncField[],
 ) => {
   // Create SyncAction - sync store will handle user ID and only create if logged in
   const action: SyncAction = {
@@ -23,6 +24,7 @@ export const trackChange = (
     userId: '', // Will be set by sync store
     projectId,
     parentId,
+    focusSessionFields,
     timestamp: Date.now(),
     data,
     synced: false,
@@ -119,8 +121,11 @@ export const trackFocusSessionCreated = (session: FocusSession) => {
   trackChange('create', 'focus_session', session.id, session)
 }
 
-export const trackFocusSessionUpdated = (session: FocusSession) => {
-  trackChange('update', 'focus_session', session.id, session)
+export const trackFocusSessionUpdated = (
+  session: FocusSession,
+  fields?: FocusSessionSyncField[],
+) => {
+  trackChange('update', 'focus_session', session.id, session, undefined, undefined, fields)
 }
 
 export const trackFocusSessionDeleted = (sessionId: string) => {

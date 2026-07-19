@@ -32,6 +32,11 @@ export interface FocusSession {
   reminderFired?: boolean
 }
 
+export type FocusSessionSyncField = Exclude<
+  keyof FocusSession,
+  'id' | 'createdAt' | 'updatedAt'
+>
+
 export interface ProjectData {
   id: string
   name: string
