@@ -24,7 +24,6 @@ interface FocusTaskViewProps {
   animateInitialTask?: boolean
   isPending: boolean
   onMarkPending: (taskName: string, remindInMs: number | null) => void
-  onResolvePending: () => void
 }
 
 export function FocusTaskView({
@@ -38,7 +37,6 @@ export function FocusTaskView({
   animateInitialTask = true,
   isPending,
   onMarkPending,
-  onResolvePending,
 }: FocusTaskViewProps) {
   const priority = currentTask?.priority ?? 0
   const [isCompleting, setIsCompleting] = useState(false)
@@ -182,7 +180,6 @@ export function FocusTaskView({
         canShuffle={canShuffle}
         isPending={isPending}
         onMarkPending={(ms) => { if (currentTask) onMarkPending(currentTask.name, ms) }}
-        onResolvePending={onResolvePending}
       >
         <div className={`flex-1 flex items-center justify-center p-8 overflow-hidden transition-colors duration-500 ease-out relative ${
           priority === 1 

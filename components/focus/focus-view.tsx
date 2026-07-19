@@ -228,7 +228,6 @@ export function FocusView({
           animateInitialTask={presentation === "fullscreen" && animateEntrance}
           isPending={isPending}
           onMarkPending={handleMarkPendingForTask}
-          onResolvePending={handleResolvePending}
         />
       )
     }
