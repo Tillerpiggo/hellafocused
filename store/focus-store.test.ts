@@ -69,7 +69,7 @@ jest.mock('./app-store', () => ({
   }
 }))
 
-const { useFocusStore } = require('./focus-store') as typeof import('./focus-store')
+const { getSessionAnchorTask, useFocusStore } = require('./focus-store') as typeof import('./focus-store')
 const { trackFocusSessionUpdated } = require('@/lib/sync-bridge') as typeof import('@/lib/sync-bridge')
 
 function createNotesSession(overrides: Partial<FocusSession> = {}): FocusSession {
@@ -630,5 +630,90 @@ describe('Focus Store - Session Reordering', () => {
       reminderFired: false,
     })
     expect(duplicated.id).not.toBe(first.id)
+  })
+})
+
+describe('Focus Store - Session Zoom', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    useFocusStore.setState({
+      sessions: [],
+      activeSessionId: null,
+      currentFocusTask: null,
+      currentFocusTaskPath: null,
+    })
+  })
+
+  test('steps focus to docked to browse and saves the current task anchor', () => {
+    const currentTask = createTask('current-task', 'Current task', 0)
+    useFocusStore.setState({
+      sessions: [createFocusSession('session1', 0, 1)],
+      activeSessionId: 'session1',
+      currentFocusTask: currentTask,
+      currentFocusTaskPath: ['project1', 'current-task'],
+    })
+
+    useFocusStore.getState().zoomSessionOut('session1')
+
+    expect(useFocusStore.getState().sessions[0]).toMatchObject({
+      view: 'docked',
+      currentFocusTaskId: 'current-task',
+    })
+    expect(trackFocusSessionUpdated).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      view: 'focus',
+      currentFocusTaskId: 'current-task',
+    }))
+    expect(trackFocusSessionUpdated).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      view: 'docked',
+      currentFocusTaskId: 'current-task',
+    }))
+
+    useFocusStore.getState().zoomSessionOut('session1')
+    expect(useFocusStore.getState().sessions[0].view).toBe('browse')
+
+    const browseSession = useFocusStore.getState().sessions[0]
+    useFocusStore.getState().zoomSessionOut('session1')
+    expect(useFocusStore.getState().sessions[0]).toBe(browseSession)
+    expect(trackFocusSessionUpdated).toHaveBeenCalledTimes(3)
+  })
+})
+
+describe('Focus Store - Session Anchor Selector', () => {
+  test('resolves a live nested task and its full path within the session project', () => {
+    const anchor = createTask('anchor', 'Anchor task', 0)
+    const parent = createTask('parent', 'Parent task', 0, [anchor])
+    const projects = createTestProject([parent])
+    useFocusStore.setState({
+      sessions: [{
+        ...createFocusSession('session1', 0, 1),
+        currentFocusTaskId: 'anchor',
+      }],
+    })
+
+    expect(getSessionAnchorTask(useFocusStore.getState(), projects, 'session1')).toEqual({
+      task: anchor,
+      fullPath: ['project1', 'parent', 'anchor'],
+    })
+  })
+
+  test('returns null when the anchor task is completed or missing', () => {
+    const completedAnchor = { ...createTask('anchor', 'Anchor task', 0), completed: true }
+    const projects = createTestProject([completedAnchor])
+    useFocusStore.setState({
+      sessions: [{
+        ...createFocusSession('session1', 0, 1),
+        currentFocusTaskId: 'anchor',
+      }],
+    })
+
+    expect(getSessionAnchorTask(useFocusStore.getState(), projects, 'session1')).toBeNull()
+
+    useFocusStore.setState({
+      sessions: [{
+        ...createFocusSession('session1', 0, 1),
+        currentFocusTaskId: 'missing',
+      }],
+    })
+    expect(getSessionAnchorTask(useFocusStore.getState(), projects, 'session1')).toBeNull()
   })
 })

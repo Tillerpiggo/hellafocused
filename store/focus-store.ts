@@ -54,7 +54,8 @@ interface FocusState {
   reorderSessions: (fromIndex: number, toIndex: number) => void
   duplicateSession: (fromIndex: number, toIndex: number) => string | null
   renameSession: (sessionId: string, name: string) => void
-  setSessionView: (sessionId: string, view: 'focus' | 'browse') => void
+  setSessionView: (sessionId: string, view: 'focus' | 'docked' | 'browse') => void
+  zoomSessionOut: (sessionId: string) => void
   setSessionBrowsePath: (sessionId: string, path: TaskPath) => void
   setSessionScope: (sessionId: string, projects: ProjectData[], path: TaskPath) => void
   setSessionNotes: (sessionId: string, notes: string) => void
@@ -382,6 +383,18 @@ export const useFocusStore = create<FocusState>()(
 
       setSessionView: (sessionId, view) => {
         updateAndTrackSession(set, get, sessionId, session => ({ ...session, view }))
+      },
+
+      zoomSessionOut: (sessionId) => {
+        const session = get().sessions.find(candidate => candidate.id === sessionId)
+        if (!session || session.view === 'browse') return
+
+        if (session.view === 'focus') get().saveCurrentSessionState()
+
+        updateAndTrackSession(set, get, sessionId, current => ({
+          ...current,
+          view: current.view === 'focus' ? 'docked' : 'browse',
+        }))
       },
 
       setSessionBrowsePath: (sessionId, path) => {
@@ -766,3 +779,22 @@ export function canShuffleCurrentTask(state: FocusState): boolean {
   return available.length > 0
 }
 
+export function getSessionAnchorTask(
+  state: FocusState,
+  projects: ProjectData[],
+  sessionId: string,
+): { task: TaskData; fullPath: TaskPath } | null {
+  const session = state.sessions.find(candidate => candidate.id === sessionId)
+  if (!session?.currentFocusTaskId) return null
+
+  const projectId = getProjectId(session.startPath)
+  if (!projectId) return null
+
+  const project = projects.find(candidate => candidate.id === projectId)
+  const indexedTask = project
+    ? indexTaskPaths(project.tasks, project.id).get(session.currentFocusTaskId)
+    : null
+  if (!indexedTask || indexedTask.task.completed) return null
+
+  return { task: indexedTask.task, fullPath: indexedTask.path }
+}

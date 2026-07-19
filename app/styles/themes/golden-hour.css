@@ -149,6 +149,11 @@
   --link-color: 35 55% 40%;
   --link-hover: 35 60% 32%;
   --link-decoration: 38 35% 68%;
+
+  /* Text selection & caret */
+  --selection: 45 92% 80%;
+  --selection-foreground: 35 30% 14%;
+  --caret: 40 88% 50%;                   /* matches primary */
 }
 
 /* Golden Hour - Dark mode */
@@ -292,4 +297,9 @@
   --link-color: 40 50% 68%;
   --link-hover: 40 45% 75%;
   --link-decoration: 38 30% 38%;
+
+  /* Text selection & caret - dark */
+  --selection: 40 60% 28%;
+  --selection-foreground: 40 25% 95%;
+  --caret: 40 85% 58%;                   /* matches primary */
 }

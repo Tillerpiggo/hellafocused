@@ -39,6 +39,11 @@ export interface ColorPalette {
   colorInfo: HSLColor
   colorHighlight: HSLColor
 
+  // Text selection & caret
+  selection: HSLColor
+  selectionForeground: HSLColor
+  caret: HSLColor
+
   // Glass morphism
   glassBg: string  // RGBA string
   glassBorder: string  // RGBA string

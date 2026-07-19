@@ -23,9 +23,11 @@ interface TaskItemProps {
   orderNumber?: number // When set, shows a numbered circle instead of a checkbox (parent is ordered)
   onNavigate?: (taskId: string) => void
   onCreateFocusSession?: (taskPath: TaskPath) => void
+  isFocusAnchor?: boolean
+  onFocusAnchor?: () => void
 }
 
-export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false, previewPriority, onEditingChange, orderNumber, onNavigate, onCreateFocusSession }: TaskItemProps) {
+export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging = false, previewPriority, onEditingChange, orderNumber, onNavigate, onCreateFocusSession, isFocusAnchor = false, onFocusAnchor }: TaskItemProps) {
   const navigateToTask = useNavigationStore((state) => state.navigateToTask)
   const updateTaskName = useAppStore((state) => state.updateTaskName)
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
@@ -49,6 +51,10 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
 
   const handleNavigate = () => {
     if (!isEditing) {
+      if (isFocusAnchor && onFocusAnchor) {
+        onFocusAnchor()
+        return
+      }
       // Always navigate, even if task is completed
       if (onNavigate) onNavigate(task.id)
       else navigateToTask(task.id)
@@ -74,7 +80,9 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
           ? "task-item-deferred"
           : "task-item-normal",
         "cursor-pointer shadow-sm hover:shadow-md",
+        isFocusAnchor && "ring-1 ring-primary/30 shadow-[0_12px_32px_-12px_hsl(var(--primary)/0.35)]",
       )}
+      aria-current={isFocusAnchor ? "step" : undefined}
       data-dragging={isDragging || undefined}
       onClick={handleNavigate}
     >
@@ -143,6 +151,12 @@ export const TaskItem = memo(function TaskItem({ task, currentPath, isDragging =
         </div>
       </div>
       <div className="flex items-center gap-2 text-xs text-muted-foreground flex-shrink-0 ml-2">
+        {isFocusAnchor && (
+          <span className="relative mr-1 flex h-2 w-2" aria-hidden="true">
+            <span className="focus-dot-ripple absolute inset-0 rounded-full bg-primary" />
+            <span className="relative h-2 w-2 rounded-full bg-primary/90" />
+          </span>
+        )}
         {effectivePriority === 1 && !task.completed && (
           <Star className="h-4 w-4 text-priority-icon/60 fill-priority-fill/60" />
         )}

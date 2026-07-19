@@ -149,6 +149,11 @@
   --link-color: 333 71% 51%;              /* pink-600 */
   --link-hover: 335 78% 42%;              /* pink-700 */
   --link-decoration: 327 47% 78%;         /* pink-300 */
+
+  /* Text selection & caret */
+  --selection: 345 60% 86%;
+  --selection-foreground: 345 30% 15%;
+  --caret: 345 45% 52%;                   /* matches primary */
 }
 
 /* Pink Zen - Dark mode */
@@ -292,4 +297,9 @@
   --link-color: 335 60% 72%;              /* pink-400 */
   --link-hover: 335 50% 78%;              /* pink-300 */
   --link-decoration: 340 50% 40%;         /* pink-600 */
+
+  /* Text selection & caret - dark */
+  --selection: 340 45% 32%;
+  --selection-foreground: 330 30% 96%;
+  --caret: 340 60% 65%;                   /* matches primary */
 }

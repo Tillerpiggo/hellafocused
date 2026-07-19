@@ -15,9 +15,11 @@ interface SortableTaskItemProps {
   orderNumber?: number
   onNavigate?: (taskId: string) => void
   onCreateFocusSession?: (taskPath: TaskPath) => void
+  isFocusAnchor?: boolean
+  onFocusAnchor?: () => void
 }
 
-export const SortableTaskItem = memo(function SortableTaskItem({ task, index, currentPath, disabled, previewPriority, orderNumber, onNavigate, onCreateFocusSession }: SortableTaskItemProps) {
+export const SortableTaskItem = memo(function SortableTaskItem({ task, index, currentPath, disabled, previewPriority, orderNumber, onNavigate, onCreateFocusSession, isFocusAnchor, onFocusAnchor }: SortableTaskItemProps) {
   const [taskIsEditing, setTaskIsEditing] = useState(false)
   return (
     <Draggable 
@@ -67,6 +69,8 @@ export const SortableTaskItem = memo(function SortableTaskItem({ task, index, cu
               orderNumber={orderNumber}
               onNavigate={onNavigate}
               onCreateFocusSession={onCreateFocusSession}
+              isFocusAnchor={isFocusAnchor}
+              onFocusAnchor={onFocusAnchor}
             />
           </div>
         );

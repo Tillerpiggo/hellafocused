@@ -149,6 +149,11 @@
   --link-color: 350 30% 45%;
   --link-hover: 350 35% 36%;
   --link-decoration: 350 22% 72%;
+
+  /* Text selection & caret */
+  --selection: 350 45% 87%;
+  --selection-foreground: 350 20% 15%;
+  --caret: 350 32% 52%;                   /* matches primary */
 }
 
 /* Rose Quartz - Dark mode */
@@ -292,4 +297,9 @@
   --link-color: 350 30% 70%;
   --link-hover: 350 25% 76%;
   --link-decoration: 350 25% 38%;
+
+  /* Text selection & caret - dark */
+  --selection: 350 28% 32%;
+  --selection-foreground: 15 20% 95%;
+  --caret: 350 35% 65%;                   /* matches primary */
 }
