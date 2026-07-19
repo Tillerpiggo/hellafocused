@@ -1,12 +1,13 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { FocusView } from "./focus-view"
 import { PendingBanner } from "./pending-banner"
 import { SessionBrowser } from "./session-browser"
 import { DockedSessionView } from "./docked-session-view"
 import { useAppStore } from "@/store/app-store"
 import { useFocusStore } from "@/store/focus-store"
+import { shouldAnimateFocusEntrance } from "@/lib/focus-session-transition"
 import type { TaskPath } from "@/lib/task-path"
 
 export function FocusSessionWorkspace({
@@ -21,6 +22,14 @@ export function FocusSessionWorkspace({
   const activeSessionId = useFocusStore(state => state.activeSessionId)
   const switchSession = useFocusStore(state => state.switchSession)
   const zoomSessionOut = useFocusStore(state => state.zoomSessionOut)
+  const previousSessionId = useRef<string | null>(null)
+  const animateEntrance = shouldAnimateFocusEntrance(previousSessionId.current, sessionId)
+
+  useEffect(() => {
+    // Keep the previous id through the render that activates the target session.
+    // This also suppresses task-level entrance motion when its keyed view mounts.
+    if (activeSessionId === sessionId) previousSessionId.current = sessionId
+  }, [activeSessionId, sessionId])
 
   useEffect(() => {
     if (session && activeSessionId !== sessionId) switchSession(sessionId, projects)
@@ -42,10 +51,18 @@ export function FocusSessionWorkspace({
           <PendingBanner sessionId={sessionId} />
         </>
       )}
-      {session.view === 'docked' && <DockedSessionView sessionId={sessionId} />}
+      {session.view === 'docked' && (
+        <DockedSessionView
+          sessionId={sessionId}
+          animateEntrance={animateEntrance}
+        />
+      )}
       {session.view === 'focus' && (
         <div className="fixed inset-0 z-[100] bg-background text-foreground">
-          <FocusView onExitFocus={() => zoomSessionOut(sessionId)} />
+          <FocusView
+            onExitFocus={() => zoomSessionOut(sessionId)}
+            animateEntrance={animateEntrance}
+          />
         </div>
       )}
     </div>

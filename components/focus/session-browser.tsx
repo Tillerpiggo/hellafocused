@@ -93,7 +93,7 @@ export function SessionBrowser({
   const navigate = (nextPath: TaskPath) => setBrowsePath(sessionId, nextPath)
   const navigateBack = () => navigate(path.slice(0, -1))
   const focusHere = () => setSessionScope(sessionId, projects, path)
-  const continueFocus = () => setSessionView(sessionId, 'focus')
+  const continueFocus = () => setSessionView(sessionId, 'docked')
 
   const backLabel = isProject(path)
     ? "Projects"

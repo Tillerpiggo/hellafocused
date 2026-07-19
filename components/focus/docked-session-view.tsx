@@ -4,12 +4,18 @@ import { useFocusStore } from "@/store/focus-store"
 import { FocusButton } from "./focus-button"
 import { FocusView } from "./focus-view"
 
-export function DockedSessionView({ sessionId }: { sessionId: string }) {
+export function DockedSessionView({
+  sessionId,
+  animateEntrance = true,
+}: {
+  sessionId: string
+  animateEntrance?: boolean
+}) {
   const currentFocusTask = useFocusStore(state => state.currentFocusTask)
   const setSessionView = useFocusStore(state => state.setSessionView)
   const zoomSessionOut = useFocusStore(state => state.zoomSessionOut)
 
-  const continueFocus = () => setSessionView(sessionId, "focus")
+  const enterSuperfocus = () => setSessionView(sessionId, "focus")
 
   return (
     <div
@@ -19,12 +25,13 @@ export function DockedSessionView({ sessionId }: { sessionId: string }) {
       <FocusView
         presentation="docked"
         onExitFocus={() => zoomSessionOut(sessionId)}
+        animateEntrance={animateEntrance}
       />
       {currentFocusTask && (
         <FocusButton
-          onClick={continueFocus}
-          label="Continue"
-          title={`Continue ${currentFocusTask.name}`}
+          onClick={enterSuperfocus}
+          label="Superfocus"
+          title={`Superfocus on ${currentFocusTask.name}`}
         />
       )}
     </div>
