@@ -13,9 +13,11 @@ import { SessionNotepad } from "./session-notepad"
 export function FocusView({
   onExitFocus,
   presentation = "fullscreen",
+  animateEntrance = true,
 }: {
   onExitFocus?: () => void
   presentation?: "fullscreen" | "docked"
+  animateEntrance?: boolean
 }) {
   const projects = useAppStore((state) => state.projects)
   const toggleTaskDefer = useAppStore((state) => state.toggleTaskDefer)
@@ -52,7 +54,7 @@ export function FocusView({
     if (activeSessionId) resolvePending(activeSessionId)
   }, [activeSessionId, resolvePending])
 
-  const [isInitialLoad, setIsInitialLoad] = useState(true)
+  const [isInitialLoad, setIsInitialLoad] = useState(animateEntrance)
   const [isExiting, setIsExiting] = useState(false)
   const [currentTaskPriority, setCurrentTaskPriority] = useState(0)
   const [showInfoOverlay, setShowInfoOverlay] = useState(false)
@@ -126,11 +128,16 @@ export function FocusView({
 
   // Handle initial load animation
   useEffect(() => {
+    if (!animateEntrance) {
+      setIsInitialLoad(false)
+      return
+    }
+
     const timer = setTimeout(() => {
       setIsInitialLoad(false)
     }, 150)
     return () => clearTimeout(timer)
-  }, [])
+  }, [animateEntrance])
 
   // Handle Escape key to exit focus mode
   useEffect(() => {
@@ -196,7 +203,7 @@ export function FocusView({
           onTogglePrefer={handleTogglePrefer}
           showInfoOverlay={showInfoOverlay}
           onShowInfoOverlay={setShowInfoOverlay}
-          animateInitialTask={presentation === "fullscreen"}
+          animateInitialTask={presentation === "fullscreen" && animateEntrance}
         />
       )
     }
