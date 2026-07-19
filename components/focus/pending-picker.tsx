@@ -7,7 +7,8 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
-import { CheckCircle2 } from "lucide-react"
+import { CheckCircle2, Hourglass } from "lucide-react"
+import { msUntilClockTime, formatClockTimeTarget } from "@/lib/pending-time"
 import type React from "react"
 
 interface PendingPickerProps {
@@ -61,10 +62,45 @@ export function formatRemainingFull(ms: number): string {
   return parts.join(" ")
 }
 
+// Inline clock-time row shared by the picker and the sidebar submenus. Lives
+// inside menu content, so it stops click/key propagation to keep the menu open
+// and its typeahead from stealing keystrokes.
+function ClockTimeInput({
+  value,
+  onChange,
+  onSubmit,
+}: {
+  value: string
+  onChange: (value: string) => void
+  onSubmit: () => void
+}) {
+  const targetLabel = formatClockTimeTarget(value)
+  return (
+    <div className="px-2 py-1.5" onClick={(e) => e.stopPropagation()}>
+      <input
+        type="time"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") onSubmit()
+          e.stopPropagation()
+        }}
+        autoFocus
+        aria-label="Reminder time"
+        className="w-full rounded border border-foreground/20 bg-transparent px-2 py-1 text-sm outline-none focus:border-primary"
+      />
+      {targetLabel && (
+        <div className="mt-1 text-xs text-muted-foreground">{targetLabel}</div>
+      )}
+    </div>
+  )
+}
+
 export function PendingPicker({ children, isPending, remindAt, onMarkPending, onResolve }: PendingPickerProps) {
-  const [showCustom, setShowCustom] = useState(false)
+  const [customMode, setCustomMode] = useState<"duration" | "time" | null>(null)
   const [customValue, setCustomValue] = useState("")
   const [customUnit, setCustomUnit] = useState<CustomUnit>("min")
+  const [timeValue, setTimeValue] = useState("")
   const [isOpen, setIsOpen] = useState(false)
   const [remainingLabel, setRemainingLabel] = useState<string | null>(null)
 
@@ -90,18 +126,27 @@ export function PendingPicker({ children, isPending, remindAt, onMarkPending, on
     const val = parseInt(customValue, 10)
     if (val >= 1 && val <= UNIT_MAX[customUnit]) {
       onMarkPending(val * UNIT_TO_MS[customUnit])
-      setShowCustom(false)
+      setCustomMode(null)
       setCustomValue("")
     }
+  }
+
+  const handleTimeSubmit = () => {
+    const ms = msUntilClockTime(timeValue)
+    if (ms == null) return
+    onMarkPending(ms)
+    setCustomMode(null)
+    setTimeValue("")
   }
 
   return (
     <DropdownMenu onOpenChange={(open) => {
       setIsOpen(open)
       if (!open) {
-        setShowCustom(false)
+        setCustomMode(null)
         setCustomValue("")
         setCustomUnit("min")
+        setTimeValue("")
       }
     }}>
       <DropdownMenuTrigger asChild>
@@ -141,17 +186,29 @@ export function PendingPicker({ children, isPending, remindAt, onMarkPending, on
           No reminder
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        {!showCustom ? (
-          <DropdownMenuItem
-            className="cursor-pointer"
-            onSelect={(e) => {
-              e.preventDefault()
-              setShowCustom(true)
-            }}
-          >
-            Custom...
-          </DropdownMenuItem>
-        ) : (
+        {customMode === null && (
+          <>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onSelect={(e) => {
+                e.preventDefault()
+                setCustomMode("duration")
+              }}
+            >
+              Custom...
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onSelect={(e) => {
+                e.preventDefault()
+                setCustomMode("time")
+              }}
+            >
+              At a time...
+            </DropdownMenuItem>
+          </>
+        )}
+        {customMode === "duration" && (
           <div className="px-2 py-1.5 flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
             <input
               type="number"
@@ -181,7 +238,92 @@ export function PendingPicker({ children, isPending, remindAt, onMarkPending, on
             </select>
           </div>
         )}
+        {customMode === "time" && (
+          <ClockTimeInput value={timeValue} onChange={setTimeValue} onSubmit={handleTimeSubmit} />
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
+  )
+}
+
+// Structural props so the sidebar's DropdownMenu and ContextMenu families can
+// share one implementation of the pending submenu.
+type MenuSubComponent = React.ComponentType<{
+  children?: React.ReactNode
+  onOpenChange?: (open: boolean) => void
+}>
+
+type MenuItemComponent = React.ComponentType<{
+  children?: React.ReactNode
+  className?: string
+  onClick?: () => void
+  onSelect?: (event: Event) => void
+}>
+
+interface PendingReminderSubmenuProps {
+  Sub: MenuSubComponent
+  SubTrigger: React.ComponentType<{ children?: React.ReactNode }>
+  SubContent: React.ComponentType<{ children?: React.ReactNode }>
+  Item: MenuItemComponent
+  Separator: React.ComponentType<{ className?: string }>
+  isPending: boolean
+  onMarkPending: (remindInMs: number | null) => void
+}
+
+export function PendingReminderSubmenu({
+  Sub,
+  SubTrigger,
+  SubContent,
+  Item,
+  Separator,
+  isPending,
+  onMarkPending,
+}: PendingReminderSubmenuProps) {
+  const [showTime, setShowTime] = useState(false)
+  const [timeValue, setTimeValue] = useState("")
+
+  const reset = () => {
+    setShowTime(false)
+    setTimeValue("")
+  }
+
+  const handleTimeSubmit = () => {
+    const ms = msUntilClockTime(timeValue)
+    if (ms == null) return
+    onMarkPending(ms)
+    reset()
+  }
+
+  return (
+    <Sub onOpenChange={(open) => { if (!open) reset() }}>
+      <SubTrigger>
+        <Hourglass className="mr-2 h-4 w-4" />
+        {isPending ? "Remind again" : "Mark pending"}
+      </SubTrigger>
+      <SubContent>
+        {PENDING_PRESETS.map(preset => (
+          <Item key={preset.ms} onClick={() => onMarkPending(preset.ms)} className="cursor-pointer">
+            {preset.label}
+          </Item>
+        ))}
+        <Item onClick={() => onMarkPending(null)} className="cursor-pointer text-muted-foreground">
+          No reminder
+        </Item>
+        <Separator />
+        {!showTime ? (
+          <Item
+            className="cursor-pointer"
+            onSelect={(e) => {
+              e.preventDefault()
+              setShowTime(true)
+            }}
+          >
+            At a time...
+          </Item>
+        ) : (
+          <ClockTimeInput value={timeValue} onChange={setTimeValue} onSubmit={handleTimeSubmit} />
+        )}
+      </SubContent>
+    </Sub>
   )
 }

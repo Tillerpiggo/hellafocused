@@ -13,13 +13,14 @@ import {
   type DropResult,
   type Sensor,
 } from "@hello-pangea/dnd"
-import { CheckCircle2, Copy, Hourglass, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react"
+import { CheckCircle2, Copy, MoreHorizontal, Pencil, Plus, Trash2 } from "lucide-react"
 import { useFocusStore } from "@/store/focus-store"
 import { useAppStore } from "@/store/app-store"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuSub,
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
@@ -29,6 +30,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSeparator,
   ContextMenuSub,
   ContextMenuSubContent,
   ContextMenuSubTrigger,
@@ -36,7 +38,7 @@ import {
 } from "@/components/ui/context-menu"
 import { cn } from "@/lib/utils"
 import type { FocusSession } from "@/lib/types"
-import { PENDING_PRESETS } from "@/components/focus/pending-picker"
+import { PendingReminderSubmenu } from "@/components/focus/pending-picker"
 import { useOptionMouseSensor } from "./use-option-mouse-sensor"
 
 const focusSessionSensors: Sensor[] = [
@@ -299,22 +301,15 @@ function SessionRow({
                           <CheckCircle2 className="mr-2 h-4 w-4" /> Resolve pending
                         </DropdownMenuItem>
                       )}
-                      <DropdownMenuSub>
-                        <DropdownMenuSubTrigger>
-                          <Hourglass className="mr-2 h-4 w-4" />
-                          {session.pending ? "Remind again" : "Mark pending"}
-                        </DropdownMenuSubTrigger>
-                        <DropdownMenuSubContent>
-                          {PENDING_PRESETS.map(preset => (
-                            <DropdownMenuItem key={preset.ms} onClick={() => markPending(session.id, preset.ms)}>
-                              {preset.label}
-                            </DropdownMenuItem>
-                          ))}
-                          <DropdownMenuItem onClick={() => markPending(session.id, null)} className="text-muted-foreground">
-                            No reminder
-                          </DropdownMenuItem>
-                        </DropdownMenuSubContent>
-                      </DropdownMenuSub>
+                      <PendingReminderSubmenu
+                        Sub={DropdownMenuSub}
+                        SubTrigger={DropdownMenuSubTrigger}
+                        SubContent={DropdownMenuSubContent}
+                        Item={DropdownMenuItem}
+                        Separator={DropdownMenuSeparator}
+                        isPending={!!session.pending}
+                        onMarkPending={(ms) => markPending(session.id, ms)}
+                      />
                       <DropdownMenuItem onClick={closeSession} className="text-destructive focus:text-destructive">
                         <Trash2 className="mr-2 h-4 w-4" /> Close permanently
                       </DropdownMenuItem>
@@ -332,22 +327,15 @@ function SessionRow({
                   <CheckCircle2 className="mr-2 h-4 w-4" /> Resolve pending
                 </ContextMenuItem>
               )}
-              <ContextMenuSub>
-                <ContextMenuSubTrigger>
-                  <Hourglass className="mr-2 h-4 w-4" />
-                  {session.pending ? "Remind again" : "Mark pending"}
-                </ContextMenuSubTrigger>
-                <ContextMenuSubContent>
-                  {PENDING_PRESETS.map(preset => (
-                    <ContextMenuItem key={preset.ms} onClick={() => markPending(session.id, preset.ms)}>
-                      {preset.label}
-                    </ContextMenuItem>
-                  ))}
-                  <ContextMenuItem onClick={() => markPending(session.id, null)} className="text-muted-foreground">
-                    No reminder
-                  </ContextMenuItem>
-                </ContextMenuSubContent>
-              </ContextMenuSub>
+              <PendingReminderSubmenu
+                Sub={ContextMenuSub}
+                SubTrigger={ContextMenuSubTrigger}
+                SubContent={ContextMenuSubContent}
+                Item={ContextMenuItem}
+                Separator={ContextMenuSeparator}
+                isPending={!!session.pending}
+                onMarkPending={(ms) => markPending(session.id, ms)}
+              />
               <ContextMenuItem onClick={closeSession} className="text-destructive focus:text-destructive">
                 <Trash2 className="mr-2 h-4 w-4" /> Close permanently
               </ContextMenuItem>
